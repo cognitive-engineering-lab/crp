@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Moved members - Rust Phrasebook for C++ Programmers</title>
+        <title>Sentinel values - Rust Phrasebook for C++ Programmers</title>
 
 
         <!-- Custom HTML head -->
@@ -156,52 +156,150 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="moved-members"><a class="header" href="#moved-members">Moved members</a></h1>
-<p>One common use of null pointers in modern C++ is as values for the members of
-moved objects so that the destructor can still safely be called. E.g.,</p>
-<pre><code class="language-c++ hidelines=#"><span class="boring"> #include &lt;cstdlib&gt;
-</span><span class="boring"> #include &lt;cstring&gt;
-</span><span class="boring">
-</span>// widget.h
-struct widget_t;
-widget_t *alloc_widget();
-void free_widget(widget_t*);
-void copy_widget(widget_t* dst, widget_t* src);
+                        <h1 id="sentinel-values"><a class="header" href="#sentinel-values">Sentinel values</a></h1>
+<p>Sentinel values are in-band value that indicates a special situation, such as
+having reached the end of valid data in an iterator.</p>
+<h2 id="nullptr"><a class="header" href="#nullptr"><code>nullptr</code></a></h2>
+<p>Many designs in C++ borrow the convention from C of using a null pointer as a
+sentinel value for a method that returns owned pointers. For example, a method
+that parses a large structure may produce <code>std::nullptr</code> in the case of failure.</p>
+<pre><code class="language-c++">#include &lt;memory&gt;
 
-// widget.cc
-class Widget {
-    widget_t* widget;
-public:
-<span class="boring">    Widget() : widget(alloc_widget()) {}
-</span><span class="boring">
-</span><span class="boring">    Widget(const Widget &amp;other) : widget(alloc_widget()) {
-</span><span class="boring">        copy_widget(widget, other.widget);
-</span><span class="boring">    }
-</span><span class="boring">
-</span>    Widget(Widget &amp;&amp;other) : widget(other.widget) {
-        other.widget = nullptr;
-    }
-
-    ~Widget() {
-        free_widget(widget);
-    }
+class LargeStructure {
+  int field;
+  // many fields ...
 };
+
+std::unique_ptr&lt;LargeStructure&gt; parse(char *data, size_t len) {
+  // ...
+
+  // on failure
+  return nullptr;
+}
 </code></pre>
-<p>Rust's notion of moving objects does not involve leaving behind an object on
-which a destructor will be called, and so this use of null does not have a
-corresponding idiom. See the chapter on <a href="/idioms/constructors/copy_and_move_constructors.html">copy and move
-constructors</a> for more
-details.</p>
+<p>A similar situation in Rust would make use of the type
+<code>Option&lt;Box&lt;LargeStructure&gt;&gt;</code>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct LargeStructure {
+    field: i32,
+    // many fields ...
+}
+
+fn parse(data: &amp;[u8]) -&gt; Option&lt;Box&lt;LargeStructure&gt;&gt; {
+    // ...
+
+    // on failure
+    None
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The <code>Box&lt;T&gt;</code> type has the same meaning as <code>std::unique_ptr&lt;T&gt;</code> in terms of being
+an uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
+it cannot be null. Rust's <code>Option&lt;T&gt;</code> is like <code>std::optional&lt;T&gt;</code> in C++, except
+that it can be used with pointers and references. In <a href="/idioms/data_modeling/template_specialization.html#niche-optimization">those cases (and in some
+other
+cases)</a> the
+compiler optimizes the representation to be the same size as <code>Box&lt;T&gt;</code> by
+leveraging the fact that <code>Box</code> cannot be null.</p>
+<p>In Rust it is also common to pay the cost for the extra byte to use a return
+type of <code>Result&lt;T, E&gt;</code> (which is akin to <code>std::expected</code> in C++23) in order to
+make the reason for the failure available at runtime.</p>
+<h2 id="integer-sentinels"><a class="header" href="#integer-sentinels">Integer sentinels</a></h2>
+<p>When a possibly-failing function produces an integer, it is also common to use
+an otherwise unused or unlikely integer value as a sentinel value, such as <code>0</code>
+or <code>INT_MAX</code>.</p>
+<pre><code class="language-c++">#include &lt;algorithm&gt;
+
+int gcd(int a, int b) {
+  if (b == 0 || a == 0) {
+    // returns 0 to indicate invalid input
+    return 0;
+  }
+
+  while (b != 0) {
+    int temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return std::abs(a);
+}
+</code></pre>
+<p>In Rust, the <code>Option</code> type is used for this purpose. In cases where the zero
+value really is not possible to produce, as with the gcd algorithm above, the
+type <code>NonZero&lt;T&gt;</code> can be used to indicate that fact. As with <code>Option&lt;Box&lt;T&gt;&gt;</code>,
+the compiler optimizes the representation to make use of the unused value (in
+this case <code>0</code>) to represent the <code>None</code> case to ensure that the representation of
+<code>Option&lt;NonZero&lt;T&gt;&gt;</code> is the same as the representation of <code>Option&lt;T&gt;</code>.</p>
+<pre><pre class="playground"><code class="language-rust">use std::num::NonZero;
+
+fn gcd(mut a: i32, mut b: i32) -&gt; Option&lt;NonZero&lt;i32&gt;&gt; {
+    if a == 0 || b == 0 {
+        return None;
+    }
+
+    while b != 0 {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    // At this point, a is guaranteed to not be zero. The `Some` case from
+    // `NonZer::new` has a different meaning than the `Some` returned from this
+    // function, but here it happens to coincide.
+    NonZero::new(a.abs())
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    assert!(gcd(5, 0) == None);
+</span><span class="boring">    assert!(gcd(0, 5) == None);
+</span><span class="boring">    assert!(gcd(5, 1) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(1, 5) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(2 * 2 * 3 * 5 * 7, 2 * 2 * 7 * 11) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">    assert!(gcd(2 * 2 * 7 * 11, 2 * 2 * 3 * 5 * 7) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">}</span></code></pre></pre>
+<p>As an aside, it is also possible to avoid the redundant check for zero at the end, and
+without using unsafe Rust, by preserving the non-zeroness property throughout
+the algorithm.</p>
+<pre><pre class="playground"><code class="language-rust">use std::num::NonZero;
+
+fn gcd(x: i32, mut b: i32) -&gt; Option&lt;NonZero&lt;i32&gt;&gt; {
+    if b == 0 {
+        return None;
+    }
+
+    // a is guaranteed to be non-zero, so we record the fact in the type of a.
+    let mut a = NonZero::new(x)?;
+
+    while let Some(temp) = NonZero::new(b) {
+        b = a.get() % b;
+        a = temp;
+    }
+    Some(a.abs())
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    assert!(gcd(5, 0) == None);
+</span><span class="boring">    assert!(gcd(0, 5) == None);
+</span><span class="boring">    assert!(gcd(5, 1) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(1, 5) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(2 * 2 * 3 * 5 * 7, 2 * 2 * 7 * 11) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">    assert!(gcd(2 * 2 * 7 * 11, 2 * 2 * 3 * 5 * 7) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">}</span></code></pre></pre>
+<h2 id="stdoptional"><a class="header" href="#stdoptional"><code>std::optional</code></a></h2>
+<p>In situations where <code>std::optional</code> would be used as a sentinel value in C++,
+<code>Option</code> can be used for the same purpose in Rust. The main difference between
+the two is that safe Rust requires either explicitly checking whether the value is
+<code>None</code>, while in C++ one can attempt to access the value without checking (at
+the risk of undefined behavior).</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../idioms/null/sentinel_values.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../idioms/null/zero_length_arrays.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/encapsulation/headers.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/null/moved_members.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -211,11 +309,11 @@ details.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../idioms/null/sentinel_values.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../idioms/null/zero_length_arrays.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/encapsulation/headers.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/null/moved_members.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

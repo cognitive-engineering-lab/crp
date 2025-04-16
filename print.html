@@ -193,15 +193,41 @@ unions.</p>
 <p>Rust, on the other hand, uses records
 (<a href="https://doc.rust-lang.org/book/ch05-00-structs.html">structs</a>) and algebraic
 data types (<a href="https://doc.rust-lang.org/book/ch06-00-enums.html">enums</a>).</p>
-<p>One major difference between C++ and Rust that arises from this is that C++
-types are open (i.e., you can define a new variant of a type by defining a
-subclass), while Rust types are closed (that the set of variants for a Rust type
-are fixed at the time of definition). The other side of this trade-off is that
-in C++ the set of interfaces that are supported by a type is closed, while in
-Rust the set of interfaces is open. In both languages, there are ways to work
-around the restrictions of the other (e.g., the adapter pattern in C++).</p>
+<p>Although Rust supports one major piece of object oriented design, interface
+polymorphism, Rust also has language features for modeling things using
+algebraic data types (which in simple cases are like a much more ergonomic
+<code>std::variant</code>).</p>
 <p>This section gives examples of common constructions used when programming in C++
 data and how to achieve the same effects using Rust's features.</p>
+<h2 id="fixed-operations-varying-data"><a class="header" href="#fixed-operations-varying-data">Fixed operations, varying data</a></h2>
+<p>In situations where one needs to model a fixed set of operations that clients
+will use, but the data that implements those operations are not fixed ahead of
+time, the approach in C++ and the approach in Rust are the same. In both cases
+interfaces that defines the required operations are defined. Concrete types,
+possibly defined by the client, implement those interfaces.</p>
+<p>This way of modeling data can make use of either
+<a href="idioms//idioms/data_modeling/pure_virtual_classes.html">dynamic</a> or <a href="idioms//idioms/data_modeling/concepts.html">static
+dispatch</a>, each of which is covered in its
+own section.</p>
+<h2 id="fixed-data-varying-operations"><a class="header" href="#fixed-data-varying-operations">Fixed data, varying operations</a></h2>
+<p>In situations where there is a fixed set of data but the operations that the
+data must support vary, there are a few approaches in C++. Which approaches are
+available to use depend on the version of the standard in use.</p>
+<p>In older versions of the standard, one might use manually defined tagged unions.
+In newer versions, <code>std::variant</code> is available to improve the safety and
+ergonomics of tagged unions. <a href="idioms//idioms/data_modeling/tagged_unions.html">Both of these approaches map to the same approach
+in Rust</a>.</p>
+<p>Additionally, despite it not being strictly necessary to model a fixed set of
+variants, the visitor pattern is sometimes used for this situation, especially
+when using versions of the C++ standard before the introduction of
+<code>std::variant</code>. In most of these cases the idiomatic Rust solution is the same
+as what one would do when converting a C++ solution that uses tagged unions. The
+chapter on the <a href="idioms/TODO">visitor pattern</a> describes when to use a Rust version of
+the visitor pattern or when to use Rust's enums (which are closer to
+<code>std::variant</code> than to C++ enums) to model the data.</p>
+<h2 id="varying-data-and-operations"><a class="header" href="#varying-data-and-operations">Varying data and operations</a></h2>
+<p>When both data and operations may be extended by a client, the <a href="idioms/TODO">visitor pattern
+is used in both C++ and in Rust</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="enums"><a class="header" href="#enums">Enums</a></h1>
 <p>In C++, enums are often used to model fixed set alternatives, especially when
 each of those enumerators maps to a specific integer value, such as is needed
@@ -1126,7 +1152,7 @@ example, much like with C++ concepts, the constraint can be required for
 individual methods rather than for the whole generic class.</p>
 <p>Best practice in Rust to put the trait bounds on the specific things that
 require the bounds, in order to make the overall use of the types more flexible.</p>
-<p>Also, a more idiomatic implementation of <code>smallest_node</code> is</p>
+<p>As an aside, a more idiomatic implementation of <code>smallest_node</code> is</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span><span class="boring">pub struct DirectedGraph&lt;Label&gt; {
@@ -1174,6 +1200,7 @@ where
 }
 <span class="boring">}
 </span><span class="boring">}</span></code></pre></pre>
+<p>TODO explain why this is more idiomatic?</p>
 <h2 id="constexpr-template-parameters"><a class="header" href="#constexpr-template-parameters"><code>constexpr</code> template parameters</a></h2>
 <p>Rust also supports the equivalent of constexpr template parameters. For example,
 one can define a generic function that returns an array consecutive integers
@@ -1245,6 +1272,75 @@ like conditional compilation. Rust supports these use cases with its macro
 system, which differs significantly from C++. The most common use of the macro
 system, conditional compilation, is provided by <a href="https://doc.rust-lang.org/rust-by-example/attribute/cfg.html">the <code>cfg</code> attribute and <code>cfg!</code>
 macro</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="template-specialization"><a class="header" href="#template-specialization">Template specialization</a></h1>
+<p>Template specialization in C++ makes it possible for a template entity to have
+different implementations for different parameters. Most STL implementations
+make use of this to, for example, provide a <a href="https://en.cppreference.com/w/cpp/container/vector_bool">space-efficient representation of
+<code>std::vector&lt;bool&gt;</code></a>.</p>
+<p>In Rust it is not possible to specialize a generic implementation in this way.
+This is because unlike C++ templates, Rust's generics are not a mechanism for
+metaprogramming.</p>
+<p>Instead it is more common in Rust to define traits for interfaces and to
+implement generic functions over those interfaces, enabling clients to select
+their choice of representation by using a different concrete type. This is more
+practical to do in Rust than in C++ because generics not being a metaprogramming
+facility means that generic entities can be type checked locally, making them
+easier to define.</p>
+<p>Additionally, because generic functions can only interact with generic values in
+ways defined by the trait bounds, it is easier to test generic implementations.
+In particular, code testing a generic implementation only has to consider the
+possible behaviors of the given trait.</p>
+<p>For a comparison, consider the following Rust program.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn max&lt;'a, T: Ord&gt;(x: &amp;'a T, y: &amp;'a T) -&gt; &amp;'a T {
+    if x &gt; y {
+        x
+    } else {
+        y
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The <em>parametricity properties</em> of the program mean that (assuming safe Rust)
+from the type alone one can tell that if the function returns, it must return
+exactly one of <code>x</code> or <code>y</code>. This is because the trait bound <code>Ord</code> doesn't give
+any way to construct new values of type <code>T</code>, and the use of references doesn't
+give any way for the function to store one of <code>x</code> or <code>y</code> from an earlier call to
+return in a later call.</p>
+<p>Compare this with a C++ function with a similar signature:</p>
+<pre><code class="language-c++">template &lt;totally_ordered T&gt;
+T max(const T &amp;x, const T &amp;y) {
+  return (x &gt; y) ? x : y;
+}
+
+template &lt;&gt;
+int max(const int &amp;x, const int &amp;y) {
+  return (x &gt; y) ? x + 1 : y + 1;
+}
+</code></pre>
+<p>In this case, a call to <code>max</code> with <code>int</code> as the template parameter will give a
+distinctly different result than with any other parameter because of the
+template specialization enabling the behavior of the function to vary based on
+the type.</p>
+<p>The trade-off is that specialized implementations are harder to use because they
+must have different names, but that they are easier to use because it is easier
+to write generic code while being confident about its correctness.</p>
+<h2 id="niche-optimization"><a class="header" href="#niche-optimization">Niche optimization</a></h2>
+<p>There are several cases where the Rust compiler will perform optimizations to
+achieve more efficient representations. Those situations are all ones where the
+efficiency gains do not otherwise change the observable behavior of the code.</p>
+<p><a href="https://doc.rust-lang.org/std/option/index.html#representation">The most common case is with the <code>Option</code>
+type</a>. When
+<code>Option</code> is used with a type where the compiler can tell that there are unused
+values, one f those unused values will be used to represent the <code>None</code> case, so
+that <code>Option&lt;T&gt;</code> will not require an extra word of memory to indicate the
+discriminant of the enum.</p>
+<p>This optimization is applied to reference types (<code>&amp;</code> and <code>&amp;mut</code>), since
+references cannot be null. It is also applied to <code>NonNull&lt;T&gt;</code>, which represents
+a non-null pointer to a value of type <code>T</code>, and to <code>NonZeroU8</code> and other non-zero
+integral types. The optimization for the reference case is what makes
+<code>Option&lt;&amp;T&gt;</code> and <code>Option&lt;&amp;mut T&gt;</code> safer equivalents to using non-owning
+observation pointers in C++.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="zero-length-arrays"><a class="header" href="#zero-length-arrays">Zero-length arrays</a></h1>
 <p>In C++ codebases that are written in a C style or that make use of C libraries,
 null pointers may be used to represent empty arrays. This is because there is
@@ -1287,6 +1383,140 @@ fn main() {
     let sum2 = sum_slice(&amp;vec![]);
     assert!(sum2 == 0);
 }</code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="sentinel-values"><a class="header" href="#sentinel-values">Sentinel values</a></h1>
+<p>Sentinel values are in-band value that indicates a special situation, such as
+having reached the end of valid data in an iterator.</p>
+<h2 id="nullptr"><a class="header" href="#nullptr"><code>nullptr</code></a></h2>
+<p>Many designs in C++ borrow the convention from C of using a null pointer as a
+sentinel value for a method that returns owned pointers. For example, a method
+that parses a large structure may produce <code>std::nullptr</code> in the case of failure.</p>
+<pre><code class="language-c++">#include &lt;memory&gt;
+
+class LargeStructure {
+  int field;
+  // many fields ...
+};
+
+std::unique_ptr&lt;LargeStructure&gt; parse(char *data, size_t len) {
+  // ...
+
+  // on failure
+  return nullptr;
+}
+</code></pre>
+<p>A similar situation in Rust would make use of the type
+<code>Option&lt;Box&lt;LargeStructure&gt;&gt;</code>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct LargeStructure {
+    field: i32,
+    // many fields ...
+}
+
+fn parse(data: &amp;[u8]) -&gt; Option&lt;Box&lt;LargeStructure&gt;&gt; {
+    // ...
+
+    // on failure
+    None
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The <code>Box&lt;T&gt;</code> type has the same meaning as <code>std::unique_ptr&lt;T&gt;</code> in terms of being
+an uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
+it cannot be null. Rust's <code>Option&lt;T&gt;</code> is like <code>std::optional&lt;T&gt;</code> in C++, except
+that it can be used with pointers and references. In <a href="idioms/null//idioms/data_modeling/template_specialization.html#niche-optimization">those cases (and in some
+other
+cases)</a> the
+compiler optimizes the representation to be the same size as <code>Box&lt;T&gt;</code> by
+leveraging the fact that <code>Box</code> cannot be null.</p>
+<p>In Rust it is also common to pay the cost for the extra byte to use a return
+type of <code>Result&lt;T, E&gt;</code> (which is akin to <code>std::expected</code> in C++23) in order to
+make the reason for the failure available at runtime.</p>
+<h2 id="integer-sentinels"><a class="header" href="#integer-sentinels">Integer sentinels</a></h2>
+<p>When a possibly-failing function produces an integer, it is also common to use
+an otherwise unused or unlikely integer value as a sentinel value, such as <code>0</code>
+or <code>INT_MAX</code>.</p>
+<pre><code class="language-c++">#include &lt;algorithm&gt;
+
+int gcd(int a, int b) {
+  if (b == 0 || a == 0) {
+    // returns 0 to indicate invalid input
+    return 0;
+  }
+
+  while (b != 0) {
+    int temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return std::abs(a);
+}
+</code></pre>
+<p>In Rust, the <code>Option</code> type is used for this purpose. In cases where the zero
+value really is not possible to produce, as with the gcd algorithm above, the
+type <code>NonZero&lt;T&gt;</code> can be used to indicate that fact. As with <code>Option&lt;Box&lt;T&gt;&gt;</code>,
+the compiler optimizes the representation to make use of the unused value (in
+this case <code>0</code>) to represent the <code>None</code> case to ensure that the representation of
+<code>Option&lt;NonZero&lt;T&gt;&gt;</code> is the same as the representation of <code>Option&lt;T&gt;</code>.</p>
+<pre><pre class="playground"><code class="language-rust">use std::num::NonZero;
+
+fn gcd(mut a: i32, mut b: i32) -&gt; Option&lt;NonZero&lt;i32&gt;&gt; {
+    if a == 0 || b == 0 {
+        return None;
+    }
+
+    while b != 0 {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    // At this point, a is guaranteed to not be zero. The `Some` case from
+    // `NonZer::new` has a different meaning than the `Some` returned from this
+    // function, but here it happens to coincide.
+    NonZero::new(a.abs())
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    assert!(gcd(5, 0) == None);
+</span><span class="boring">    assert!(gcd(0, 5) == None);
+</span><span class="boring">    assert!(gcd(5, 1) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(1, 5) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(2 * 2 * 3 * 5 * 7, 2 * 2 * 7 * 11) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">    assert!(gcd(2 * 2 * 7 * 11, 2 * 2 * 3 * 5 * 7) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">}</span></code></pre></pre>
+<p>As an aside, it is also possible to avoid the redundant check for zero at the end, and
+without using unsafe Rust, by preserving the non-zeroness property throughout
+the algorithm.</p>
+<pre><pre class="playground"><code class="language-rust">use std::num::NonZero;
+
+fn gcd(x: i32, mut b: i32) -&gt; Option&lt;NonZero&lt;i32&gt;&gt; {
+    if b == 0 {
+        return None;
+    }
+
+    // a is guaranteed to be non-zero, so we record the fact in the type of a.
+    let mut a = NonZero::new(x)?;
+
+    while let Some(temp) = NonZero::new(b) {
+        b = a.get() % b;
+        a = temp;
+    }
+    Some(a.abs())
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    assert!(gcd(5, 0) == None);
+</span><span class="boring">    assert!(gcd(0, 5) == None);
+</span><span class="boring">    assert!(gcd(5, 1) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(1, 5) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(2 * 2 * 3 * 5 * 7, 2 * 2 * 7 * 11) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">    assert!(gcd(2 * 2 * 7 * 11, 2 * 2 * 3 * 5 * 7) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">}</span></code></pre></pre>
+<h2 id="stdoptional"><a class="header" href="#stdoptional"><code>std::optional</code></a></h2>
+<p>In situations where <code>std::optional</code> would be used as a sentinel value in C++,
+<code>Option</code> can be used for the same purpose in Rust. The main difference between
+the two is that safe Rust requires either explicitly checking whether the value is
+<code>None</code>, while in C++ one can attempt to access the value without checking (at
+the risk of undefined behavior).</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="moved-members"><a class="header" href="#moved-members">Moved members</a></h1>
 <p>One common use of null pointers in modern C++ is as values for the members of
 moved objects so that the destructor can still safely be called. E.g.,</p>

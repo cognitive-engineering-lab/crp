@@ -328,7 +328,7 @@ example, much like with C++ concepts, the constraint can be required for
 individual methods rather than for the whole generic class.</p>
 <p>Best practice in Rust to put the trait bounds on the specific things that
 require the bounds, in order to make the overall use of the types more flexible.</p>
-<p>Also, a more idiomatic implementation of <code>smallest_node</code> is</p>
+<p>As an aside, a more idiomatic implementation of <code>smallest_node</code> is</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span><span class="boring">pub struct DirectedGraph&lt;Label&gt; {
@@ -376,6 +376,7 @@ where
 }
 <span class="boring">}
 </span><span class="boring">}</span></code></pre></pre>
+<p>TODO explain why this is more idiomatic?</p>
 <h2 id="constexpr-template-parameters"><a class="header" href="#constexpr-template-parameters"><code>constexpr</code> template parameters</a></h2>
 <p>Rust also supports the equivalent of constexpr template parameters. For example,
 one can define a generic function that returns an array consecutive integers
@@ -456,7 +457,7 @@ macro</a>.</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/null/zero_length_arrays.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/data_modeling/template_specialization.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -470,7 +471,7 @@ macro</a>.</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/null/zero_length_arrays.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/data_modeling/template_specialization.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
