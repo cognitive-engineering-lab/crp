@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Enums - Rust Phrasebook for C++ Programmers</title>
+        <title>Private constructors - Rust Phrasebook for C++ Programmers</title>
 
 
         <!-- Custom HTML head -->
@@ -156,143 +156,260 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="enums"><a class="header" href="#enums">Enums</a></h1>
-<p>In C++, enums are often used to model fixed set alternatives, especially when
-each of those enumerators maps to a specific integer value, such as is needed
-when working with hardware, system calls, or protocol implementations.</p>
-<p>For example, the various modes for a GPIO pin could be modeled as an enum, which
-would restrict methods using the mode to valid values.</p>
-<pre><code class="language-c++">#include &lt;cstdint&gt;
+                        <h1 id="private-constructors"><a class="header" href="#private-constructors">Private constructors</a></h1>
+<p>In C++ constructors for classes can be made private by declaring them private,
+or by defining a class using <code>class</code> and using the default private visibility.</p>
+<pre><code class="language-c++">#include &lt;string&gt;
 
-enum Pin : uint8_t {
-    Pin1 = 0x01,
-    Pin2 = 0x02,
-    Pin3 = 0x04
+struct Person {
+  std::string name;
+  int age;
+
+private:
+  Person() = default;
 };
 
-enum Mode : uint8_t {
-    Output            = 0x03,
-    Pullup            = 0x04,
-    Analog            = 0x27
-    // ...
-};
-
-void lowLevelSetPin(uint8_t pin, uint8_t mode);
-
-void setPinMode(Pin pin, Mode mode) {
-    lowLevelSetPin(pin, mode);
+int main() {
+  // Person nobody; // &lt;-- fails to compile, Person::Person() private
+  // Person alice{"Alice", 42}; // &lt;-- fails to compile since C++20
+  return 0;
 }
 </code></pre>
-<p>While Rust enums are <a href="./idioms/data_modeling/tagged_unions.html">more general</a>,
-they also can be used for this sort of modeling.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[repr(u8)]
-#[derive(Clone, Copy)]
-enum Pin {
-    Pin1 = 0x01,
-    Pin2 = 0x02,
-    Pin3 = 0x04,
+<p>In Rust, constructors for structs are visible from wherever the type and all
+fields are visible.</p>
+<p>To achieve similar visibility restrictions as the above example, an additional
+private field needs to be added to the struct in Rust. Because Rust supports
+zero-sized types, the additional field can have no performance cost. The <a href="https://doc.rust-lang.org/std/primitive.unit.html">unit
+type</a> has zero size and can
+be used for this purpose.</p>
+<pre><pre class="playground"><code class="language-rust">mod person {
+    pub struct Person {
+        pub name: String,
+        pub age: i32,
+        _private: (),
+    }
 }
 
-#[repr(u8)]
-#[derive(Clone, Copy)]
-enum Mode {
-    Output = 0x03,
-    Pullup = 0x04,
-    Analog = 0x27,
-    // ...
-}
+use person::*;
 
-extern "C" {
-    fn low_level_set_pin(pin: u8, mode: u8);
-}
+fn main() {
+    // field `_private` of struct `person::Person` is private
+    // let alice = Person {
+    //     name: "Alice".to_string(),
+    //     age: 42,
+    //     _private: (),
+    // };
 
-fn set_pin_mode(pin: Pin, mode: Mode) {
-    unsafe { low_level_set_pin(pin as u8, mode as u8) };
-}
-<span class="boring">}</span></code></pre></pre>
-<p>The <code>#[repr(u8)]</code> attribute ensures that the representation of the enum is the
-same as a byte (like declaring the underlying type of an enum in C++). The enum
-values can then be freely converted to the underlying type with the <code>as</code>.</p>
-<p>In C++ the standard way to convert from an integer to an enum is a static cast.
-However, this <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#1766">requires that the user check the validity of the cast
-themselves</a>.
-Often the conversion is done by a function that checks that the value to convert
-is a valid enum value.</p>
-<pre><code class="language-c++">Pin cast_to_pin(uint8_t pin) {
-    return static_cast&lt;Pin&gt;(pin);
-}
+    // cannot construct `person::Person` with struct literal syntax due to private fields
+    // let bob = Person {
+    //     name: "Bob".to_string(),
+    //     age: 55,
+    // };
+}</code></pre></pre>
+<h2 id="enums"><a class="header" href="#enums">Enums</a></h2>
+<p>Unlike C++ unions, but like <code>std::variant</code>, Rust enums do not have direct
+control over the visibility of their variants or the fields of their variants.
+In the following example, the <code>circle</code> variant of the <code>Shape</code> union is not
+public, so it can only be accessed from within the definition of <code>Shape</code>, as it
+is by the <code>make_circle</code> static method.</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
 
-struct InvalidPin {
-    uint8_t pin;
+struct Triangle {
+  double base;
+  double height;
 };
 
-Pin to_pin(uint8_t pin) {
-    switch (pin) {
-	case 0x1: { return Pin1; }
-	case 0x2: { return Pin2; }
-    case 0x4: { return Pin3; }
-	default: { throw InvalidPin{pin}; }
-    }
+struct Circle {
+  double radius;
+};
+
+union Shape {
+  Triangle triangle;
+
+private:
+  Circle circle;
+
+public:
+  static Shape make_circle(double radius) {
+    Shape s;
+    s.circle = Circle(radius);
+    return s;
+  };
+};
+
+int main() {
+  Shape triangle;
+  triangle.triangle = Triangle{1.0, 2.0};
+  Shape circle = Shape::make_circle(1.0);
+  // circle.circle = Circle{1.0}; // fails to compile
+
+  // std::cout &lt;&lt; shape.circle.radius; // fails to compile
 }
 </code></pre>
-<p>In Rust the standard way to perform the conversion is to implement the <code>TryFrom</code>
-trait for the type.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span><span class="boring">#[repr(u8)]
-</span><span class="boring">#[derive(Clone, Copy)]
-</span><span class="boring">enum Pin {
-</span><span class="boring">    Pin1 = 0x01,
-</span><span class="boring">    Pin2 = 0x02,
-</span><span class="boring">    Pin3 = 0x04,
-</span><span class="boring">}
-</span><span class="boring">
-</span><span class="boring">#[repr(u8)]
-</span><span class="boring">#[derive(Clone, Copy)]
-</span><span class="boring">enum Mode {
-</span><span class="boring">    Output = 0x03,
-</span><span class="boring">    Pullup = 0x04,
-</span><span class="boring">    Analog = 0x27,
-</span><span class="boring">    // ...
-</span><span class="boring">}
-</span>
-use std::convert::TryFrom;
-
-struct InvalidPin(u8);
-
-impl TryFrom&lt;u8&gt; for Pin {
-    type Error = InvalidPin;
-
-    fn try_from(value: u8) -&gt; Result&lt;Self, Self::Error&gt; {
-       match value {
-           0x01 =&gt; Ok(Pin::Pin1),
-           0x02 =&gt; Ok(Pin::Pin2),
-           0x04 =&gt; Ok(Pin::Pin3),
-           pin =&gt; Err(InvalidPin(pin)),
-       }
+<p>In Rust visibility modifiers cannot be applied to individual enum variants or
+their fields.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    pub enum Shape {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
     }
 }
-<span class="boring">}</span></code></pre></pre>
-<p>See <a href="/idioms/exceptions.html">Exceptions and error handling</a> for examples of how
-to ergonomically handle the result of <code>try_from</code>.</p>
-<p>If low-level performance is more of a concern than memory safety,
-<code>std::mem::transmute</code> is analogous to a C++ reinterpret cast, but requires
-unsafe Rust because its use can result in undefined behavior. Uses of
-<code>std::mem::transmute</code> for this purpose should not be hidden behind an interface
-that can be called from safe Rust unless the interface can actually guarantee
-that the call will never happen with an invalid value.</p>
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::Triangle {
+        base: 1.0,
+        height: 2.0,
+    };
+
+    let circle = Shape::Circle { radius: 1.0 };
+
+    match circle {
+        Shape::Triangle { base, height } =&gt; {
+            println!("Triangle: {}, {}", base, height);
+        }
+        Shape::Circle { radius } =&gt; {
+            println!("Circle {}", radius);
+        }
+    }
+}</code></pre></pre>
+<p>Instead, to control construction of and pattern matching on the enum
+implementation, one of two approaches can be taken. The first controls
+construction of and access to the fields, but not inspection of which variant is
+active.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    pub enum Shape {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::Triangle {
+        base: 1.0,
+        height: 2.0,
+    };
+
+    let circle = Shape::Circle { radius: 1.0 };
+
+    match circle {
+        Shape::Triangle { base, height } =&gt; {
+            println!("Triangle: {}, {}", base, height);
+        }
+        Shape::Circle { radius } =&gt; {
+            println!("Circle {}", radius);
+        }
+    }
+}</code></pre></pre>
+<p>The second places the enum in a struct with a private field, preventing both
+construction and inspection from outside of the module.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    enum ShapeKind {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+
+    pub struct Shape(ShapeKind);
+
+    impl Shape {
+        pub fn new_circle(radius: f64) -&gt; Shape {
+            Shape(ShapeKind::Circle { radius })
+        }
+
+        pub fn new_triangle(base: f64, height: f64) -&gt; Shape {
+            Shape(ShapeKind::Triangle { base, height })
+        }
+
+        pub fn print(&amp;self) {
+            match self.0 {
+                ShapeKind::Triangle { base, height } =&gt; {
+                    println!("Triangle: {}, {}", base, height);
+                }
+                ShapeKind::Circle { radius } =&gt; {
+                    println!("Circle: {}", radius);
+                }
+            }
+        }
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::new_triangle(1.0, 2.0);
+    let circle = Shape::new_circle(1.0);
+
+    // Does not compile because Shape has private fields.
+    // match circle {
+    //   Shape(_) -&gt; {}
+    // }
+
+    circle.print();
+}</code></pre></pre>
+<p>If the purpose of making the variants private is to ensure that invariants are
+met, then it can be useful to expose the implementing enum (<code>ShapeKind</code>) but not
+the field of the wrapping struct (<code>Shape</code>), with the invariants only being
+guaranteed when the wrapping struct is used.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    pub enum ShapeKind {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+
+    pub struct Shape(ShapeKind);
+
+    impl Shape {
+        pub fn new(kind: ShapeKind) -&gt; Shape {
+            // ... check invariants ...
+            Shape(kind)
+        }
+
+        pub fn get_kind(&amp;self) -&gt; &amp;ShapeKind {
+            &amp;self.0
+        }
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::new(ShapeKind::Triangle {
+        base: 1.0,
+        height: 2.0,
+    });
+    let circle = Shape::new(ShapeKind::Circle { radius: 1.0 });
+
+    // Does not compile because Shape has private fields.
+    // match circle {
+    //   Shape(_) -&gt; {}
+    // }
+
+    match circle.get_kind() {
+        ShapeKind::Triangle { base, height } =&gt; {
+            println!("Triangle: {}, {}", base, height);
+        }
+        ShapeKind::Circle { radius } =&gt; {
+            println!("Circle: {}", radius);
+        }
+    }
+}</code></pre></pre>
+<p>The situation in Rust resembles the situation in C++ when using <code>std::variant</code>,
+for which it is not possible to make the variants themselves private. Instead
+either the constructors for the types that form the variants can be made private
+or the variant can be wrapped in a class with appropriate visibility controls.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../idioms/data_modeling.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../idioms/encapsulation/private_and_friends.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/data_modeling/tagged_unions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/constructors.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -302,11 +419,11 @@ that the call will never happen with an invalid value.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../idioms/data_modeling.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../idioms/encapsulation/private_and_friends.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/data_modeling/tagged_unions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/constructors.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

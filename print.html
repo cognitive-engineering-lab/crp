@@ -242,7 +242,7 @@ enum Pin : uint8_t {
     Pin3 = 0x04
 };
 
-enum PinMode : uint8_t {
+enum Mode : uint8_t {
     Output            = 0x03,
     Pullup            = 0x04,
     Analog            = 0x27
@@ -251,12 +251,12 @@ enum PinMode : uint8_t {
 
 void lowLevelSetPin(uint8_t pin, uint8_t mode);
 
-void setPinMode(Pin pin, PinMode mode) {
+void setPinMode(Pin pin, Mode mode) {
     lowLevelSetPin(pin, mode);
 }
 </code></pre>
-<p>While Rust enums are more general (which will be show in later chapters), they
-also can be used for this sort of modeling.</p>
+<p>While Rust enums are <a href="idioms/data_modeling/./idioms/data_modeling/tagged_unions.html">more general</a>,
+they also can be used for this sort of modeling.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[repr(u8)]
@@ -284,7 +284,7 @@ fn set_pin_mode(pin: Pin, mode: Mode) {
     unsafe { low_level_set_pin(pin as u8, mode as u8) };
 }
 <span class="boring">}</span></code></pre></pre>
-<p>The <code>#[repr(u8)]</code> attribute ensure that the representation of the enum is the
+<p>The <code>#[repr(u8)]</code> attribute ensures that the representation of the enum is the
 same as a byte (like declaring the underlying type of an enum in C++). The enum
 values can then be freely converted to the underlying type with the <code>as</code>.</p>
 <p>In C++ the standard way to convert from an integer to an enum is a static cast.
@@ -349,7 +349,7 @@ impl TryFrom&lt;u8&gt; for Pin {
 <span class="boring">}</span></code></pre></pre>
 <p>See <a href="idioms/data_modeling//idioms/exceptions.html">Exceptions and error handling</a> for examples of how
 to ergonomically handle the result of <code>try_from</code>.</p>
-<p>If low level performance more of a concern than memory safety,
+<p>If low-level performance is more of a concern than memory safety,
 <code>std::mem::transmute</code> is analogous to a C++ reinterpret cast, but requires
 unsafe Rust because its use can result in undefined behavior. Uses of
 <code>std::mem::transmute</code> for this purpose should not be hidden behind an interface
@@ -1701,6 +1701,597 @@ name</a>.</li>
 libraries or when producing Rust static or dynamic libraries to be used by C or
 C++ programs, the usual problems can occur if there are symbol collisions in the
 object files.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="private-members-and-friends"><a class="header" href="#private-members-and-friends">Private members and friends</a></h1>
+<h2 id="private-members"><a class="header" href="#private-members">Private members</a></h2>
+<p>In C++ the unit of encapsulation is the class, and so visibility controls access
+to members at the class boundary. For example,</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+class Person {
+  int age;
+
+public:
+  std::string name;
+
+  Person(std::string name, int age) : name(name), age(age) {}
+};
+
+int main() {
+  Person alice("Alice", 42);
+  std::cout &lt;&lt; alice.name &lt;&lt; std::endl;
+  // std::cout &lt;&lt; alice.age &lt;&lt; std::endl; // &lt;-- compilation error
+}
+</code></pre>
+<p>In Rust the module is the unit of encapsulation, so visibility controls access
+to members at the module boundary.</p>
+<pre><pre class="playground"><code class="language-rust">mod person {
+    pub struct Person {
+        pub name: String,
+        age: i32,
+    }
+
+    impl Person {
+        pub fn new(name: String, age: i32) -&gt; Person {
+            Person { name, age }
+        }
+    }
+
+    fn example() {
+        let alice = Person::new("Alice".to_string(), 42);
+        println!("{}", alice.name);
+        println!("{}", alice.age); // &lt;-- the private field is visible here
+    }
+}
+
+use person::Person;
+
+fn main() {
+    let alice = Person::new("Alice".to_string(), 42);
+    println!("{}", alice.name);
+    // println!("{}", alice.age); // &lt;-- compilation error
+}</code></pre></pre>
+<p>Notably in this example, the <a href="idioms/encapsulation//idioms/encapsulation/private_constructors.html">constructor for <code>Person</code> is
+private</a> because one of the
+fields is private.</p>
+<h2 id="friends"><a class="header" href="#friends">Friends</a></h2>
+<p>Because encapsulation is at the module level in Rust, associated methods for
+types can access internals of other types defined in the same module. This
+subsumes most uses of the C++ <code>friend</code> declaration.</p>
+<p>For example, defining a binary tree in C++ requires that the class representing
+the nodes of the tree declare the main binary tree class as a friend in order
+for it to access internal methods while keeping them private from other uses.
+This would be required even if the <code>TreeNode</code> class were defined as an inner
+class of <code>BinaryTree</code>.</p>
+<pre><code class="language-c++">#include &lt;memory&gt;
+
+class BinaryTree;
+
+class TreeNode {
+  friend class BinaryTree;
+
+  int value;
+  std::unique_ptr&lt;TreeNode&gt; left;
+  std::unique_ptr&lt;TreeNode&gt; right;
+
+public:
+  TreeNode(int value) : value(value), left(nullptr), right(nullptr) {}
+
+private:
+  static void insert(std::unique_ptr&lt;TreeNode&gt; &amp;node, int value) {
+    if (node) {
+      node-&gt;insert(value);
+    } else {
+      node = std::make_unique&lt;TreeNode&gt;(value);
+    }
+  }
+
+  void insert(int value) {
+    if (value &lt; this-&gt;value) {
+      insert(this-&gt;left, value);
+    } else {
+      insert(this-&gt;right, value);
+    }
+  }
+};
+
+class BinaryTree {
+private:
+  std::unique_ptr&lt;TreeNode&gt; root;
+
+public:
+  BinaryTree() : root(nullptr) {}
+
+  void insert(int value) { TreeNode::insert(root, value); }
+};
+
+int main() {
+  BinaryTree b;
+  b.insert(42);
+
+  return 0;
+}
+</code></pre>
+<p>In Rust, however, both types can be defined in the same module, and so have
+access to each other's private fields and methods. The module as a whole
+provides a collection of types, methods, and functions that together define a
+encapsulated concept.</p>
+<pre><pre class="playground"><code class="language-rust">mod binary_tree {
+    pub struct BinaryTree {
+        root: Option&lt;Box&lt;TreeNode&gt;&gt;,
+    }
+
+    impl BinaryTree {
+        pub fn new() -&gt; BinaryTree {
+            BinaryTree { root: None }
+        }
+
+        pub fn insert(&amp;mut self, value: i32) {
+            insert(&amp;mut self.root, value);
+        }
+    }
+
+    struct TreeNode {
+        value: i32,
+        left: Option&lt;Box&lt;TreeNode&gt;&gt;,
+        right: Option&lt;Box&lt;TreeNode&gt;&gt;,
+    }
+
+    impl TreeNode {
+        fn new(value: i32) -&gt; TreeNode {
+            TreeNode {
+                value,
+                left: None,
+                right: None,
+            }
+        }
+
+        fn insert(&amp;mut self, value: i32) {
+            if value &lt; self.value {
+                insert(&amp;mut self.left, value);
+            } else {
+                insert(&amp;mut self.right, value);
+            }
+        }
+    }
+
+    fn insert(node: &amp;mut Option&lt;Box&lt;TreeNode&gt;&gt;, value: i32) {
+        match node {
+            None =&gt; {
+                *node = Some(Box::new(TreeNode::new(value)));
+            }
+            Some(ref mut left) =&gt; {
+                left.insert(value);
+            }
+        }
+    }
+}
+
+use binary_tree::BinaryTree;
+
+fn main() {
+    let mut b = BinaryTree::new();
+    b.insert(42);
+}</code></pre></pre>
+<h2 id="passkey-idiom"><a class="header" href="#passkey-idiom">Passkey idiom</a></h2>
+<p>In the previous C++ example, the <code>TreeNode</code> constructor has to be public in
+order to be used with <code>make_unique</code>. To make the constructor effectively
+private, one might need to use a programming pattern like <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/docs/patterns/passkey.md">the passkey
+idiom</a>.</p>
+<p>The passkey idiom is also sometimes used to provide finer-grained control over
+access to members than is possible with friend declarations. In either case, the
+effect is achieved by modeling a capability-like system.</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+
+class Person {
+  int age;
+
+  class Passkey {};
+
+public:
+  std::string name;
+
+  Person(Passkey, std::string name, int age) : name(name), age(age) {}
+
+  static std::unique_ptr&lt;Person&gt; createPerson(std::string name, int age) {
+    // Other uses of make_unique are not possible because the Passkey type
+    // cannot be constructed.
+    return std::make_unique&lt;Person&gt;(Passkey(), name, age);
+  }
+};
+</code></pre>
+<p>In Rust this idiom possible to express in order to achieve the same effect.
+However is unlikely to be used because</p>
+<ul>
+<li>coupled types are usually defined in the same module (or a <code>pub (in path)</code>
+declaration can be used), making it unnecessary, and</li>
+<li>it requires cooperation from the interface by which the calling function will
+use a type.</li>
+</ul>
+<p>The second point contrasts with the use above involving <code>std::make_unique</code> which
+is able to forward to the underlying constructor without knowing about it at the
+point of the definition of <code>std::make_unique</code>. While the example below is not
+useful (because <code>alloc_thing</code> is not a useful helper), it does demonstrate what
+would types have to be defined in order to achieve the same effect as when using
+the idiom in C++.</p>
+<pre><pre class="playground"><code class="language-rust">pub trait Maker&lt;K, B&gt; {
+    fn make(passkey: K, args: B) -&gt; Self;
+}
+
+// Generic helper that we want to be able to call an otherwise private function
+// or method.
+fn alloc_thing&lt;K, B, T: Maker&lt;K, B&gt;&gt;(passkey: K, args: B) -&gt; Box&lt;T&gt; {
+    Box::new(Maker::&lt;K, B&gt;::make(passkey, args))
+}
+
+mod person {
+    use super::*;
+    use std::marker::PhantomData;
+
+    pub struct Person {
+        pub name: String,
+        age: u32,
+    }
+
+    // A zero-sized type to act as the passkey.
+    pub struct Passkey {
+        // This field is zero-sized. It is also private, which prevents
+        // construction of Passkey outside of the person module.
+        _phantom: PhantomData&lt;()&gt;,
+    }
+
+    impl Person {
+        // Private method that will be exposed with a passkey wrapper.
+        fn new(name: String, age: u32) -&gt; Person {
+            Person { name, age }
+        }
+
+        // Method that uses external helper that requires access to another
+        // otherwise-private method.
+        fn alloc(name: String, age: u32) -&gt; Box&lt;Person&gt; {
+            alloc_thing(
+                Passkey {
+                    _phantom: PhantomData {},
+                },
+                MakePersonArgs { name, age },
+            )
+        }
+    }
+
+    // Helper structure needed to make the trait providing the interface generic.
+    pub struct MakePersonArgs {
+        pub name: String,
+        pub age: u32,
+    }
+
+    // Implementation of the trait that exposes the method requiring a passkey.
+    impl Maker&lt;Passkey, MakePersonArgs&gt; for Person {
+        fn make(_passkey: Passkey, args: MakePersonArgs) -&gt; Person {
+            Person::new(args.name, args.age)
+        }
+    }
+}
+<span class="boring">
+</span><span class="boring">fn main() {}</span></code></pre></pre>
+<h2 id="friends-and-testing"><a class="header" href="#friends-and-testing">Friends and testing</a></h2>
+<p>Another common use of friend declarations is to make the internals of a class
+available for unit testing. Though this practice is often discouraged in C++, it
+is sometimes necessary in order to test other-wise private helper inner classes
+or helper methods.</p>
+<pre><code class="language-C++">#include &lt;string&gt;
+
+class Person {
+public:
+  std::string name;
+
+private:
+  int age;
+
+  friend class PersonTest;
+
+public:
+  Person(std::string name, int age) : name(name), age(age) {}
+
+  void have_birthday() { this-&gt;age = this-&gt;age + 1; }
+};
+
+#define BOOST_TEST_MODULE PersonTestModule
+#include &lt;boost/test/included/unit_test.hpp&gt;
+
+class PersonTest {
+public:
+  static void test_have_birthday() {
+    Person alice("Alice", 42);
+    BOOST_CHECK_EQUAL(alice.age, 42);
+
+    alice.have_birthday();
+    BOOST_CHECK_EQUAL(alice.age, 43);
+  }
+};
+
+BOOST_AUTO_TEST_CASE(have_birthday_test) { PersonTest::test_have_birthday(); }
+</code></pre>
+<p>In Rust, tests are usually defined in the same module as the code being tested.
+Because the content of modules is visible to submodules, this makes it so that
+all of the content of the module is available for testing.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct Person {
+    pub name: String,
+    age: u32,
+}
+
+impl Person {
+    pub fn new(name: String, age: u32) -&gt; Person {
+        Person { name, age }
+    }
+
+    pub fn have_birthday(&amp;mut self) {
+        self.age = self.age + 1;
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Person;
+
+    #[test]
+    fn check() {
+        let mut alice = Person::new("alice".to_string(), 42);
+
+        assert_eq!(alice.age, 42);
+        alice.have_birthday();
+        assert_eq!(alice.age, 43);
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Testing in Rust is described in more detail in the <a href="idioms/encapsulation/TODO">chapter on unit testing</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="private-constructors"><a class="header" href="#private-constructors">Private constructors</a></h1>
+<p>In C++ constructors for classes can be made private by declaring them private,
+or by defining a class using <code>class</code> and using the default private visibility.</p>
+<pre><code class="language-c++">#include &lt;string&gt;
+
+struct Person {
+  std::string name;
+  int age;
+
+private:
+  Person() = default;
+};
+
+int main() {
+  // Person nobody; // &lt;-- fails to compile, Person::Person() private
+  // Person alice{"Alice", 42}; // &lt;-- fails to compile since C++20
+  return 0;
+}
+</code></pre>
+<p>In Rust, constructors for structs are visible from wherever the type and all
+fields are visible.</p>
+<p>To achieve similar visibility restrictions as the above example, an additional
+private field needs to be added to the struct in Rust. Because Rust supports
+zero-sized types, the additional field can have no performance cost. The <a href="https://doc.rust-lang.org/std/primitive.unit.html">unit
+type</a> has zero size and can
+be used for this purpose.</p>
+<pre><pre class="playground"><code class="language-rust">mod person {
+    pub struct Person {
+        pub name: String,
+        pub age: i32,
+        _private: (),
+    }
+}
+
+use person::*;
+
+fn main() {
+    // field `_private` of struct `person::Person` is private
+    // let alice = Person {
+    //     name: "Alice".to_string(),
+    //     age: 42,
+    //     _private: (),
+    // };
+
+    // cannot construct `person::Person` with struct literal syntax due to private fields
+    // let bob = Person {
+    //     name: "Bob".to_string(),
+    //     age: 55,
+    // };
+}</code></pre></pre>
+<h2 id="enums-1"><a class="header" href="#enums-1">Enums</a></h2>
+<p>Unlike C++ unions, but like <code>std::variant</code>, Rust enums do not have direct
+control over the visibility of their variants or the fields of their variants.
+In the following example, the <code>circle</code> variant of the <code>Shape</code> union is not
+public, so it can only be accessed from within the definition of <code>Shape</code>, as it
+is by the <code>make_circle</code> static method.</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
+
+struct Triangle {
+  double base;
+  double height;
+};
+
+struct Circle {
+  double radius;
+};
+
+union Shape {
+  Triangle triangle;
+
+private:
+  Circle circle;
+
+public:
+  static Shape make_circle(double radius) {
+    Shape s;
+    s.circle = Circle(radius);
+    return s;
+  };
+};
+
+int main() {
+  Shape triangle;
+  triangle.triangle = Triangle{1.0, 2.0};
+  Shape circle = Shape::make_circle(1.0);
+  // circle.circle = Circle{1.0}; // fails to compile
+
+  // std::cout &lt;&lt; shape.circle.radius; // fails to compile
+}
+</code></pre>
+<p>In Rust visibility modifiers cannot be applied to individual enum variants or
+their fields.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    pub enum Shape {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::Triangle {
+        base: 1.0,
+        height: 2.0,
+    };
+
+    let circle = Shape::Circle { radius: 1.0 };
+
+    match circle {
+        Shape::Triangle { base, height } =&gt; {
+            println!("Triangle: {}, {}", base, height);
+        }
+        Shape::Circle { radius } =&gt; {
+            println!("Circle {}", radius);
+        }
+    }
+}</code></pre></pre>
+<p>Instead, to control construction of and pattern matching on the enum
+implementation, one of two approaches can be taken. The first controls
+construction of and access to the fields, but not inspection of which variant is
+active.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    pub enum Shape {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::Triangle {
+        base: 1.0,
+        height: 2.0,
+    };
+
+    let circle = Shape::Circle { radius: 1.0 };
+
+    match circle {
+        Shape::Triangle { base, height } =&gt; {
+            println!("Triangle: {}, {}", base, height);
+        }
+        Shape::Circle { radius } =&gt; {
+            println!("Circle {}", radius);
+        }
+    }
+}</code></pre></pre>
+<p>The second places the enum in a struct with a private field, preventing both
+construction and inspection from outside of the module.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    enum ShapeKind {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+
+    pub struct Shape(ShapeKind);
+
+    impl Shape {
+        pub fn new_circle(radius: f64) -&gt; Shape {
+            Shape(ShapeKind::Circle { radius })
+        }
+
+        pub fn new_triangle(base: f64, height: f64) -&gt; Shape {
+            Shape(ShapeKind::Triangle { base, height })
+        }
+
+        pub fn print(&amp;self) {
+            match self.0 {
+                ShapeKind::Triangle { base, height } =&gt; {
+                    println!("Triangle: {}, {}", base, height);
+                }
+                ShapeKind::Circle { radius } =&gt; {
+                    println!("Circle: {}", radius);
+                }
+            }
+        }
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::new_triangle(1.0, 2.0);
+    let circle = Shape::new_circle(1.0);
+
+    // Does not compile because Shape has private fields.
+    // match circle {
+    //   Shape(_) -&gt; {}
+    // }
+
+    circle.print();
+}</code></pre></pre>
+<p>If the purpose of making the variants private is to ensure that invariants are
+met, then it can be useful to expose the implementing enum (<code>ShapeKind</code>) but not
+the field of the wrapping struct (<code>Shape</code>), with the invariants only being
+guaranteed when the wrapping struct is used.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    pub enum ShapeKind {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+
+    pub struct Shape(ShapeKind);
+
+    impl Shape {
+        pub fn new(kind: ShapeKind) -&gt; Shape {
+            // ... check invariants ...
+            Shape(kind)
+        }
+
+        pub fn get_kind(&amp;self) -&gt; &amp;ShapeKind {
+            &amp;self.0
+        }
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::new(ShapeKind::Triangle {
+        base: 1.0,
+        height: 2.0,
+    });
+    let circle = Shape::new(ShapeKind::Circle { radius: 1.0 });
+
+    // Does not compile because Shape has private fields.
+    // match circle {
+    //   Shape(_) -&gt; {}
+    // }
+
+    match circle.get_kind() {
+        ShapeKind::Triangle { base, height } =&gt; {
+            println!("Triangle: {}, {}", base, height);
+        }
+        ShapeKind::Circle { radius } =&gt; {
+            println!("Circle: {}", radius);
+        }
+    }
+}</code></pre></pre>
+<p>The situation in Rust resembles the situation in C++ when using <code>std::variant</code>,
+for which it is not possible to make the variants themselves private. Instead
+either the constructors for the types that form the variants can be made private
+or the variant can be wrapped in a class with appropriate visibility controls.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
 <p>In C++, constructors initialize objects.</p>
 <pre><code class="language-c++">class Person {
