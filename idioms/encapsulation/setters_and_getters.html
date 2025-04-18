@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Header files - Rust Phrasebook for C++ Programmers</title>
+        <title>Setter and getter methods - Rust Phrasebook for C++ Programmers</title>
 
 
         <!-- Custom HTML head -->
@@ -156,98 +156,98 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="header-files"><a class="header" href="#header-files">Header files</a></h1>
-<p>One use of header files in C++ is to expose declarations that are defined in one
-translation units to other translation units without requiring the duplication
-of the declarations in multiple files. By convention, declarations that are not
-included in the header are considered to be private to the defining translation
-unit (though, to enforce this convention other mechanisms, such as <a href="/idioms/encapsulation/anonymous_namespaces.html">anonymous
-namespaces</a>, are required).</p>
-<pre><code class="language-c++">// person.h
-class Person {
-    std::string name;
+                        <h1 id="setter-and-getter-methods"><a class="header" href="#setter-and-getter-methods">Setter and getter methods</a></h1>
+<p>Setters and getters work similarly in C++ and Rust, but are used less frequently
+in Rust.</p>
+<p>It would not be unusual to see the following representation of a two-dimensional
+vector in C++, which hides its implementation and provides setters and getters
+to access the fields. This choice would typically be made in case a
+representation change (such as using polar instead of rectangular coordinates)
+needed to be made later without breaking clients.</p>
+<pre><code class="language-c++">class Vec2 {
+  double x;
+  double y;
+
 public:
-    Person(std::string name) : name(name) {}
-    const std::string&amp; getName();
+  Vec2(double x, double y) : x(x), y(y) {}
+  double getX() { return x; }
+  double getY() { return y; }
+
+  // ... vector operations ...
 };
-
-// person.cc
-std::string&amp; Person::getName() {
-    return this.name;
-}
-
-// client.cc
-#include "person.h"
-
-int go() {
-    Person p("Alice");
-    std::string&amp; name = p.getName();
-
-    // ...
-
-    return 0;
-}
 </code></pre>
-<p>Rust does uses neither textually-included header files nor forward declarations.
-Instead, Rust modules control visibility and linkage simultaneously and expose
-public definitions for use by other modules. Using Rust modules, something like
-the above definitions becomes</p>
-<pre><code class="language-rust ignore">// person.rs
-pub struct Person {
-    name: String,
+<p>On the other hand, in Rust such a type would almost always be defined with
+public fields.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
 }
 
-impl Person {
-    pub fn new(name: String) -&gt; Person {
-        Person { name }
+impl Vec2 {
+    // ... vector operations ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Some reasons for the difference are:</p>
+<ul>
+<li>Ergonomics: Public members make it possible to use pattern matching.</li>
+<li>Transparency of performance: A change in representation would dramatically
+change the costs involved with the getters. Exposing the representation makes
+the cost change visible.</li>
+<li>Control over mutability: Static lifetime checking of mutable references
+removes concerns of unintended mutation of the value through Rust's equivalent
+of observation pointers.</li>
+</ul>
+<h2 id="types-with-invariants-and-newtypes"><a class="header" href="#types-with-invariants-and-newtypes">Types with invariants and newtypes</a></h2>
+<p>When types need to preserve invariants but the benefits of exposing fields are
+desired, a newtype pattern can be used. A wrapping "newtype" struct that
+represents the data with an invariant is defined and access to the fields of the
+underlying struct is provided by via a non-<code>mut</code> reference.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>mod vec2 {
+    #[derive(Debug, Clone, Copy)]
+    pub struct Vec2 {
+        pub x: f64,
+        pub y: f64,
     }
 
-    pub fn name(&amp;self) -&gt; &amp;String {
-        &amp;self.name
+    /// Represents a 2-vector that has magnitude 1.
+    #[derive(Debug, Clone, Copy)]
+    pub struct Normalized(Vec2); // note the private field
+
+    fn sqrt_approx_zero(x: f64) -&gt; bool {
+        x &lt; 0.001
+    }
+
+    impl Normalized {
+        pub fn from_vec2(v: Vec2) -&gt; Option&lt;Normalized&gt; {
+            if sqrt_approx_zero(v.x * v.x + v.y * v.x - 1.0) {
+                Some(Normalized(v))
+            } else {
+                None
+            }
+        }
+
+        // The getter provides a reference to the underlying Vec2 value
+        // permitting mutation.
+        pub fn get(&amp;self) -&gt; &amp;Vec2 {
+            &amp;self.0
+        }
     }
 }
-
-// client.rs
-mod person;
-
-use person::*;
-
-fn go() {
-    let p = Person::new("Alice");
-    let name = p.name();
-
-    //...
-}</code></pre>
-<p>In the <code>person.rs</code>, the <code>Person</code> type is public by the <code>name</code> field is not. This
-prevents both direct construction of values of the type (similar to private
-members preventing aggregate initialization) and field access (including
-preventing pattern matching). The static method <code>new</code> and method <code>name</code> are
-exposed to clients of the module by the <code>pub</code> visibility declarations.</p>
-<p>In the <code>client</code> module, the <code>mod</code> declaration defines the content of <code>person.rs</code>
-as a submodule named <code>person</code>. The <code>use</code> declaration brings the contents of the
-<code>person</code> module into scope.</p>
-<h2 id="the-essence-of-the-difference"><a class="header" href="#the-essence-of-the-difference">The essence of the difference</a></h2>
-<p>A C++ program is a collection of translation units. Header files are required to
-make the providing of forward declarations of definitions from other translation
-units manageable.</p>
-<p>A Rust program is a tree of modules. Definitions in one module may access items
-from other modules based on visibility declarations given in the definitions of
-the module themselves.</p>
-<h2 id="submodules-and-additional-visibility-features"><a class="header" href="#submodules-and-additional-visibility-features">Submodules and additional visibility features</a></h2>
-<p>Modules and visibility declarations are more powerful than shown in the above
-example. More details on how to use modules, <code>pub</code>, and <code>use</code> to achieve
-encapsulation goals are described in the chapter on <a href="./idioms/encapsulation/private_members.html">private members and
-friends</a>.</p>
+<span class="boring">}</span></code></pre></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../idioms/encapsulation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../idioms/encapsulation/private_constructors.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/encapsulation/anonymous_namespaces.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/constructors.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -257,11 +257,11 @@ friends</a>.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../idioms/encapsulation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../idioms/encapsulation/private_constructors.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/encapsulation/anonymous_namespaces.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/constructors.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

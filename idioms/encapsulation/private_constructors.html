@@ -188,6 +188,12 @@ be used for this purpose.</p>
         pub age: i32,
         _private: (),
     }
+
+    impl Person {
+        pub fn new(name: String, age: i32) -&gt; Person {
+            Person { name, age, _private: () }
+        }
+    }
 }
 
 use person::*;
@@ -205,6 +211,10 @@ fn main() {
     //     name: "Bob".to_string(),
     //     age: 55,
     // };
+
+    let carol = Person::new("Carol".to_string(), 20);
+    // Can match on the public fields, and then use .. to ignore the remaning ones.
+    let Person { name, age, .. } = carol;
 }</code></pre></pre>
 <h2 id="enums"><a class="header" href="#enums">Enums</a></h2>
 <p>Unlike C++ unions, but like <code>std::variant</code>, Rust enums do not have direct
@@ -279,28 +289,51 @@ implementation, one of two approaches can be taken. The first controls
 construction of and access to the fields, but not inspection of which variant is
 active.</p>
 <pre><pre class="playground"><code class="language-rust">mod shape {
+    pub struct Triangle {
+        pub base: f64,
+        pub height: f64,
+        _private: (),
+    }
+    pub struct Circle {
+        pub radius: f64,
+        _private: (),
+    }
+
     pub enum Shape {
-        Triangle { base: f64, height: f64 },
-        Circle { radius: f64 },
+        Triangle(Triangle),
+        Circle(Circle),
+    }
+
+    impl Shape {
+        pub fn new_triangle(base: f64, height: f64) -&gt; Shape {
+            Shape::Triangle(Triangle {
+                base,
+                height,
+                _private: (),
+            })
+        }
+
+        pub fn new_circle(radius: f64) -&gt; Shape {
+            Shape::Circle(Circle {
+                radius,
+                _private: (),
+            })
+        }
     }
 }
 
 use shape::*;
 
 fn main() {
-    let triangle = Shape::Triangle {
-        base: 1.0,
-        height: 2.0,
-    };
-
-    let circle = Shape::Circle { radius: 1.0 };
+    let triangle = Shape::new_triangle(1.0, 2.0);
+    let circle = Shape::new_circle(1.0);
 
     match circle {
-        Shape::Triangle { base, height } =&gt; {
+        Shape::Triangle(Triangle { base, height, .. }) =&gt; {
             println!("Triangle: {}, {}", base, height);
         }
-        Shape::Circle { radius } =&gt; {
-            println!("Circle {}", radius);
+        Shape::Circle(Circle { radius, .. }) =&gt; {
+            println!("Circle: {}", radius);
         }
     }
 }</code></pre></pre>
@@ -352,7 +385,10 @@ fn main() {
 <p>If the purpose of making the variants private is to ensure that invariants are
 met, then it can be useful to expose the implementing enum (<code>ShapeKind</code>) but not
 the field of the wrapping struct (<code>Shape</code>), with the invariants only being
-guaranteed when the wrapping struct is used.</p>
+guaranteed when the wrapping struct is used. In this case, it is necessary to
+make the field private and define a getter function, since otherwise the field
+would be modifiable, possibly violating the invariant that the wrapping struct
+represents.</p>
 <pre><pre class="playground"><code class="language-rust">mod shape {
     pub enum ShapeKind {
         Triangle { base: f64, height: f64 },
@@ -362,9 +398,9 @@ guaranteed when the wrapping struct is used.</p>
     pub struct Shape(ShapeKind);
 
     impl Shape {
-        pub fn new(kind: ShapeKind) -&gt; Shape {
+        pub fn new(kind: ShapeKind) -&gt; Option&lt;Shape&gt; {
             // ... check invariants ...
-            Shape(kind)
+            Some(Shape(kind))
         }
 
         pub fn get_kind(&amp;self) -&gt; &amp;ShapeKind {
@@ -380,12 +416,14 @@ fn main() {
         base: 1.0,
         height: 2.0,
     });
-    let circle = Shape::new(ShapeKind::Circle { radius: 1.0 });
+    let Some(circle) = Shape::new(ShapeKind::Circle { radius: 1.0 }) else {
+        return;
+    };
 
     // Does not compile because Shape has private fields.
     // match circle {
-    //   Shape(_) -&gt; {}
-    // }
+    //   Shape(c) =&gt; {}
+    // };
 
     match circle.get_kind() {
         ShapeKind::Triangle { base, height } =&gt; {
@@ -400,6 +438,41 @@ fn main() {
 for which it is not possible to make the variants themselves private. Instead
 either the constructors for the types that form the variants can be made private
 or the variant can be wrapped in a class with appropriate visibility controls.</p>
+<h2 id="rusts-non_exhaustive-annotation"><a class="header" href="#rusts-non_exhaustive-annotation">Rust's <code>#[non_exhaustive]</code> annotation</a></h2>
+<p>If a struct or enum is intended to be public within a
+<a href="https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html">crate</a>, but
+should not be constructed outside of the crate, then the <code>#[non_exhaustive]</code>
+attribute can be used to constrain construction. The attribute can be applied to
+both structs and to individual enum variants with the same effect as adding a
+private field.</p>
+<p>However, the attribute applies the constraint at the level of the crate, not at
+the level of a module.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[non_exhaustive]
+pub struct Person {
+    pub name: String,
+    pub age: i32,
+}
+
+pub enum Shape {
+    #[non_exhaustive]
+    Triangle { base: f64, height: f64 },
+    #[non_exhaustive]
+    Circle { radius: f64 },
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The attribute is more typically used to force clients of a library to include
+the wildcard when matching on the struct fields, making it so that adding
+additional fields to a struct is not breaking change (i.e., that it does not
+require the increase of the major version component when using semantic
+versioning).</p>
+<p>Applying the <code>#[non_exhasutive]</code> attribute to the enum itself makes it as if one
+of the variants were private, requiring a wildcard when matching on the variant
+itself. This has the same effect in terms of versioning as when used on a struct
+but is less advantageous. In most cases, code failing to compile when a new enum
+variant is added is desirable, since that indicates a new case that requires
+logic.</p>
 
                     </main>
 
@@ -409,7 +482,7 @@ or the variant can be wrapped in a class with appropriate visibility controls.</
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/constructors.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/encapsulation/setters_and_getters.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -423,7 +496,7 @@ or the variant can be wrapped in a class with appropriate visibility controls.</
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/constructors.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/encapsulation/setters_and_getters.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

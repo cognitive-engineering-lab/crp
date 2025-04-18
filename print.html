@@ -1553,6 +1553,16 @@ which a destructor will be called, and so this use of null does not have a
 corresponding idiom. See the chapter on <a href="idioms/null//idioms/constructors/copy_and_move_constructors.html">copy and move
 constructors</a> for more
 details.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="encapsulation"><a class="header" href="#encapsulation">Encapsulation</a></h1>
+<p>In C++ the encapsulation boundary is the class. In Rust the encapsulation
+boundary is the module, which may contain several types along with standalone
+functions. In larger projects, the crate may also act as an encapsulation
+boundary.</p>
+<p>This difference means that in Rust one is more likely to have multiple tightly
+coupled types that work together which are defined in one module and
+encapsulated as a whole.</p>
+<p>This section provides ways to translate between C++ and Rust's notions of
+encapsulation in terms of both mechanism and concept.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="header-files"><a class="header" href="#header-files">Header files</a></h1>
 <p>One use of header files in C++ is to expose declarations that are defined in one
 translation units to other translation units without requiring the duplication
@@ -2080,6 +2090,12 @@ be used for this purpose.</p>
         pub age: i32,
         _private: (),
     }
+
+    impl Person {
+        pub fn new(name: String, age: i32) -&gt; Person {
+            Person { name, age, _private: () }
+        }
+    }
 }
 
 use person::*;
@@ -2097,6 +2113,10 @@ fn main() {
     //     name: "Bob".to_string(),
     //     age: 55,
     // };
+
+    let carol = Person::new("Carol".to_string(), 20);
+    // Can match on the public fields, and then use .. to ignore the remaning ones.
+    let Person { name, age, .. } = carol;
 }</code></pre></pre>
 <h2 id="enums-1"><a class="header" href="#enums-1">Enums</a></h2>
 <p>Unlike C++ unions, but like <code>std::variant</code>, Rust enums do not have direct
@@ -2171,28 +2191,51 @@ implementation, one of two approaches can be taken. The first controls
 construction of and access to the fields, but not inspection of which variant is
 active.</p>
 <pre><pre class="playground"><code class="language-rust">mod shape {
+    pub struct Triangle {
+        pub base: f64,
+        pub height: f64,
+        _private: (),
+    }
+    pub struct Circle {
+        pub radius: f64,
+        _private: (),
+    }
+
     pub enum Shape {
-        Triangle { base: f64, height: f64 },
-        Circle { radius: f64 },
+        Triangle(Triangle),
+        Circle(Circle),
+    }
+
+    impl Shape {
+        pub fn new_triangle(base: f64, height: f64) -&gt; Shape {
+            Shape::Triangle(Triangle {
+                base,
+                height,
+                _private: (),
+            })
+        }
+
+        pub fn new_circle(radius: f64) -&gt; Shape {
+            Shape::Circle(Circle {
+                radius,
+                _private: (),
+            })
+        }
     }
 }
 
 use shape::*;
 
 fn main() {
-    let triangle = Shape::Triangle {
-        base: 1.0,
-        height: 2.0,
-    };
-
-    let circle = Shape::Circle { radius: 1.0 };
+    let triangle = Shape::new_triangle(1.0, 2.0);
+    let circle = Shape::new_circle(1.0);
 
     match circle {
-        Shape::Triangle { base, height } =&gt; {
+        Shape::Triangle(Triangle { base, height, .. }) =&gt; {
             println!("Triangle: {}, {}", base, height);
         }
-        Shape::Circle { radius } =&gt; {
-            println!("Circle {}", radius);
+        Shape::Circle(Circle { radius, .. }) =&gt; {
+            println!("Circle: {}", radius);
         }
     }
 }</code></pre></pre>
@@ -2244,7 +2287,10 @@ fn main() {
 <p>If the purpose of making the variants private is to ensure that invariants are
 met, then it can be useful to expose the implementing enum (<code>ShapeKind</code>) but not
 the field of the wrapping struct (<code>Shape</code>), with the invariants only being
-guaranteed when the wrapping struct is used.</p>
+guaranteed when the wrapping struct is used. In this case, it is necessary to
+make the field private and define a getter function, since otherwise the field
+would be modifiable, possibly violating the invariant that the wrapping struct
+represents.</p>
 <pre><pre class="playground"><code class="language-rust">mod shape {
     pub enum ShapeKind {
         Triangle { base: f64, height: f64 },
@@ -2254,9 +2300,9 @@ guaranteed when the wrapping struct is used.</p>
     pub struct Shape(ShapeKind);
 
     impl Shape {
-        pub fn new(kind: ShapeKind) -&gt; Shape {
+        pub fn new(kind: ShapeKind) -&gt; Option&lt;Shape&gt; {
             // ... check invariants ...
-            Shape(kind)
+            Some(Shape(kind))
         }
 
         pub fn get_kind(&amp;self) -&gt; &amp;ShapeKind {
@@ -2272,12 +2318,14 @@ fn main() {
         base: 1.0,
         height: 2.0,
     });
-    let circle = Shape::new(ShapeKind::Circle { radius: 1.0 });
+    let Some(circle) = Shape::new(ShapeKind::Circle { radius: 1.0 }) else {
+        return;
+    };
 
     // Does not compile because Shape has private fields.
     // match circle {
-    //   Shape(_) -&gt; {}
-    // }
+    //   Shape(c) =&gt; {}
+    // };
 
     match circle.get_kind() {
         ShapeKind::Triangle { base, height } =&gt; {
@@ -2292,6 +2340,123 @@ fn main() {
 for which it is not possible to make the variants themselves private. Instead
 either the constructors for the types that form the variants can be made private
 or the variant can be wrapped in a class with appropriate visibility controls.</p>
+<h2 id="rusts-non_exhaustive-annotation"><a class="header" href="#rusts-non_exhaustive-annotation">Rust's <code>#[non_exhaustive]</code> annotation</a></h2>
+<p>If a struct or enum is intended to be public within a
+<a href="https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html">crate</a>, but
+should not be constructed outside of the crate, then the <code>#[non_exhaustive]</code>
+attribute can be used to constrain construction. The attribute can be applied to
+both structs and to individual enum variants with the same effect as adding a
+private field.</p>
+<p>However, the attribute applies the constraint at the level of the crate, not at
+the level of a module.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[non_exhaustive]
+pub struct Person {
+    pub name: String,
+    pub age: i32,
+}
+
+pub enum Shape {
+    #[non_exhaustive]
+    Triangle { base: f64, height: f64 },
+    #[non_exhaustive]
+    Circle { radius: f64 },
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The attribute is more typically used to force clients of a library to include
+the wildcard when matching on the struct fields, making it so that adding
+additional fields to a struct is not breaking change (i.e., that it does not
+require the increase of the major version component when using semantic
+versioning).</p>
+<p>Applying the <code>#[non_exhasutive]</code> attribute to the enum itself makes it as if one
+of the variants were private, requiring a wildcard when matching on the variant
+itself. This has the same effect in terms of versioning as when used on a struct
+but is less advantageous. In most cases, code failing to compile when a new enum
+variant is added is desirable, since that indicates a new case that requires
+logic.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="setter-and-getter-methods"><a class="header" href="#setter-and-getter-methods">Setter and getter methods</a></h1>
+<p>Setters and getters work similarly in C++ and Rust, but are used less frequently
+in Rust.</p>
+<p>It would not be unusual to see the following representation of a two-dimensional
+vector in C++, which hides its implementation and provides setters and getters
+to access the fields. This choice would typically be made in case a
+representation change (such as using polar instead of rectangular coordinates)
+needed to be made later without breaking clients.</p>
+<pre><code class="language-c++">class Vec2 {
+  double x;
+  double y;
+
+public:
+  Vec2(double x, double y) : x(x), y(y) {}
+  double getX() { return x; }
+  double getY() { return y; }
+
+  // ... vector operations ...
+};
+</code></pre>
+<p>On the other hand, in Rust such a type would almost always be defined with
+public fields.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+
+impl Vec2 {
+    // ... vector operations ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Some reasons for the difference are:</p>
+<ul>
+<li>Ergonomics: Public members make it possible to use pattern matching.</li>
+<li>Transparency of performance: A change in representation would dramatically
+change the costs involved with the getters. Exposing the representation makes
+the cost change visible.</li>
+<li>Control over mutability: Static lifetime checking of mutable references
+removes concerns of unintended mutation of the value through Rust's equivalent
+of observation pointers.</li>
+</ul>
+<h2 id="types-with-invariants-and-newtypes"><a class="header" href="#types-with-invariants-and-newtypes">Types with invariants and newtypes</a></h2>
+<p>When types need to preserve invariants but the benefits of exposing fields are
+desired, a newtype pattern can be used. A wrapping "newtype" struct that
+represents the data with an invariant is defined and access to the fields of the
+underlying struct is provided by via a non-<code>mut</code> reference.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>mod vec2 {
+    #[derive(Debug, Clone, Copy)]
+    pub struct Vec2 {
+        pub x: f64,
+        pub y: f64,
+    }
+
+    /// Represents a 2-vector that has magnitude 1.
+    #[derive(Debug, Clone, Copy)]
+    pub struct Normalized(Vec2); // note the private field
+
+    fn sqrt_approx_zero(x: f64) -&gt; bool {
+        x &lt; 0.001
+    }
+
+    impl Normalized {
+        pub fn from_vec2(v: Vec2) -&gt; Option&lt;Normalized&gt; {
+            if sqrt_approx_zero(v.x * v.x + v.y * v.x - 1.0) {
+                Some(Normalized(v))
+            } else {
+                None
+            }
+        }
+
+        // The getter provides a reference to the underlying Vec2 value
+        // permitting mutation.
+        pub fn get(&amp;self) -&gt; &amp;Vec2 {
+            &amp;self.0
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
 <p>In C++, constructors initialize objects.</p>
 <pre><code class="language-c++">class Person {
