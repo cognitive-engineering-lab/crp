@@ -2507,6 +2507,637 @@ underlying struct is provided by via a non-<code>mut</code> reference.</p>
     }
 }
 <span class="boring">}</span></code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="type-promotions-and-conversions"><a class="header" href="#type-promotions-and-conversions">Type promotions and conversions</a></h1>
+<h2 id="lvalue-to-rvalue"><a class="header" href="#lvalue-to-rvalue">lvalue to rvalue</a></h2>
+<p>In C++ lvalues are automatically converted to rvalues when needed.</p>
+<pre><code class="language-c++">int main() {
+    int x(0); // Local variables are an lvalues,
+    x = 42; // and therefore may be assigned to.
+
+    int y = x + 1; // x can be converted to an lvalue when needed.
+
+    return 0;
+}
+</code></pre>
+<p>In Rust the equivalent of lvalues are "place expressions" (expressions that
+represent memory locations) and the equivalent of rvalues are "value
+expressions". Place expressions are automatically converted to value expressions
+when needed.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut x = 0; // Local variables are an lvalues,
+    x = 42; // and therefore may be assigned to.
+
+    let y = x + 1; // and therefore may be assigned to.
+}</code></pre></pre>
+<h2 id="array-to-pointer"><a class="header" href="#array-to-pointer">Array to pointer</a></h2>
+<p>In C++, arrays are automatically converted to pointers as required.</p>
+<pre><code class="language-c++">#include &lt;cstring&gt;
+
+int main() {
+  char example[6] = "hello";
+  char other[6];
+
+  // strncpy takes arguments of type char*
+  strncpy(other, example, 6);
+
+  return 0;
+}
+</code></pre>
+<p>The equivalent to this in Rust is the automatic conversion of vector and array
+references to slice references.</p>
+<pre><pre class="playground"><code class="language-rust">fn third(ts: &amp;[char]) -&gt; Option&lt;&amp;char&gt; {
+    ts.get(2)
+}
+
+fn main() {
+    let vec: Vec&lt;char&gt; = vec!['a', 'b', 'c'];
+    let arr: [char; 3] = ['a', 'b', 'c'];
+
+    third(&amp;vec);
+    third(&amp;arr);
+}</code></pre></pre>
+<p>Because slice references can be easily used in a memory-safe way, it is
+generally recommended in Rust to define functions in terms of slice references
+instead of in terms of references to vectors or arrays, unless vector-specific
+or array-specific functionality is needed.</p>
+<p>Unlike in C++ where the conversion from arrays to pointers is built into the
+language, this is actually a general mechanism provided by the <a href="https://doc.rust-lang.org/std/ops/trait.Deref.html"><code>Deref</code>
+trait</a>, which provides one
+kind of <a href="idioms/promotions_and_conversions.html#user-defined-conversions">user-defined conversion</a>.</p>
+<h2 id="function-to-pointer"><a class="header" href="#function-to-pointer">Function to pointer</a></h2>
+<p>In C++ functions and static member functions are automatically converted to
+function pointers.</p>
+<pre><code class="language-c++">int twice(int n) { return n * n; }
+
+int main() {
+  int (*twicePtr)(int) = twice;
+  int result = twicePtr(5);
+
+  return 0;
+}
+</code></pre>
+<p>Rust performs the same conversion. In addition to functions and members that do
+not take <code>self</code> as an argument, constructors (proper constructors) also have
+function type and can be converted to function pointers. Non-capturing closures
+do not have function type, but can also be converted to function pointers. There
+is no syntax in Rust for the function type itself.</p>
+<pre><pre class="playground"><code class="language-rust">fn twice(x: i32) -&gt; i32 {
+    x * x
+}
+
+struct MyPair(i32, i32);
+
+impl MyPair {
+    fn new() -&gt; MyPair {
+        MyPair(0, 0)
+    }
+}
+
+fn main() {
+    let twicePtr: fn(i32) -&gt; i32 = twice;
+    let res = twicePtr(5);
+
+    let ctorPtr: fn(i32, i32) -&gt; MyPair = MyPair;
+    let pair = ctorPtr(10, 20);
+
+    let methodPtr: fn() -&gt; MyPair = MyPair::new;
+    let pair2 = methodPtr();
+
+    let closure: fn(i32) -&gt; i32 = |x: i32| x * 5;
+    let closureRes = closure(2);
+}</code></pre></pre>
+<h2 id="numeric-promotion-and-numeric-conversion"><a class="header" href="#numeric-promotion-and-numeric-conversion">Numeric promotion and numeric conversion</a></h2>
+<p>In C++ there are several kinds of implicit conversions that occur between
+numeric types. The most commonly encountered are numeric promotions, which
+convert numeric types to larger types.</p>
+<pre><code class="language-c++">int main() {
+  int x(0);
+  long y = x;
+
+  float a(1.0);
+  double b = a;
+
+  return 0;
+}
+</code></pre>
+<p>These lossless conversions are not implicit in Rust. Instead, they must be
+performed explicitly using the <code>Into::into()</code> method. These conversions are
+provided by implementations of the
+<a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> and
+<a href="https://doc.rust-lang.org/std/convert/trait.Into.html"><code>Into</code></a> traits. The list
+of conversions provided by the Rust standard library is <a href="https://doc.rust-lang.org/std/convert/trait.From.html#implementors">listed on the
+documentation
+page</a> for
+the trait.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x: i32 = 42;
+    let y: i64 = x.into();
+
+    let a: f32 = 1.0;
+    let b: f64 = a.into();
+}</code></pre></pre>
+<p>There are several implicit conversions that occur in C++ that are not lossless.
+For example, integers can be implicitly converted to unsigned integers in C++.</p>
+<pre><code class="language-c++">int main() {
+  int x(42);
+  unsigned int y = x;
+
+  return 0;
+}
+</code></pre>
+<p>In Rust, these conversions are also required to be explicit and are provided by
+the <a href="https://doc.rust-lang.org/std/convert/trait.TryFrom.html"><code>TryFrom</code></a> and
+<a href="https://doc.rust-lang.org/std/convert/trait.TryInto.html"><code>TryInto</code></a> traits
+which require handling the cases where the value does not map to the other type.</p>
+<pre><pre class="playground"><code class="language-rust">use std::convert::TryInto;
+
+fn main() {
+    let x: i32 = 42;
+    let y: u32 = match x.try_into() {
+        Ok(x) =&gt; x,
+        Err(err) =&gt; {
+            panic!("Can't convert! {:?}", err);
+        }
+    };
+}</code></pre></pre>
+<p>Some conversions that occur in C++ are supported by neither <code>From</code> nor <code>TryFrom</code>
+because the conversion is either insufficiently obvious or because they are not
+value-preserving. For example, in C++ <code>int32_t</code> can implicitly be converted to
+<code>float</code> despite <code>float</code> not being able to represent all 32 bit the integers
+precisely.</p>
+<pre><code class="language-c++">#include &lt;cstdint&gt;
+
+int main() {
+  int32_t x(42);
+  float a = x;
+
+  return 0;
+}
+</code></pre>
+<p>In Rust the only way to convert from an <code>i32</code> to an <code>f32</code> is with the <a href="https://doc.rust-lang.org/stable/reference/expressions/operator-expr.html#r-expr.as.coercions"><code>as</code>
+operator</a>.
+The operator can actually be used to convert between other primitive types as
+well and does not panic or produce undefined behavior, but may not convert in
+the desired way (e.g., it may use a different rounding mode than desired or it
+may truncate rather than saturate as desired).</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x: i32 = 42;
+    let a: f32 = x as f32;
+}</code></pre></pre>
+<h3 id="isize-and-usize"><a class="header" href="#isize-and-usize"><code>isize</code> and <code>usize</code></a></h3>
+<p>In the Rust standard library the <code>isize</code> and <code>usize</code> types are used for values
+intended to used be indices (much like <code>size_t</code> in C++). However, their use for
+other purposes is usually discouraged in favor of using explicitly sized types
+such as <code>u32</code>. This results a situation where values of type <code>u32</code> have to be
+converted to <code>usize</code> for use in indexing, but <code>Into&lt;usize&gt;</code> is not implemented
+for <code>u32</code>.</p>
+<p>In these cases, best practice is to use <code>TryInto</code>, and if further error handling
+of the failure cause is not desired, to call <code>unwrap</code>, creating a panic at the
+point of conversion.</p>
+<p>This is preferred because it prevents the possibility of moving forward with an
+incorrect value. E.g., consider converting a <code>u64</code> to a <code>usize</code> that has a
+32-bit representation with <code>as</code>, which truncates the result. A value that is one
+greater than the <code>u32::MAX</code> will truncate to <code>0</code>, which would probably result in
+successfully retrieving a value from a data structure, thus masking a bug and
+producing unexpected behavior.</p>
+<h3 id="enums-2"><a class="header" href="#enums-2">Enums</a></h3>
+<p>In C++ enums can be implicitly converted to integer types.</p>
+<pre><code class="language-c++">enum Shape {
+  Triangle = 0,
+  Circle,
+};
+
+int main() {
+  int shape = Triangle;
+
+  return 0;
+}
+</code></pre>
+<p>In Rust the conversion requires the use of the <code>as</code> operator, and providing
+<code>From</code> and <code>TryFrom</code> implementations to move back and forth between the enum and
+its representation type is recommended. Examples and additional details are
+given in the <a href="idioms//idioms/data_modeling/enums.html">chapter on enums</a>.</p>
+<h2 id="qualification-conversion"><a class="header" href="#qualification-conversion">Qualification conversion</a></h2>
+<p>In C++ qualification conversions enable the use of const (or volatile) values
+where the const (or volatile) qualifier is not expected.</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+void display(const std::string &amp;str) {
+  std::cout &lt;&lt; "Displaying: " &lt;&lt; str &lt;&lt; std::endl;
+}
+
+int main() {
+  // no const qualifier
+  std::string message("hello world");
+
+  // used where const expected
+  display(message);
+
+  return 0;
+}
+</code></pre>
+<p>In Rust the equivalent enables the use of <code>mut</code> variables and <code>mut</code> references
+to be used where non-<code>mut</code> variables or references are expected.</p>
+<pre><pre class="playground"><code class="language-rust">fn display(msg: &amp;str) {
+    println!("{}", msg);
+}
+
+fn main() {
+    let mut s: String = "hello world".to_string();
+    let msg: &amp;mut str = s.as_mut();
+    display(msg);
+}</code></pre></pre>
+<h2 id="integer-literals"><a class="header" href="#integer-literals">Integer literals</a></h2>
+<p>In C++ integer literals with no suffix indicating type have the smallest type in
+which they can fit from <code>int</code>, <code>long int</code>, or <code>long long int</code>. When the literal
+is then assigned to a variable of a different type, an implicit conversion is
+performed.</p>
+<pre><code class="language-c++">#include &lt;cstdint&gt;
+
+int main() {
+  // Compiles without error (but with a warning).
+  uint32_t y = 4294967296;
+
+  return 0;
+}
+</code></pre>
+<p>In Rust, integer literals have their type inferred depending on context. When
+there is insufficient information to infer a type either <code>i32</code> is assumed or may
+require some type annotation to be given.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    // error: literal out of range for `u32`
+    // let x: u32 = 4294967296;
+
+    let x = 1; // assumes i32
+
+    // fails to compile because it is inferred as i32
+    // print!("{}", 4294967296);
+
+    // These work, though.
+    println!("{}", 4294967296u64);
+
+    let y: u64 = 4294967296;
+    println!("{}", y);
+}</code></pre></pre>
+<h2 id="safe-bools"><a class="header" href="#safe-bools">Safe bools</a></h2>
+<p>The safe bool idiom exists to make it possible to use types as conditions. Since
+C++11 this idiom is straightforward to implement.</p>
+<pre><code class="language-c++">struct Wire {
+  bool ready;
+  unsigned int value;
+
+  explicit operator bool() const { return ready; }
+};
+
+int main() {
+  Wire w{false, 0};
+  // ...
+
+  if (w) {
+    // use w.value
+  } else {
+    // do something else
+  }
+
+  return 0;
+}
+</code></pre>
+<p>In Rust instead of converting the value to a boolean, the normal idiom matches
+on the value instead. Depending on the situation, the mechanism used for
+matching might be <code>match</code>, <code>if let</code>, or <code>let else</code>.</p>
+<pre><pre class="playground"><code class="language-rust">enum Wire {
+    Ready(u32),
+    NotReady,
+}
+
+fn main() {
+    let wire = Wire::NotReady;
+    // ...
+
+    // match
+    match wire {
+        Wire::Ready(v) =&gt; {
+            // use value v
+        }
+        Wire::NotReady =&gt; {
+            // do something else
+        }
+    }
+
+    // if let
+    if let Wire::Ready(v) = wire {
+        // use value v
+    }
+
+    // let else
+    let Wire::Ready(v) = wire else {
+        // do something that doesn't continue, like early return
+        return;
+    };
+}</code></pre></pre>
+<h2 id="user-defined-conversions"><a class="header" href="#user-defined-conversions">User-defined conversions</a></h2>
+<p>TODO</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="overloading"><a class="header" href="#overloading">Overloading</a></h1>
+<p>C++ supports overloading of functions, so long as the invocations of the
+functions can be distinguished by the number or types of their arguments.</p>
+<pre><code class="language-c++">#include &lt;string&gt;
+
+double twice(double x) {
+	return x + x;
+}
+
+int twice(int x) {
+	return x + x;
+}
+</code></pre>
+<p>Rust does not support this kind of function overloading. Instead, Rust has a few
+different mechanisms (some of which C++ also has) for achieving the effects of
+overloading in a way that interacts better with type inference. The mechanisms
+usually involve making the commonalities between the overloaded functions
+apparent in the code.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn twice(x: f64) -&gt; f64 {
+    x + x
+}
+
+// error[E0428]: the name `twice` is defined multiple times
+// fn twice(x: i32) -&gt; i32 {
+//     x + x
+// }
+<span class="boring">}</span></code></pre></pre>
+<p>In practice, an example like the above would also likely be implemented in a
+more structured way even in C++, using templates.</p>
+<pre><code class="language-c++">template &lt;typename T&gt;
+T twice(T x) {
+	return x + x;
+}
+</code></pre>
+<p>When phrased this way, the example can be translated to Rust, with the notable
+addition of <a href="idioms//idioms/data_modeling/concepts.html">requiring a trait bound on the
+type</a>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn twice&lt;T&gt;(x: T) -&gt; T::Output
+where
+    T: std::ops::Add&lt;T&gt;,
+    T: Copy,
+{
+    x + x
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="overloaded-methods"><a class="header" href="#overloaded-methods">Overloaded methods</a></h2>
+<p>In C++ it is possible to have multiple methods with different signatures on the
+same type. In Rust there can be at most one method with the same signature for
+each trait implementation and at most one inherent method with the same
+signature for a type.</p>
+<p>In those cases, the desired method must be distinguished at the call site by
+specifying the trait.</p>
+<pre><pre class="playground"><code class="language-rust">trait TraitA {
+    fn go(&amp;self) -&gt; String;
+}
+
+trait TraitB {
+    fn go(&amp;self) -&gt; String;
+}
+
+struct MyStruct;
+
+impl MyStruct {
+    fn go(&amp;self) -&gt; String {
+        "Called inherent method".to_string()
+    }
+}
+
+impl TraitA for MyStruct {
+    fn go(&amp;self) -&gt; String {
+        "Called Trait A method".to_string()
+    }
+}
+
+impl TraitB for MyStruct {
+    fn go(&amp;self) -&gt; String {
+        "Called Trait B method".to_string()
+    }
+}
+
+fn main() {
+    let my_struct = MyStruct;
+
+    // Calling the inherent method
+    println!("{}", my_struct.go());
+
+    // Calling the method from TraitA
+    println!("{}", TraitA::go(&amp;my_struct));
+
+    // Calling the method from TraitB
+    println!("{}", TraitB::go(&amp;my_struct));
+}</code></pre></pre>
+<h2 id="overloaded-operators"><a class="header" href="#overloaded-operators">Overloaded operators</a></h2>
+<p>In C++ most operators can either be overloaded either with a free-standing
+function or by providing a method defining the operator on a class.</p>
+<pre><code class="language-c++">struct Vec2 {
+  double x;
+  double y;
+
+  Vec2 operator+(const Vec2 &amp;other) const {
+    return Vec2{x + other.x, y + other.y};
+  }
+};
+
+int main() {
+  Vec2 a{1.0, 2.0};
+  Vec2 b{3.0, 4.0};
+  Vec2 c = a + b;
+
+  return 0;
+}
+</code></pre>
+<p>Rust provides operator via implementation of specific traits. Implementing a
+method of the same name as required by the trait will not make a type usable
+with the operator if the trait is not implemented.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy)]
+struct Vec2 {
+    x: f64,
+    y: f64,
+}
+
+impl std::ops::Add for &amp;Vec2 {
+    type Output = Vec2;
+
+    // Note that the type of self here is &amp;Vec2.
+    fn add(self, other: Self) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+fn main() {
+    let a = Vec2 { x: 1.0, y: 2.0 };
+    let b = Vec2 { x: 3.0, y: 4.0 };
+    let c = &amp;a + &amp;b;
+}</code></pre></pre>
+<p>Additionally, sometimes it is best to provide trait implementations for various
+combinations of reference types, especially for types that implement the <a href="idioms//idioms/constructors/copy_and_move_constructors.html"><code>Copy trait</code></a>, since they are
+likely to want to be used either with or without taking a reference. For the
+example above, that involve defining four implementations.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy)]
+struct Vec2 {
+    x: f64,
+    y: f64,
+}
+
+impl std::ops::Add&lt;&amp;Vec2&gt; for &amp;Vec2 {
+    type Output = Vec2;
+
+    fn add(self, other: &amp;Vec2) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+// If Vec2 weren't so small, it might be desireable to re-use space in the below
+// implementations, since they take ownership.
+
+impl std::ops::Add&lt;Vec2&gt; for &amp;Vec2 {
+    type Output = Vec2;
+
+    fn add(self, other: Vec2) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+impl std::ops::Add&lt;&amp;Vec2&gt; for Vec2 {
+    type Output = Vec2;
+
+    fn add(self, other: &amp;Vec2) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+impl std::ops::Add&lt;Vec2&gt; for Vec2 {
+    type Output = Vec2;
+
+    fn add(self, other: Vec2) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+fn main() {
+    let a = Vec2 { x: 1.0, y: 2.0 };
+    let b = Vec2 { x: 3.0, y: 4.0 };
+    let c = a + b;
+}</code></pre></pre>
+<p>The repetition can be addressed by defining a macro.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy)]
+struct Vec2 {
+    x: f64,
+    y: f64,
+}
+
+macro_rules! impl_add_vec2 {
+    ($lhs:ty, $rhs:ty) =&gt; {
+        impl std::ops::Add&lt;$rhs&gt; for $lhs {
+            type Output = Vec2;
+
+            fn add(self, other: $rhs) -&gt; Vec2 {
+                Vec2 {
+                    x: self.x + other.x,
+                    y: self.y + other.y,
+                }
+            }
+        }
+    };
+}
+
+impl_add_vec2!(&amp;Vec2, &amp;Vec2);
+impl_add_vec2!(&amp;Vec2, Vec2);
+impl_add_vec2!(Vec2, &amp;Vec2);
+impl_add_vec2!(Vec2, Vec2);
+
+fn main() {
+    let a = Vec2 { x: 1.0, y: 2.0 };
+    let b = Vec2 { x: 3.0, y: 4.0 };
+    let c = a + b;
+}</code></pre></pre>
+<h2 id="default-arguments"><a class="header" href="#default-arguments">Default arguments</a></h2>
+<p>Default arguments in C++ are sometimes implemented in terms of function
+overloading.</p>
+<pre><code class="language-c++">unsigned int shift(unsigned int x, unsigned int shiftAmount) {
+    return x &lt;&lt; shiftAmount;
+}
+
+unsigned int shift(unsigned int x) {
+    return shift(x, 2);
+}
+
+int main() {
+    unsigned int a = shift(x); // shifts by 2
+
+    return 0;
+}
+</code></pre>
+<p>Rust does not have default arguments. Instead, arguments with <code>Option</code> type can
+be used to provide a similar effect.</p>
+<pre><pre class="playground"><code class="language-rust">use std::ops::Shl;
+
+fn shift(x: u32, shift_amount: Option&lt;u32&gt;) -&gt; u32 {
+    let a = shift_amount.unwrap_or(2);
+    x.shl(a)
+}
+
+fn main() {
+    let a = shift(2, None); // shifts by 2
+}</code></pre></pre>
+<h2 id="unrelated-overloads"><a class="header" href="#unrelated-overloads">Unrelated overloads</a></h2>
+<p>The lack of completely ad hoc overloading in Rust encourages the definition of
+traits that capture essential commonalities between types, so that functions can
+be implemented in terms of those interfaces and used generally. However, it also
+sometime encourages the anti-pattern of defining of traits that only capture
+incidental commonalities (such as having methods of the same name).</p>
+<p>It is better programming practice in those cases to simply define separate
+functions, rather than to shoehorn in a trait where no real commonality exists.</p>
+<p>This is commonly seen in Rust in the naming conventions for constructor static
+methods. Instead of them all being named <code>new</code> with different arguments, they
+are usually given names of the form <code>from_something</code>, where the <code>something</code>
+varies based on from what the value is being constructed.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Vec3 {
+    x: f64,
+    y: f64,
+    z: f64,
+}
+
+struct Vec2 {
+    x: f64,
+    y: f64,
+}
+
+impl Vec3 {
+    fn from_scalar(x: f64) -&gt; Vec3 {
+        Vec3 { x, y: 0.0, z: 0.0 }
+    }
+
+    fn from_vec2(v: &amp;Vec2) -&gt; Vec3 {
+        Vec3 { x: v.x, y: v.y, z: 0.0 }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
 <p>In C++, constructors initialize objects.</p>
 <pre><code class="language-c++">class Person {
