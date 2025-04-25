@@ -157,19 +157,17 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="multiple-return-values"><a class="header" href="#multiple-return-values">Multiple return values</a></h1>
-<p>One idiom for returning multiple values in C++ is to pass in references to which
-the values can be assigned. E.g.,</p>
+<p>One idiom for returning multiple values from a function or method in C++ is to
+pass in references to which the values can be assigned.</p>
 <pre><code class="language-c++">void get_point(int &amp;x, int &amp;y) {
-    x = 5;
-    y = 6;
+  x = 5;
+  y = 6;
 }
 
-int compute_norm() {
-    int x, y;
-
-    get_point(x, y);
-
-    return x + y;
+int main() {
+  int x, y;
+  get_point(x, y);
+  // ...
 }
 </code></pre>
 <p>There are several reasons why this idiom might be used:</p>
@@ -181,64 +179,55 @@ int compute_norm() {
 <p>The idiomatic translation of this program into Rust makes use of either
 <a href="https://doc.rust-lang.org/std/primitive.tuple.html">tuples</a> or a named
 structure for the return type.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn get_point() -&gt; (i32, i32) {
+<pre><pre class="playground"><code class="language-rust">fn get_point() -&gt; (i32, i32) {
     (5, 6)
 }
 
-pub fn compute_norm() -&gt; i32 {
+fn main() {
     let (x, y) = get_point();
-    x + y
-}
-<span class="boring">}</span></code></pre></pre>
-<p>Rust has a dedicated tuple syntax and pattern matching with <code>let</code> bindings in
-part to support use cases like this one.</p>
+    // ...
+}</code></pre></pre>
+<p>Rust has a dedicated tuple syntax and supports pattern matching with <code>let</code>
+bindings in part to support use cases like this one.</p>
 <h2 id="problems-with-the-direct-transliteration"><a class="header" href="#problems-with-the-direct-transliteration">Problems with the direct transliteration</a></h2>
-<p>It is possible to transliterate this to Rust, but Rust requires the
-initialization of the variables. The resulting program is not idiomatic Rust.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// NOT IDIOIMATIC RUST
+<p>It is possible to transliterate the original example that uses out parameters to
+Rust, but Rust requires the initialization of the variables before they can be
+passed to a function. The resulting program is not idiomatic Rust.</p>
+<pre><pre class="playground"><code class="language-rust">// NOT IDIOIMATIC RUST
 fn get_point(x: &amp;mut i32, y: &amp;mut i32) {
     *x = 5;
     *y = 6;
 }
 
-fn compute_norm() -&gt; i32 {
+fn main() {
     let mut x = 0; // initliazed to arbitrary values
     let mut y = 0;
-
     get_point(&amp;mut x, &amp;mut y);
-
-    x + y
-}
-<span class="boring">}</span></code></pre></pre>
-<p>In addition to sacrificing conciseness, this approach requires assigning
-arbitrary initial values to the variables and making the variables mutable, both
-of which make it harder for the compiler to help with avoiding programming
-errors.</p>
+    // ...
+}</code></pre></pre>
+<p>This approach requires assigning arbitrary initial values to the variables and
+making the variables mutable, both of which make it harder for the compiler to
+help with avoiding programming errors.</p>
 <p>Additionally, the Rust compiler is tuned for optimizing the idiomatic version of
-the program, and does produce a significantly faster binary for that version.</p>
+the program, and produces a significantly faster binary for that version.</p>
 <p>In situations where the performance of memory allocation is a concern (such as
 when it is necessary to reuse entire buffers in memory), the trade-offs may be
 different. That situation is discussed in the chapter on <a href="/idioms/out_params/pre-allocated_buffers.html">pre-allocated
 buffers</a>.</p>
 <h2 id="similarities-with-idiomatic-c-since-c11"><a class="header" href="#similarities-with-idiomatic-c-since-c11">Similarities with idiomatic C++ since C++11</a></h2>
-<p>In C++11 and later, it <code>std::pair</code> and <code>std::tuple</code> are available for returning
+<p>In C++11 and later, <code>std::pair</code> and <code>std::tuple</code> are available for returning
 multiple values instead of assigning to reference parameters.</p>
-<pre><code class="language-c++">#include &lt;utility&gt;
-#include &lt;tuple&gt;
+<pre><code class="language-c++">#include &lt;tuple&gt;
+#include &lt;utility&gt;
 
-std::pair&lt;int,int&gt; get_point() {
-	return std::pair&lt;int,int&gt;(5, 6);
+std::pair&lt;int, int&gt; get_point() {
+  return std::pair&lt;int, int&gt;(5, 6);
 }
 
-int compute_norm() {
-	int x, y;
-	std::tie(x, y) = get_point();
-
-    return x + y;
+int main() {
+  int x, y;
+  std::tie(x, y) = get_point();
+  // ...
 }
 </code></pre>
 <p>This more closely aligns with the normal Rust idiom for returning multiple
@@ -248,7 +237,7 @@ values.</p>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../idioms/destructors.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../idioms/out_params.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -262,7 +251,7 @@ values.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../idioms/destructors.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../idioms/out_params.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

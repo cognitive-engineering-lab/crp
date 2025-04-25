@@ -157,40 +157,46 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="optional-return-values"><a class="header" href="#optional-return-values">Optional return values</a></h1>
-<p>Similarly to with multiple return values, a common idiom in C++ code is to use a
-reference parameter along with a boolean or integer return value to return an
-optional result from a function. This might be done for the same reasons as for
-using out parameters for multiple return values:</p>
+<p>One idiom in C++ for optionally producing a result from a method or function is
+to use a reference parameter along with a boolean or integer return value to
+indicate whether the result was produced. This might be done for the same
+reasons as for using <a href="/idioms/out_params/multiple_return.html">out parameters for multiple return
+values</a>:</p>
 <ul>
 <li>compatibility with versions of C++ earlier than C++11,</li>
 <li>working in a codebase that uses C-style of C++, and</li>
 <li>performance concerns.</li>
 </ul>
-<p>For example,</p>
-<pre><code class="language-c++">bool safe_divide(int dividend, int divisor, int &amp;quotient) {
-	if (divisor != 0) {
-		quotient = dividend/divisor;
-		return true;
-    } else {
-        return false;
-    }
+<pre><code class="language-c++">#include &lt;iostream&gt;
+
+bool safe_divide(unsigned int dividend,
+                 unsigned int divisor,
+                 unsigned int &amp;quotient) {
+  if (divisor != 0) {
+    quotient = dividend / divisor;
+    return true;
+  } else {
+    return false;
+  }
 }
 
-void go(int dividend, int divisor) {
-    int quotient;
-    if (safe_divide(dividend, divisor, quotient)) {
-        // use quotient
-    } else {
-        // handle edge case
-    }
+void go(unsigned int dividend, unsigned int divisor) {
+  unsigned int quotient;
+  if (safe_divide(dividend, divisor, quotient)) {
+    std::cout &lt;&lt; quotient &lt;&lt; std::endl;
+  } else {
+    std::cout &lt;&lt; "Division failed!" &lt;&lt; std::endl;
+  }
+}
+
+int main() {
+  go(10, 2);
+  go(10, 0);
 }
 </code></pre>
-<p>The idiomatic Rust approach for both of these situations is to return a value of
-type <a href="https://doc.rust-lang.org/std/option/index.html"><code>Option</code></a>.</p>
-<p>The first case becomes:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn safe_divide(dividend: i32, divisor: i32) -&gt; Option&lt;i32&gt; {
+<p>The idiomatic Rust approach for optionally returning a value is to return a
+value of type <a href="https://doc.rust-lang.org/std/option/index.html"><code>Option</code></a>.</p>
+<pre><pre class="playground"><code class="language-rust">fn safe_divide(dividend: u32, divisor: u32) -&gt; Option&lt;u32&gt; {
     if divisor != 0 {
         Some(dividend / divisor)
     } else {
@@ -198,107 +204,91 @@ type <a href="https://doc.rust-lang.org/std/option/index.html"><code>Option</cod
     }
 }
 
-fn go(dividend: i32, divisor: i32) {
+fn go(dividend: u32, divisor: u32) {
     match safe_divide(dividend, divisor) {
         Some(quotient) =&gt; {
-            // use quotient
+            println!("{}", quotient);
         }
         None =&gt; {
-            // handle other case
+            println!("Division failed!");
         }
     }
 }
-<span class="boring">}</span></code></pre></pre>
+
+fn main() {
+    go(10, 2);
+    go(10, 0);
+}</code></pre></pre>
+<p>When there is useful information to provide in the failing case, the <a href="https://doc.rust-lang.org/std/result/"><code>Result</code>
+type</a> can be used instead. The <a href="/idioms/exceptions.html">chapter
+on error handling</a> describes the use of <code>Result</code>.</p>
+<h2 id="returning-a-pointer"><a class="header" href="#returning-a-pointer">Returning a pointer</a></h2>
 <p>When the value being returned is a pointer, another common idiom in C++ is to
-use <code>nullptr</code> to represent the optional case. For the Rust translation of that,
-see <a href="TODO">the chapter on nullable types</a>.</p>
-<!-- TODO move to chapter on nullable types
-
-When the returned value is a pointer, a null pointer is often used instead of
-this pattern.
-
-```c++
-#include <memory>
-struct Person {
-    int age;
-	Person(int age) : age(age) {}
-};
-
-std::unique_ptr<Person> maybe_create(int age) {
-    if (age >= 0) {
-        return std::make_unique<Person>(age);
-    } else {
-        return nullptr;
-    }
-}
-```
-
-Additionally, Rust has [an optimization for
-`Option`](https://doc.rust-lang.org/std/option/#representation) when the
-contained type is part of the standard library and can represent the `None` case
-without an extra word of memory.
-
--->
-<p>Normally the constructors of an <code>enum</code> have to be qualified by the type (as in
-<code>Option::None</code>), but Rust's <code>Option</code> type is actually so commonly used that
-<a href="https://doc.rust-lang.org/std/prelude/index.html">the prelude</a> exports the
-variants directly, so that program above can be written instead without the
-<code>Option::</code> prefixes.</p>
+use <code>nullptr</code> to represent the optional case. In the Rust translation of that
+idiom, <code>Option</code> is also used, along with a reference type, such as <code>&amp;</code> or <code>Box</code>.
+See <a href="/idioms/null/sentinel_values.html#nullptr">the chapter on using <code>nullptr</code> as a sentinel
+value</a> for more details.</p>
 <h2 id="problems-with-the-direct-transliteration"><a class="header" href="#problems-with-the-direct-transliteration">Problems with the direct transliteration</a></h2>
-<p>This can be transliterated into Rust, but the result is not idiomatic.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// NOT IDIOIMATIC RUST
-fn safe_divide(dividend: i32, divisor: i32, quotient: &amp;mut i32) -&gt; bool {
-	if (divisor != 0) {
-		*quotient = dividend/divisor;
+<p>It is possible to transliterate the original example that uses out parameters to
+Rust, but the resulting code is not idiomatic.</p>
+<pre><pre class="playground"><code class="language-rust">// NOT IDIOIMATIC RUST
+fn safe_divide(dividend: u32, divisor: u32, quotient: &amp;mut u32) -&gt; bool {
+    if divisor != 0 {
+        *quotient = dividend / divisor;
         true
     } else {
         false
     }
 }
 
-fn go(dividend: i32, divisor: i32) {
-    let mut quotient: i32 = 0; // initliazed to arbitrary value
+fn go(dividend: u32, divisor: u32) {
+    let mut quotient: u32 = 0; // initliazed to arbitrary value
     if safe_divide(dividend, divisor, &amp;mut quotient) {
-        // use quotient
+        println!("{}", quotient);
     } else {
-        // handle other case
+        println!("Division failed!");
     }
 }
-<span class="boring">}</span></code></pre></pre>
-<p>This shares the same problems as with using out-parameters for <a href="/idioms/out_params/multiple_return.html">multiple return
+
+fn main() {
+    go(10, 2);
+    go(10, 0);
+}</code></pre></pre>
+<p>This shares the same problems as with using out-parameters for <a href="/idioms/out_params/multiple_return.html#problems-with-the-direct-transliteration">multiple return
 values</a>.</p>
-<h2 id="c-stdoptional"><a class="header" href="#c-stdoptional">C++ <code>std::optional</code></a></h2>
+<h2 id="similarities-with-c-since-c17"><a class="header" href="#similarities-with-c-since-c17">Similarities with C++ since C++17</a></h2>
 <p>C++17 and later offer <code>std::optional</code>, which can be used to express optional
-return values in a way similar to the idiomatic Rust, but which have fewer
-safety guarantees around the use of the returned value.</p>
-<pre><code class="language-c++">#include &lt;optional&gt;
+return values in a way similar to the idiomatic Rust example.</p>
+<pre><code class="language-c++">#include &lt;iostream&gt;
+#include &lt;optional&gt;
 
-std::optional&lt;int&gt; safe_divide(int dividend, int divisor) {
-	if (divisor != 42) {
-		return std::optional&lt;int&gt;(dividend/divisor);
-    } else {
-        return std::nullopt;
-    }
+std::optional&lt;unsigned int&gt; safe_divide(unsigned int dividend,
+                                        unsigned int divisor) {
+  if (divisor != 0) {
+    return std::optional&lt;unsigned int&gt;(dividend / divisor);
+  } else {
+    return std::nullopt;
+  }
 }
 
-void go(int dividend, int divisor) {
-    int quotient;
-    if (auto quotient = foo(x)) {
-		// use quotient
-    } else {
-		// handle other case
-    }
+void go(unsigned int dividend, unsigned int divisor) {
+  if (auto quotient = safe_divide(dividend, divisor)) {
+    std::cout &lt;&lt; *quotient &lt;&lt; std::endl;
+  } else {
+    std::cout &lt;&lt; "Division failed!" &lt;&lt; std::endl;
+  }
+}
+
+int main() {
+  go(10, 2);
+  go(10, 0);
 }
 </code></pre>
 <h2 id="helpful-option-utilities"><a class="header" href="#helpful-option-utilities">Helpful <code>Option</code> utilities</a></h2>
 <p>When the <code>None</code> case really is an edge case, the <a href="https://doc.rust-lang.org/rust-by-example/flow_control/let_else.html"><code>let-else</code>
 syntax</a>
 can be used to make that clearer:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span><span class="boring">fn safe_divide(dividend: i32, divisor: i32) -&gt; Option&lt;i32&gt; {
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn safe_divide(dividend: u32, divisor: u32) -&gt; Option&lt;u32&gt; {
 </span><span class="boring">    if divisor != 0 {
 </span><span class="boring">        Some(dividend / divisor)
 </span><span class="boring">    } else {
@@ -306,14 +296,18 @@ can be used to make that clearer:</p>
 </span><span class="boring">    }
 </span><span class="boring">}
 </span><span class="boring">
-</span>fn go(dividend: i32, divisor: i32) {
-    let Some(x) = safe_divide(dividend, divisor) else {
-        // handle other case
+</span>fn go(dividend: u32, divisor: u32) {
+    let Some(quotient) = safe_divide(dividend, divisor) else {
+        println!("Division failed!");
         return;
     };
-    // use quotient
+    println!("{}", quotient);
 }
-<span class="boring">}</span></code></pre></pre>
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    go(10, 2);
+</span><span class="boring">    go(10, 0);
+</span><span class="boring">}</span></code></pre></pre>
 <p>If there is a default value that should be used in the <code>None</code> case, the
 <a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or"><code>Option::unwrap_or</code></a>,
 <a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_else"><code>Option::unwrap_or_else</code></a>,
@@ -321,35 +315,37 @@ can be used to make that clearer:</p>
 or
 <a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap"><code>Option::unwrap</code></a>
 methods can be used:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span><span class="boring">fn safe_divide(dividend: i32, divisor: i32) -&gt; Option&lt;i32&gt; {
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn safe_divide(dividend: u32, divisor: u32) -&gt; Option&lt;u32&gt; {
 </span><span class="boring">    if divisor != 0 {
 </span><span class="boring">        Some(dividend / divisor)
 </span><span class="boring">    } else {
 </span><span class="boring">        None
 </span><span class="boring">    }
 </span><span class="boring">}
-</span>
-fn expensive_computation() -&gt; i32 {
+</span><span class="boring">
+</span>fn expensive_computation() -&gt; u32 {
     // ...
 <span class="boring">   0
 </span>}
 
-fn go(dividend: i32, divisor: i32) {
+fn go(dividend: u32, divisor: u32) {
     // If None, returns the given value.
     let result = safe_divide(dividend, divisor).unwrap_or(0);
 
     // If None, returns the result of calling the given function.
     let result2 = safe_divide(dividend, divisor).unwrap_or_else(expensive_computation);
 
-    // If None, returns Default::default(), which is 0 for i32.
+    // If None, returns Default::default(), which is 0 for u32.
     let result3 = safe_divide(dividend, divisor).unwrap_or_default();
 
     // If None, panics. Prefer the other methods!
-    let result3 = safe_divide(dividend, divisor).unwrap();
+    // let result3 = safe_divide(dividend, divisor).unwrap();
 }
-<span class="boring">}</span></code></pre></pre>
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    go(10, 2);
+</span><span class="boring">    go(10, 0);
+</span><span class="boring">}</span></code></pre></pre>
 <p>In performance-sensitive code where you have manually checked that the result is
 guaranteed to be <code>Some</code>,
 <a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_unchecked"><code>Option::unwrap_unchecked</code></a>
@@ -358,6 +354,37 @@ can be used, but is an unsafe method.</p>
 methods</a> that enable
 concise handling of <code>Option</code> values, which this book covers in the chapter on
 <a href="/idioms/exceptions.html">exceptions and error handling</a>.</p>
+<h2 id="an-alternative-approach"><a class="header" href="#an-alternative-approach">An alternative approach</a></h2>
+<p>An alternative approach in Rust to returning optional values is to require that
+the caller of a function prove that the value with which they call a function
+will not result in the failing case.</p>
+<p>For the above safe division example, this involves the caller guaranteeing that
+the provided divisor is non-zero. In the following example this is done with a
+dynamic check. In other contexts the evidence needed may be available
+statically, provided from callers further upstream, or used more than once. In
+those cases, this approach reduces both runtime cost and code complexity.</p>
+<pre><pre class="playground"><code class="language-rust">use std::convert::TryFrom;
+use std::num::NonZero;
+
+fn safe_divide(dividend: u32, divisor: NonZero&lt;u32&gt;) -&gt; u32 {
+    // This is more efficient because the overflow check is skipped.
+    dividend / divisor
+}
+
+fn go(dividend: u32, divisor: u32) {
+    let Ok(safe_divisor) = NonZero::try_from(divisor) else {
+        println!("Can't divide!");
+        return;
+    };
+
+    let quotient = safe_divide(dividend, safe_divisor);
+    println!("{}", quotient);
+}
+
+fn main() {
+    go(10, 2);
+    go(10, 0);
+}</code></pre></pre>
 
                     </main>
 
