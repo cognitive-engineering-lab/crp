@@ -3875,18 +3875,18 @@ does not contain a value more convenient.</p>
 <span class="boring">}</span></code></pre></pre>
 <p>In C++, <code>std::optional</code> does not have an equivalent method.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="copy-and-move-constructors"><a class="header" href="#copy-and-move-constructors">Copy and move constructors</a></h1>
-<p>In both C++ and Rust you will rarely have to write copy or move constructors (or
+<p>In both C++ and Rust, one rarely has to write copy or move constructors (or
 their Rust equivalents) by hand. In C++ this is because the implicit definitions
-are good enough for most purposes, especially if you make use of smart pointers.
-(I.e., if you follow <a href="https://en.cppreference.com/w/cpp/language/rule_of_three">the rule of
-zero</a>.) In Rust this
+are good enough for most purposes, especially when using smart pointers (i.e.,
+following <a href="https://en.cppreference.com/w/cpp/language/rule_of_three">the rule of
+zero</a>). In Rust this
 is because move semantics are the default, and the automatically derived
 implementations of the <code>Clone</code> and <code>Copy</code> traits are good enough for most
 purposes.</p>
 <p>For the following C++ classes, the implicitly defined copy and move constructors
 are sufficient.</p>
-<pre><code class="language-c++">#include &lt;string&gt;
-#include &lt;memory&gt;
+<pre><code class="language-c++">#include &lt;memory&gt;
+#include &lt;string&gt;
 
 struct Age {
   unsigned int years;
@@ -3931,29 +3931,30 @@ constructor because it manages a resource (a pointer acquired from a C library).
 // widget.h
 struct widget_t;
 widget_t *alloc_widget();
-void free_widget(widget_t*);
-void copy_widget(widget_t* dst, widget_t* src);
+void free_widget(widget_t *);
+void copy_widget(widget_t *dst, widget_t *src);
 
 // widget.cc
 class Widget {
-    widget_t* widget;
+  widget_t *widget;
+
 public:
-    Widget() : widget(alloc_widget()) {}
+  Widget() : widget(alloc_widget()) {}
 
-    Widget(const Widget &amp;other) : widget(alloc_widget()) {
-        copy_widget(widget, other.widget);
-    }
+  Widget(const Widget &amp;other) : widget(alloc_widget()) {
+    copy_widget(widget, other.widget);
+  }
 
-    Widget(Widget &amp;&amp;other) : widget(other.widget) {
-        other.widget = nullptr;
-    }
+  Widget(Widget &amp;&amp;other) : widget(other.widget) {
+    other.widget = nullptr;
+  }
 
-    ~Widget() {
-        free_widget(widget);
-    }
+  ~Widget() {
+    free_widget(widget);
+  }
 };
 </code></pre>
-<p>The equivalent in Rust is:</p>
+<p>The equivalent in Rust is requires a custom implementation of the <code>Clone</code> trait.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span><span class="boring">mod example {
@@ -4001,83 +4002,68 @@ impl Drop for Widget {
         unsafe { free_widget(self.widget) };
     }
 }
-}
-<span class="boring">}</span></code></pre></pre>
+<span class="boring">}
+</span><span class="boring">}</span></code></pre></pre>
 <p>Just as with how in C++ it is uncommon to need user-defined implementations for
 copy and move constructors or user-defined implementations for destructors, in
-Rust it is rare to need to implement the <code>Clone</code> and <code>Drop</code> traits by hand.</p>
-<p>There is one exception to this. If the type has type parameters, you might want
-to implement <code>Clone</code> (and <code>Copy</code>) manually even if the clone should be done
-field-by-field. See the <a href="https://doc.rust-lang.org/std/clone/trait.Clone.html#how-can-i-implement-clone">standard library documentation of
+Rust it is rare to need to implement the <code>Clone</code> and <code>Drop</code> traits by hand for
+types that do not represent resources.</p>
+<p>There is one exception to this. If the type has type parameters, it might be
+desirable to implement <code>Clone</code> (and <code>Copy</code>) manually even if the clone should be
+done field-by-field. See the <a href="https://doc.rust-lang.org/std/clone/trait.Clone.html#how-can-i-implement-clone">standard library documentation of
 <code>Clone</code></a>
 and <a href="https://doc.rust-lang.org/std/marker/trait.Copy.html#how-can-i-implement-copy">of
 <code>Copy</code></a>
 for details.</p>
 <h2 id="trivially-copyable-types"><a class="header" href="#trivially-copyable-types">Trivially copyable types</a></h2>
+<p>In C++, a class type is trivially copyable when it has no non-trivial copy
+constructors, move constructors, copy assignment operators, move assignment
+operators and it has a trivial destructor. Values of a trivially copyable type
+are able to be copied by copying their bytes.</p>
+<p>In the first C++ example above, <code>Age</code> is trivially copyable, but <code>Person</code> is
+not. This is because despite using a default copy constructor, the constructor
+is not trivial because <code>std::string</code> and <code>std::shared_ptr</code> are not trivially
+copyable.</p>
 <p>Rust indicates whether types are trivially copyable with the <code>Copy</code> trait. Just
-as with trivially copyable types in C++, types that implement <code>Copy</code> in Rust can
-be copied bit-for-bit. Rust requires explicit calls to the <code>clone</code> method to
-make copies of values of types that do not implement <code>Copy</code>.</p>
-<p>Rust will prevent you from implementing <code>Copy</code> for a type if any of its fields
-are not <code>Copy</code>, but will not prevent you from implementing <code>Copy</code> for types
-which should not be copied bit-for-bit due to the intended meaning of the type
-(which is usually reflected by a user-defined <code>Clone</code> implementation). Rust will
-also not allow you to implement both <code>Copy</code> and <code>Drop</code> for the same type (which
-matches the C++ standard's requirement that trivially copyable types not
-implement a user-defined destructor).</p>
-<p>Notice, for example that in the first Rust example, <code>Age</code> implements the <code>Copy</code>
-trait but <code>Person</code> does not. This is because neither <code>std::String</code> nor
-<code>Rc&lt;Person&gt;</code> implement <code>Copy</code>. They do not implement <code>Copy</code> because they own
-data that lives on the heap, and so are not trivially copyable.</p>
+as with trivially copyable types in C++, values of types that implement <code>Copy</code>
+in Rust can be copied by copying their bytes. Rust requires explicit calls to
+the <code>clone</code> method to make copies of values of types that do not implement
+<code>Copy</code>.</p>
+<p>In the first Rust example above, <code>Age</code> implements the <code>Copy</code> trait but <code>Person</code>
+does not. This is because neither <code>std::String</code> nor <code>Rc&lt;Person&gt;</code> implement
+<code>Copy</code>. They do not implement <code>Copy</code> because they own data that lives on the
+heap, and so are not trivially copyable.</p>
+<p>Rust prevents implementing <code>Copy</code> for a type if any of its fields are not
+<code>Copy</code>. but does not prevent implementing <code>Copy</code> for types that should not be
+copied bit-for-bit due to their intended meaning, which is usually indicated by
+a user-defined <code>Clone</code> implementation. Rust does not permit the implementation
+of both <code>Copy</code> and <code>Drop</code> for the same type. This aligns with the C++ standard's
+requirement that trivially copyable types not implement a user-defined
+destructor.</p>
 <h2 id="move-constructors"><a class="header" href="#move-constructors">Move constructors</a></h2>
 <p>In Rust, all types support move semantics by default, and custom move semantics
 cannot be (and do not need to be) defined. This is because what "move" means in
 Rust is not the same as it is in C++. In Rust, moving a value means changing
 what owns the value. In particular, there is no "old" object to be destructed
-after a move, because the compiler will prevent you from using a variable whose
+after a move, because the compiler will prevent the use of a variable whose
 value has been moved.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>struct Buffer {
-    len: usize,
-    buffer: Box&lt;[u8]&gt;,
-}
-
-impl Buffer {
-    fn new(len: usize) {
-        let other_buffer: Box&lt;[u8]&gt; = vec![0; len].into_boxed_slice();
-    }
-}
-
-impl Clone for Buffer {
-    fn clone(&amp;self) -&gt; Self {
-        Buffer {
-            len: self.len,
-            buffer: self.buffer.clone(),
-        }
-    }
-}
-<span class="boring">}</span></code></pre></pre>
 <h2 id="assignment-operators"><a class="header" href="#assignment-operators">Assignment operators</a></h2>
 <p>Rust does not have a copy or move assignment operator. Instead, assignment
 either moves (by transferring ownership), explicitly clones and then moves, or
 implicitly copies and then moves.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn go() {
+<pre><pre class="playground"><code class="language-rust">fn main() {
     let x = Box::&lt;u32&gt;::new(5);
     let y = x; // moves
     let z = y.clone(); // explicitly clones and then moves the clone
     let w = *y; // implicitly copies the content of the Box and then moves the copy
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre></pre>
 <p>For situations where something like a user-defined copy assignment could avoid
 allocations, the <code>Clone</code> trait has an additional method called <code>clone_from</code>.
 The method is usually automatically defined, but can be overridden when
-implementing the <code>Clone</code> trait.</p>
+implementing the <code>Clone</code> trait to provide an efficient implementation.</p>
 <p>The method is not used for normal assignments, but can be explicitly used in
 situations where the performance of the assignment is significant and would be
-improved.</p>
+improved by using the more efficient implementation, if one is defined.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>fn go(x: &amp;Vec&lt;u32&gt;) {
@@ -4089,9 +4075,12 @@ improved.</p>
 <span class="boring">}</span></code></pre></pre>
 <h2 id="performance-concerns-and-copy"><a class="header" href="#performance-concerns-and-copy">Performance concerns and <code>Copy</code></a></h2>
 <p>The decision to implement <code>Copy</code> should be based on the semantics of the type,
-not on performance. If you are worried about the size of objects being copied,
-then use a reference (<code>&amp;T</code> or <code>&amp;mut T</code>) or put it on the heap (<code>Box&lt;T&gt;</code>). These
-situations correspond to passing by reference or using a <code>shared_ptr</code> in C++.</p>
+not on performance. If the size of objects being copied is a concern, then one
+should instead use a reference (<code>&amp;T</code> or <code>&amp;mut T</code>) or put the value on the heap
+(<a href="https://doc.rust-lang.org/std/boxed/index.html"><code>Box&lt;T&gt;</code></a> or
+<a href="https://doc.rust-lang.org/std/rc/index.html"><code>Rc&lt;T&gt;</code></a>). These approaches
+correspond to passing by reference, or using a <code>std::unique_ptr</code>
+<code>std::shared_ptr</code> in C++.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rule-of-threefivezero"><a class="header" href="#rule-of-threefivezero">Rule of three/five/zero</a></h1>
 <h2 id="rule-of-three"><a class="header" href="#rule-of-three">Rule of three</a></h2>
 <p>In C++ the rule of three is a rule of thumb that if a class has a user-defined
