@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -159,7 +160,7 @@
                         <h1 id="multiple-return-values"><a class="header" href="#multiple-return-values">Multiple return values</a></h1>
 <p>One idiom for returning multiple values from a function or method in C++ is to
 pass in references to which the values can be assigned.</p>
-<pre><code class="language-c++">void get_point(int &amp;x, int &amp;y) {
+<pre><code class="language-cpp">void get_point(int &amp;x, int &amp;y) {
   x = 5;
   y = 6;
 }
@@ -217,7 +218,7 @@ buffers</a>.</p>
 <h2 id="similarities-with-idiomatic-c-since-c11"><a class="header" href="#similarities-with-idiomatic-c-since-c11">Similarities with idiomatic C++ since C++11</a></h2>
 <p>In C++11 and later, <code>std::pair</code> and <code>std::tuple</code> are available for returning
 multiple values instead of assigning to reference parameters.</p>
-<pre><code class="language-c++">#include &lt;tuple&gt;
+<pre><code class="language-cpp">#include &lt;tuple&gt;
 #include &lt;utility&gt;
 
 std::pair&lt;int, int&gt; get_point() {

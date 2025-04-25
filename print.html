@@ -31,6 +31,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -234,7 +235,7 @@ each of those enumerators maps to a specific integer value, such as is needed
 when working with hardware, system calls, or protocol implementations.</p>
 <p>For example, the various modes for a GPIO pin could be modeled as an enum, which
 would restrict methods using the mode to valid values.</p>
-<pre><code class="language-c++">#include &lt;cstdint&gt;
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
 
 enum Pin : uint8_t {
     Pin1 = 0x01,
@@ -292,7 +293,7 @@ However, this <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.
 themselves</a>.
 Often the conversion is done by a function that checks that the value to convert
 is a valid enum value.</p>
-<pre><code class="language-c++">Pin cast_to_pin(uint8_t pin) {
+<pre><code class="language-cpp">Pin cast_to_pin(uint8_t pin) {
     return static_cast&lt;Pin&gt;(pin);
 }
 
@@ -359,7 +360,7 @@ that the call will never happen with an invalid value.</p>
 <h2 id="c-style-tagged-unions"><a class="header" href="#c-style-tagged-unions">C-style tagged unions</a></h2>
 <p>Because unions cannot be used for type punning in C++, when they are used it is
 usually with a tag to discriminate between which variant of the union is active.</p>
-<pre><code class="language-c++">enum Tag { Rectangle, Triangle };
+<pre><code class="language-cpp">enum Tag { Rectangle, Triangle };
 
 struct Shape {
   Tag tag;
@@ -412,7 +413,7 @@ in the type so that the second check (and corresponding error handling) can be
 omitted.</p>
 <p>A C++ program like the following requires more restructuring of the types to
 achieve the same goal in Rust.</p>
-<pre><code class="language-c++">#include &lt;ranges&gt;
+<pre><code class="language-cpp">#include &lt;ranges&gt;
 #include &lt;vector&gt;
 
 std::vector&lt;Shape&gt; get_shapes() {
@@ -494,7 +495,7 @@ fn main() {
 their own types from the start.</p>
 <h2 id="stdvariant-since-c17"><a class="header" href="#stdvariant-since-c17"><code>std::variant</code> (since C++17)</a></h2>
 <p>In more modern C++, <code>std::variant</code> is more similar in usage to Rust.</p>
-<pre><code class="language-c++">#include &lt;variant&gt;
+<pre><code class="language-cpp">#include &lt;variant&gt;
 
 struct Rectangle {
   double width;
@@ -526,7 +527,7 @@ messages when a variant is missed or when a new variant is added are easier to
 read, which removes one of the barriers to using tagged unions more frequently.
 Compare the errors in C++ (using gcc) and Rust when the <code>Triangle</code> case is
 omitted.</p>
-<pre><code class="language-c++">#include &lt;variant&gt;
+<pre><code class="language-cpp">#include &lt;variant&gt;
 
 struct Rectangle {
   double width;
@@ -640,11 +641,17 @@ For more information about this error, try `rustc --explain E0004`.
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pure-virtual-classes-interfaces-and-dynamic-dispatch"><a class="header" href="#pure-virtual-classes-interfaces-and-dynamic-dispatch">Pure virtual classes, interfaces, and dynamic dispatch</a></h1>
 <p>Pure virtual classes are used to model interfaces when objects meeting the
-interface will be used with dynamic dispatch to resolve the invoked method.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
-#include &lt;memory&gt;
-
-struct Shape {
+interface will be used with dynamic dispatch to resolve the invoked method.
+In Rust the interface is given by a <em>trait</em>, which is then implemented for the
+types that support that trait. Programs can then be written over <em>trait objects</em>
+that use that trait as their base type.</p>
+<p>For example, this program shows how to translate a <code>Shape</code> virtual class in C++ into a <code>Shape</code> trait in Rust,
+along with corresponding <code>Triangle</code> and <code>Rectangle</code> implementations of <code>Shape</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;iostream&gt;
+</span><span class="boring">#include &lt;memory&gt;
+</span><span class="boring">
+</span>struct Shape {
   Shape() {};
   virtual ~Shape() {};
   virtual double area() = 0;
@@ -654,7 +661,8 @@ struct Triangle : Shape {
   double base;
   double height;
 
-  Triangle(double base, double height) : base(base), height(height) {}
+  Triangle(double base, double height) : 
+    base(base), height(height) {}
 
   double area() override { return 0.5 * base * height; }
 };
@@ -663,70 +671,61 @@ struct Rectangle : Shape {
   double width;
   double height;
 
-  Rectangle(double width, double height) : width(width), height(height) {}
+  Rectangle(double width, double height) : 
+    width(width), height(height) {}
 
   double area() override { return width * height; }
 };
 
 int main() {
   Shape &amp;&amp;triangle = Triangle{1.0, 1.0};
-  std::unique_ptr&lt;Shape&gt; rectangle = std::make_unique&lt;Rectangle&gt;(1.0, 1.0);
+  std::unique_ptr&lt;Shape&gt; rectangle = 
+    std::make_unique&lt;Rectangle&gt;(1.0, 1.0);
 
   std::cout &lt;&lt; triangle.area() &lt;&lt; std::endl;
   std::cout &lt;&lt; rectangle-&gt;area() &lt;&lt; std::endl;
 }
 </code></pre>
-<p>In Rust the interface is given by a trait, which is then implemented for the
-types that support that trait. Programs can then be written over trait objects
-that use that trait as their base type.</p>
-<p>Similarly to how in C++ programs use of an object via a pure virtual superclass
-interface requires accessing that object via a pointer, in Rust the same kind of
-indirection is required. In the example below, one trait object is a reference
-(with type <code>&amp;dyn Shape</code>) and the other is a heap-allocated owned value (with
-type <code>Box&lt;dyn Shape&gt;</code>). These correspond to the reference and <code>std::unique_ptr</code>
-used in the above C++ example.</p>
 <pre><pre class="playground"><code class="language-rust">trait Shape {
-    fn area(&amp;self) -&gt; f64;
+  fn area(&amp;self) -&gt; f64;
 }
 
 struct Triangle {
-    base: f64,
-    height: f64,
+  base: f64,
+  height: f64,
 }
 
 impl Shape for Triangle {
-    fn area(&amp;self) -&gt; f64 {
-        0.5 * self.base * self.height
-    }
+  fn area(&amp;self) -&gt; f64 { 0.5 * self.base * self.height }
 }
 
 struct Rectangle {
-    width: f64,
-    height: f64,
+  width: f64,
+  height: f64,
 }
 
 impl Shape for Rectangle {
-    fn area(&amp;self) -&gt; f64 {
-        self.width * self.height
-    }
+  fn area(&amp;self) -&gt; f64 { self.width * self.height }
 }
 
 fn main() {
-    let triangle: &amp;dyn Shape = &amp;Triangle {
-        base: 1.0,
-        height: 1.0,
-    };
-    let rectangle: Box&lt;dyn Shape&gt; = Box::new(Rectangle {
-        width: 1.0,
-        height: 1.0,
-    });
+  let triangle: &amp;dyn Shape = 
+    &amp;Triangle { base: 1.0, height: 1.0 };
+  let rectangle: Box&lt;dyn Shape&gt; = 
+    Box::new(Rectangle { width: 1.0, height: 1.0 });
 
-    println!("{}", triangle.area());
-    println!("{}", rectangle.area());
+  println!("{}", triangle.area());
+  println!("{}", rectangle.area());
 }</code></pre></pre>
-<p>Not all traits can be used as the base trait for trait objects. The most
+</div>
+<p>In C++, to use an object via a pure virtual class, this requires accessing the object via a pointer.
+Rust requires a similar kind of indirection. In the example above, one trait object is a reference
+(with type <code>&amp;dyn Shape</code>) and the other is a heap-allocated owned value (with
+type <code>Box&lt;dyn Shape&gt;</code>). These correspond to the reference and <code>std::unique_ptr</code>
+used in the above C++ example, respectively.</p>
+<p>In Rust, not all traits can be used as the base trait for trait objects. The most
 commonly encountered restriction is that traits that require knowledge of the
-object's size via a <code>Sized</code> supertrait are not <code>dyn</code> compatible. There are
+object's size via a <code>Sized</code> supertrait are not <code>dyn</code>-compatible. There are
 <a href="https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility">additional
 restrictions</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="concepts-interfaces-and-static-dispatch"><a class="header" href="#concepts-interfaces-and-static-dispatch">Concepts, interfaces, and static dispatch</a></h1>
@@ -738,7 +737,7 @@ on it failing when it is used with a type that does not have that method. This
 is significantly less restrictive than the other two C++ approaches, because it
 does not require that <code>area()</code> return a <code>double</code>, only that it return a value
 that can be promoted to a double.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 
 struct Triangle {
   double base;
@@ -763,7 +762,7 @@ int main() {
 </code></pre>
 <p>The second C++ approach uses a concept to restrict the return type, but
 otherwise is the same as the first.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 
 template &lt;typename T&gt;
 concept shape = requires(T t) {
@@ -829,7 +828,7 @@ of having defined a compatible method.</p>
 <p>A closer equivalent to the above Rust program in C++ would be the following,
 which uses a combination of pure virtual classes and concepts to achieve both
 static dispatch and nominal typing.</p>
-<pre><code class="language-c++">#include &lt;concepts&gt;
+<pre><code class="language-cpp">#include &lt;concepts&gt;
 #include &lt;iostream&gt;
 
 struct Shape {
@@ -900,7 +899,7 @@ implementations in Rust are composition, aggregation, and <a href="idioms/data_m
 simple case of using inheritance for reuse of implementations. For example, in
 the following example two virtual methods are used to support a method whose
 implementation is provided by the abstract class.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;string&gt;
 
 class Device {
@@ -989,7 +988,7 @@ methods. This use case is common in the STL for container classes (such as
 adjacency list, where the graph is generic in the type of the labels on the
 nodes. Though the example shows a template class, the same comparisons with Rust
 apply to template methods and template functions.</p>
-<pre><code class="language-c++">#include &lt;stdexcept&gt;
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
 #include &lt;vector&gt;
 
 template &lt;typename Label&gt;
@@ -1058,7 +1057,7 @@ in C++, one can instead take a type parameter in Rust.</p>
 <h2 id="operations-on-the-parameterized-type"><a class="header" href="#operations-on-the-parameterized-type">Operations on the parameterized type</a></h2>
 <p>The differences become more apparent when one attempts to perform operations on
 the values. For example, adding a method to get the smallest node in the graph.</p>
-<pre><code class="language-c++">#include &lt;optional&gt;
+<pre><code class="language-cpp">#include &lt;optional&gt;
 //...
 
 template &lt;typename Label&gt;
@@ -1205,7 +1204,7 @@ where
 <p>Rust also supports the equivalent of constexpr template parameters. For example,
 one can define a generic function that returns an array consecutive integers
 starting from a specific value and whose size is determined at compile time.</p>
-<pre><code class="language-c++">#include &lt;array&gt;
+<pre><code class="language-cpp">#include &lt;array&gt;
 
 template &lt;constexpr N&gt;
 std::array&lt;int, N&gt; makeSequentialArray(int start) {
@@ -1308,7 +1307,7 @@ any way to construct new values of type <code>T</code>, and the use of reference
 give any way for the function to store one of <code>x</code> or <code>y</code> from an earlier call to
 return in a later call.</p>
 <p>Compare this with a C++ function with a similar signature:</p>
-<pre><code class="language-c++">template &lt;totally_ordered T&gt;
+<pre><code class="language-cpp">template &lt;totally_ordered T&gt;
 T max(const T &amp;x, const T &amp;y) {
   return (x &gt; y) ? x : y;
 }
@@ -1359,7 +1358,7 @@ for when <code>Option</code> is used with a reference (<code>&amp;</code> or <co
 <p>In C++ codebases that are written in a C style or that make use of C libraries,
 null pointers may be used to represent empty arrays. This is because there is
 little practical difference between an array of size zero and a null pointer.</p>
-<pre><code class="language-c++">#include &lt;cstddef&gt;
+<pre><code class="language-cpp">#include &lt;cstddef&gt;
 #include &lt;cassert&gt;
 
 int c_style_sum(std::size_t len, int arr[]) {
@@ -1404,7 +1403,7 @@ having reached the end of valid data in an iterator.</p>
 <p>Many designs in C++ borrow the convention from C of using a null pointer as a
 sentinel value for a method that returns owned pointers. For example, a method
 that parses a large structure may produce <code>std::nullptr</code> in the case of failure.</p>
-<pre><code class="language-c++">#include &lt;memory&gt;
+<pre><code class="language-cpp">#include &lt;memory&gt;
 
 class LargeStructure {
   int field;
@@ -1449,7 +1448,7 @@ make the reason for the failure available at runtime.</p>
 <p>When a possibly-failing function produces an integer, it is also common to use
 an otherwise unused or unlikely integer value as a sentinel value, such as <code>0</code>
 or <code>INT_MAX</code>.</p>
-<pre><code class="language-c++">#include &lt;algorithm&gt;
+<pre><code class="language-cpp">#include &lt;algorithm&gt;
 
 int gcd(int a, int b) {
   if (b == 0 || a == 0) {
@@ -1534,7 +1533,7 @@ the risk of undefined behavior).</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="moved-members"><a class="header" href="#moved-members">Moved members</a></h1>
 <p>One common use of null pointers in modern C++ is as values for the members of
 moved objects so that the destructor can still safely be called. E.g.,</p>
-<pre><code class="language-c++ hidelines=#"><span class="boring"> #include &lt;cstdlib&gt;
+<pre><code class="language-cpp hidelines=#"><span class="boring"> #include &lt;cstdlib&gt;
 </span><span class="boring"> #include &lt;cstring&gt;
 </span><span class="boring">
 </span>// widget.h
@@ -1584,7 +1583,7 @@ of the declarations in multiple files. By convention, declarations that are not
 included in the header are considered to be private to the defining translation
 unit (though, to enforce this convention other mechanisms, such as <a href="idioms/encapsulation//idioms/encapsulation/anonymous_namespaces.html">anonymous
 namespaces</a>, are required).</p>
-<pre><code class="language-c++">// person.h
+<pre><code class="language-cpp">// person.h
 class Person {
     std::string name;
 public:
@@ -1666,7 +1665,7 @@ result in a linking error at best and possibly undefined behavior at runtime.</p
 <p>For example, without the use of anonymous namespaces, the following would result
 in undefined behavior (and no linking error, due to the use of inline producing
 weak symbols in the object files).</p>
-<pre><code class="language-c++">/// a.cc
+<pre><code class="language-cpp">/// a.cc
 namespace {
     inline void common_function_name() {
         // ...
@@ -1729,7 +1728,7 @@ object files.</p>
 <h2 id="private-members"><a class="header" href="#private-members">Private members</a></h2>
 <p>In C++ the unit of encapsulation is the class, and so visibility controls access
 to members at the class boundary. For example,</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;string&gt;
 
 class Person {
@@ -1787,7 +1786,7 @@ the nodes of the tree declare the main binary tree class as a friend in order
 for it to access internal methods while keeping them private from other uses.
 This would be required even if the <code>TreeNode</code> class were defined as an inner
 class of <code>BinaryTree</code>.</p>
-<pre><code class="language-c++">#include &lt;memory&gt;
+<pre><code class="language-cpp">#include &lt;memory&gt;
 
 class BinaryTree;
 
@@ -1905,7 +1904,7 @@ idiom</a>.</p>
 <p>The passkey idiom is also sometimes used to provide finer-grained control over
 access to members than is possible with friend declarations. In either case, the
 effect is achieved by modeling a capability-like system.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;memory&gt;
 #include &lt;string&gt;
 
@@ -2004,7 +2003,7 @@ mod person {
 available for unit testing. Though this practice is often discouraged in C++, it
 is sometimes necessary in order to test other-wise private helper inner classes
 or helper methods.</p>
-<pre><code class="language-C++">#include &lt;string&gt;
+<pre><code class="language-cpp">#include &lt;string&gt;
 
 class Person {
 public:
@@ -2075,7 +2074,7 @@ mod test {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="private-constructors"><a class="header" href="#private-constructors">Private constructors</a></h1>
 <p>In C++ constructors for classes can be made private by declaring them private,
 or by defining a class using <code>class</code> and using the default private visibility.</p>
-<pre><code class="language-c++">#include &lt;string&gt;
+<pre><code class="language-cpp">#include &lt;string&gt;
 
 struct Person {
   std::string name;
@@ -2138,7 +2137,7 @@ control over the visibility of their variants or the fields of their variants.
 In the following example, the <code>circle</code> variant of the <code>Shape</code> union is not
 public, so it can only be accessed from within the definition of <code>Shape</code>, as it
 is by the <code>make_circle</code> static method.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 
 struct Triangle {
   double base;
@@ -2397,7 +2396,7 @@ vector in C++, which hides its implementation and provides setters and getters
 to access the fields. This choice would typically be made in case a
 representation change (such as using polar instead of rectangular coordinates)
 needed to be made later without breaking clients.</p>
-<pre><code class="language-c++">class Vec2 {
+<pre><code class="language-cpp">class Vec2 {
   double x;
   double y;
 
@@ -2510,7 +2509,7 @@ underlying struct is provided by via a non-<code>mut</code> reference.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="type-promotions-and-conversions"><a class="header" href="#type-promotions-and-conversions">Type promotions and conversions</a></h1>
 <h2 id="lvalue-to-rvalue"><a class="header" href="#lvalue-to-rvalue">lvalue to rvalue</a></h2>
 <p>In C++ lvalues are automatically converted to rvalues when needed.</p>
-<pre><code class="language-c++">int main() {
+<pre><code class="language-cpp">int main() {
     int x(0); // Local variables are an lvalues,
     x = 42; // and therefore may be assigned to.
 
@@ -2531,7 +2530,7 @@ when needed.</p>
 }</code></pre></pre>
 <h2 id="array-to-pointer"><a class="header" href="#array-to-pointer">Array to pointer</a></h2>
 <p>In C++, arrays are automatically converted to pointers as required.</p>
-<pre><code class="language-c++">#include &lt;cstring&gt;
+<pre><code class="language-cpp">#include &lt;cstring&gt;
 
 int main() {
   char example[6] = "hello";
@@ -2567,7 +2566,7 @@ kind of <a href="idioms//idioms/user-defined_conversions.html">user-defined conv
 <h2 id="function-to-pointer"><a class="header" href="#function-to-pointer">Function to pointer</a></h2>
 <p>In C++ functions and static member functions are automatically converted to
 function pointers.</p>
-<pre><code class="language-c++">int twice(int n) { return n * n; }
+<pre><code class="language-cpp">int twice(int n) { return n * n; }
 
 int main() {
   int (*twicePtr)(int) = twice;
@@ -2610,7 +2609,7 @@ fn main() {
 <p>In C++ there are several kinds of implicit conversions that occur between
 numeric types. The most commonly encountered are numeric promotions, which
 convert numeric types to larger types.</p>
-<pre><code class="language-c++">int main() {
+<pre><code class="language-cpp">int main() {
   int x(0);
   long y = x;
 
@@ -2638,7 +2637,7 @@ the trait.</p>
 }</code></pre></pre>
 <p>There are several implicit conversions that occur in C++ that are not lossless.
 For example, integers can be implicitly converted to unsigned integers in C++.</p>
-<pre><code class="language-c++">int main() {
+<pre><code class="language-cpp">int main() {
   int x(42);
   unsigned int y = x;
 
@@ -2665,7 +2664,7 @@ because the conversion is either insufficiently obvious or because they are not
 value-preserving. For example, in C++ <code>int32_t</code> can implicitly be converted to
 <code>float</code> despite <code>float</code> not being able to represent all 32 bit the integers
 precisely.</p>
-<pre><code class="language-c++">#include &lt;cstdint&gt;
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
 
 int main() {
   int32_t x(42);
@@ -2702,7 +2701,7 @@ successfully retrieving a value from a data structure, thus masking a bug and
 producing unexpected behavior.</p>
 <h3 id="enums-2"><a class="header" href="#enums-2">Enums</a></h3>
 <p>In C++ enums can be implicitly converted to integer types.</p>
-<pre><code class="language-c++">enum Shape {
+<pre><code class="language-cpp">enum Shape {
   Triangle = 0,
   Circle,
 };
@@ -2720,7 +2719,7 @@ given in the <a href="idioms//idioms/data_modeling/enums.html">chapter on enums<
 <h2 id="qualification-conversion"><a class="header" href="#qualification-conversion">Qualification conversion</a></h2>
 <p>In C++ qualification conversions enable the use of const (or volatile) values
 where the const (or volatile) qualifier is not expected.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;string&gt;
 
 void display(const std::string &amp;str) {
@@ -2753,7 +2752,7 @@ fn main() {
 which they can fit from <code>int</code>, <code>long int</code>, or <code>long long int</code>. When the literal
 is then assigned to a variable of a different type, an implicit conversion is
 performed.</p>
-<pre><code class="language-c++">#include &lt;cstdint&gt;
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
 
 int main() {
   // Compiles without error (but with a warning).
@@ -2783,7 +2782,7 @@ require some type annotation to be given.</p>
 <h2 id="safe-bools"><a class="header" href="#safe-bools">Safe bools</a></h2>
 <p>The safe bool idiom exists to make it possible to use types as conditions. Since
 C++11 this idiom is straightforward to implement.</p>
-<pre><code class="language-c++">struct Wire {
+<pre><code class="language-cpp">struct Wire {
   bool ready;
   unsigned int value;
 
@@ -2848,7 +2847,7 @@ converting constructors are opt-out (via the <code>explicit</code> specifier), i
 conversions occur with regularity in C++ code. In the following example both the
 assignments and the function calls make use of implicit conversions as provided
 by a converting constructor.</p>
-<pre><code class="language-c++">struct Widget {
+<pre><code class="language-cpp">struct Widget {
   Widget(int) {}
   Widget(int, int) {}
 };
@@ -2906,7 +2905,7 @@ for types that implement the <code>From</code> trait.</p>
 <h2 id="conversion-functions"><a class="header" href="#conversion-functions">Conversion functions</a></h2>
 <p>C++ conversion functions enable conversions in the other direction, from the
 defined class to another type.</p>
-<pre><code class="language-c++">#include &lt;utility&gt;
+<pre><code class="language-cpp">#include &lt;utility&gt;
 
 struct Point {
   int x;
@@ -2957,7 +2956,7 @@ Rust</a>.</p>
 <p>An important part of <code>From</code> is that the conversion takes ownership of the
 converted value. When this is not desired in C++, the conversion function can
 just take and return references.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;string&gt;
 
 struct Person {
@@ -3044,7 +3043,7 @@ literal strings can more easily be used as paths.</p>
 <h2 id="fallible-conversions"><a class="header" href="#fallible-conversions">Fallible conversions</a></h2>
 <p>In C++ when conversions might fail it is possible (though bad practice) to throw
 an exception from the converting constructor or converting function.</p>
-<pre><code class="language-c++">#include &lt;stdexcept&gt;
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
 #include &lt;string&gt;
 
 class NonEmpty {
@@ -3121,7 +3120,7 @@ module</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="overloading"><a class="header" href="#overloading">Overloading</a></h1>
 <p>C++ supports overloading of functions, so long as the invocations of the
 functions can be distinguished by the number or types of their arguments.</p>
-<pre><code class="language-c++">#include &lt;string&gt;
+<pre><code class="language-cpp">#include &lt;string&gt;
 
 double twice(double x) {
 	return x + x;
@@ -3149,7 +3148,7 @@ apparent in the code.</p>
 <span class="boring">}</span></code></pre></pre>
 <p>In practice, an example like the above would also likely be implemented in a
 more structured way even in C++, using templates.</p>
-<pre><code class="language-c++">template &lt;typename T&gt;
+<pre><code class="language-cpp">template &lt;typename T&gt;
 T twice(T x) {
 	return x + x;
 }
@@ -3243,7 +3242,7 @@ fn main() {
 <h2 id="overloaded-operators"><a class="header" href="#overloaded-operators">Overloaded operators</a></h2>
 <p>In C++ most operators can either be overloaded either with a free-standing
 function or by providing a method defining the operator on a class.</p>
-<pre><code class="language-c++">struct Vec2 {
+<pre><code class="language-cpp">struct Vec2 {
   double x;
   double y;
 
@@ -3383,7 +3382,7 @@ fn main() {
 <h2 id="default-arguments"><a class="header" href="#default-arguments">Default arguments</a></h2>
 <p>Default arguments in C++ are sometimes implemented in terms of function
 overloading.</p>
-<pre><code class="language-c++">unsigned int shift(unsigned int x, unsigned int shiftAmount) {
+<pre><code class="language-cpp">unsigned int shift(unsigned int x, unsigned int shiftAmount) {
     return x &lt;&lt; shiftAmount;
 }
 
@@ -3446,7 +3445,7 @@ impl Vec3 {
 <span class="boring">}</span></code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
 <p>In C++, constructors initialize objects.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
   int age;
 
 public:
@@ -3460,7 +3459,7 @@ int main() {
 </code></pre>
 <p>At the point when a constructor is executed, storage for the object has been
 allocated and the constructor is only performing initialization.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
   int age;
   // non-owning pointer
   Person *best_friend;
@@ -3534,7 +3533,7 @@ avoid the copy). Therefore there is no way in Rust to write the C++ example
 above where the class stores a pointer to itself upon construction.</p>
 <h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
 <p>In C++ the only way constructors can indicate failure is by throwing exceptions.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;stdexcept&gt;
 
 class Person {
@@ -3591,7 +3590,7 @@ exceptions and exception handling translate to Rust.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
 <p>C++ has a special concept of default constructors to support several scenarios
 in which they are implicitly called.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
     int age;
 
 public:
@@ -3629,7 +3628,7 @@ impl Default for Person {
 <p>In C++ if a member is not explicitly initialized by a constructor, then it is
 default-initialized. When the type of the member is a class, the
 default-initialization invokes the default constructor.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
   int age;
 
 public:
@@ -3716,7 +3715,7 @@ impl Student {
 <h2 id="implicit-initialization-of-array-values"><a class="header" href="#implicit-initialization-of-array-values">Implicit initialization of array values</a></h2>
 <p>In C++, arrays without explicit initialization are default-initialized using the
 default constructors.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
   int age;
 
 public:
@@ -3756,7 +3755,7 @@ fn main() {
 types, such as <code>std::vector</code>. Before C++11 one value would be default
 constructed, and the elements would be copy constructed from that initial
 element. Since C++11, all elements are default constructed.</p>
-<pre><code class="language-c++">#include &lt;vector&gt;
+<pre><code class="language-cpp">#include &lt;vector&gt;
 
 class Person {
   int age;
@@ -3798,7 +3797,7 @@ fn main() {
 <h2 id="implicit-initialization-of-local-variables"><a class="header" href="#implicit-initialization-of-local-variables">Implicit initialization of local variables</a></h2>
 <p>In C++, the default constructor is used to perform default-initialization of
 local variables that are not explicitly initialized.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
   int age;
 
 public:
@@ -3823,7 +3822,7 @@ fn main() {
 <h2 id="implicit-initialization-of-the-base-class-object"><a class="header" href="#implicit-initialization-of-the-base-class-object">Implicit initialization of the base class object</a></h2>
 <p>In C++, the default constructor is used to initialize the base class object if
 it no other constructor is specified.</p>
-<pre><code class="language-c++">class Base {
+<pre><code class="language-cpp">class Base {
   int x;
 
 public:
@@ -3885,7 +3884,7 @@ implementations of the <code>Clone</code> and <code>Copy</code> traits are good 
 purposes.</p>
 <p>For the following C++ classes, the implicitly defined copy and move constructors
 are sufficient.</p>
-<pre><code class="language-c++">#include &lt;memory&gt;
+<pre><code class="language-cpp">#include &lt;memory&gt;
 #include &lt;string&gt;
 
 struct Age {
@@ -3925,7 +3924,7 @@ struct Person {
 <h2 id="user-defined-constructors"><a class="header" href="#user-defined-constructors">User-defined constructors</a></h2>
 <p>On the other hand, the following example require a user-defined copy and move
 constructor because it manages a resource (a pointer acquired from a C library).</p>
-<pre><code class="language-c++">#include &lt;cstdlib&gt;
+<pre><code class="language-cpp">#include &lt;cstdlib&gt;
 #include &lt;cstring&gt;
 
 // widget.h
@@ -4133,7 +4132,7 @@ used</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="separate-construction-and-initialization"><a class="header" href="#separate-construction-and-initialization">Separate construction and initialization</a></h1>
 <p>A second common use is for partially constructed objects, e.g., in codebases
 that make initialization a separate step from construction.</p>
-<pre><code class="language-c++">#include &lt;string&gt;
+<pre><code class="language-cpp">#include &lt;string&gt;
 #include &lt;memory&gt;
 
 struct Movie {
@@ -4235,7 +4234,7 @@ destructors.</p>
 <p>C++ destructors are called in reverse order of construction when variables go out
 of scope, of for dynamically allocated objects, when they are deleted. Because
 of how move constructors work, this includes destructors of moved objects.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;utility&gt;
 
 struct A {
@@ -4356,7 +4355,7 @@ standards.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="multiple-return-values"><a class="header" href="#multiple-return-values">Multiple return values</a></h1>
 <p>One idiom for returning multiple values from a function or method in C++ is to
 pass in references to which the values can be assigned.</p>
-<pre><code class="language-c++">void get_point(int &amp;x, int &amp;y) {
+<pre><code class="language-cpp">void get_point(int &amp;x, int &amp;y) {
   x = 5;
   y = 6;
 }
@@ -4414,7 +4413,7 @@ buffers</a>.</p>
 <h2 id="similarities-with-idiomatic-c-since-c11"><a class="header" href="#similarities-with-idiomatic-c-since-c11">Similarities with idiomatic C++ since C++11</a></h2>
 <p>In C++11 and later, <code>std::pair</code> and <code>std::tuple</code> are available for returning
 multiple values instead of assigning to reference parameters.</p>
-<pre><code class="language-c++">#include &lt;tuple&gt;
+<pre><code class="language-cpp">#include &lt;tuple&gt;
 #include &lt;utility&gt;
 
 std::pair&lt;int, int&gt; get_point() {
@@ -4440,7 +4439,7 @@ values</a>:</p>
 <li>working in a codebase that uses C-style of C++, and</li>
 <li>performance concerns.</li>
 </ul>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 
 bool safe_divide(unsigned int dividend,
                  unsigned int divisor,
@@ -4532,7 +4531,7 @@ values</a>.</p>
 <h2 id="similarities-with-c-since-c17"><a class="header" href="#similarities-with-c-since-c17">Similarities with C++ since C++17</a></h2>
 <p>C++17 and later offer <code>std::optional</code>, which can be used to express optional
 return values in a way similar to the idiomatic Rust example.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;optional&gt;
 
 std::optional&lt;unsigned int&gt; safe_divide(unsigned int dividend,
@@ -4672,7 +4671,7 @@ Some of these situations include:</p>
 <p>In these situations, C++ programs tend to pre-allocate buffers that are reused
 for all calls. This also usually enables allocating the buffer on the stack,
 rather than having to perform dynamic allocation. For example,</p>
-<pre><code class="language-c++">#include &lt;fstream&gt;
+<pre><code class="language-cpp">#include &lt;fstream&gt;
 
 int main() {
     std::ifstream file("/path/to/file");
@@ -4761,7 +4760,7 @@ values.</p>
 <p>For example, when implementing the copy-assignment operator, one might
 short-circuit when the copied object and the assignee are the same.
 Not that in this use the pointer values are not stored.</p>
-<pre><code class="language-c++">struct Person
+<pre><code class="language-cpp">struct Person
 {
     std::string name;
     // many other expensive-to-copy fields
@@ -4788,7 +4787,7 @@ referring to the same object.</p>
 the object's primary use is to be stored in a hash set), and comparison of
 unequal objects is expensive, comparing object identity might be used as
 optimization for the equality comparison operator overload.</p>
-<pre><code class="language-c++">struct Person
+<pre><code class="language-cpp">struct Person
 {
     std::string name;
     // many other expensive-to-compare fields
@@ -4842,7 +4841,7 @@ refers</a>.</p>
 <p>Similarly, when comparing whether two variable declarations represent
 declarations of the same variable, <a href="https://github.com/llvm/llvm-project/blob/aa33c095617400a23a2b814c4defeb12e7761639/clang/lib/AST/Stmt.cpp#L1476-L1485">a pointer to some canonical <code>VarDecl</code> is
 used</a>:</p>
-<pre><code class="language-c++">VarDecl *VarDecl::getCanonicalDecl();
+<pre><code class="language-cpp">VarDecl *VarDecl::getCanonicalDecl();
 
 bool CapturedStmt::capturesVariable(const VarDecl *Var) const {
   for (const auto &amp;I : captures()) {

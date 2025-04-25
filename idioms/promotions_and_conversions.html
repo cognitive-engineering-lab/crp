@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -159,7 +160,7 @@
                         <h1 id="type-promotions-and-conversions"><a class="header" href="#type-promotions-and-conversions">Type promotions and conversions</a></h1>
 <h2 id="lvalue-to-rvalue"><a class="header" href="#lvalue-to-rvalue">lvalue to rvalue</a></h2>
 <p>In C++ lvalues are automatically converted to rvalues when needed.</p>
-<pre><code class="language-c++">int main() {
+<pre><code class="language-cpp">int main() {
     int x(0); // Local variables are an lvalues,
     x = 42; // and therefore may be assigned to.
 
@@ -180,7 +181,7 @@ when needed.</p>
 }</code></pre></pre>
 <h2 id="array-to-pointer"><a class="header" href="#array-to-pointer">Array to pointer</a></h2>
 <p>In C++, arrays are automatically converted to pointers as required.</p>
-<pre><code class="language-c++">#include &lt;cstring&gt;
+<pre><code class="language-cpp">#include &lt;cstring&gt;
 
 int main() {
   char example[6] = "hello";
@@ -216,7 +217,7 @@ kind of <a href="/idioms/user-defined_conversions.html">user-defined conversion<
 <h2 id="function-to-pointer"><a class="header" href="#function-to-pointer">Function to pointer</a></h2>
 <p>In C++ functions and static member functions are automatically converted to
 function pointers.</p>
-<pre><code class="language-c++">int twice(int n) { return n * n; }
+<pre><code class="language-cpp">int twice(int n) { return n * n; }
 
 int main() {
   int (*twicePtr)(int) = twice;
@@ -259,7 +260,7 @@ fn main() {
 <p>In C++ there are several kinds of implicit conversions that occur between
 numeric types. The most commonly encountered are numeric promotions, which
 convert numeric types to larger types.</p>
-<pre><code class="language-c++">int main() {
+<pre><code class="language-cpp">int main() {
   int x(0);
   long y = x;
 
@@ -287,7 +288,7 @@ the trait.</p>
 }</code></pre></pre>
 <p>There are several implicit conversions that occur in C++ that are not lossless.
 For example, integers can be implicitly converted to unsigned integers in C++.</p>
-<pre><code class="language-c++">int main() {
+<pre><code class="language-cpp">int main() {
   int x(42);
   unsigned int y = x;
 
@@ -314,7 +315,7 @@ because the conversion is either insufficiently obvious or because they are not
 value-preserving. For example, in C++ <code>int32_t</code> can implicitly be converted to
 <code>float</code> despite <code>float</code> not being able to represent all 32 bit the integers
 precisely.</p>
-<pre><code class="language-c++">#include &lt;cstdint&gt;
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
 
 int main() {
   int32_t x(42);
@@ -351,7 +352,7 @@ successfully retrieving a value from a data structure, thus masking a bug and
 producing unexpected behavior.</p>
 <h3 id="enums"><a class="header" href="#enums">Enums</a></h3>
 <p>In C++ enums can be implicitly converted to integer types.</p>
-<pre><code class="language-c++">enum Shape {
+<pre><code class="language-cpp">enum Shape {
   Triangle = 0,
   Circle,
 };
@@ -369,7 +370,7 @@ given in the <a href="/idioms/data_modeling/enums.html">chapter on enums</a>.</p
 <h2 id="qualification-conversion"><a class="header" href="#qualification-conversion">Qualification conversion</a></h2>
 <p>In C++ qualification conversions enable the use of const (or volatile) values
 where the const (or volatile) qualifier is not expected.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;string&gt;
 
 void display(const std::string &amp;str) {
@@ -402,7 +403,7 @@ fn main() {
 which they can fit from <code>int</code>, <code>long int</code>, or <code>long long int</code>. When the literal
 is then assigned to a variable of a different type, an implicit conversion is
 performed.</p>
-<pre><code class="language-c++">#include &lt;cstdint&gt;
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
 
 int main() {
   // Compiles without error (but with a warning).
@@ -432,7 +433,7 @@ require some type annotation to be given.</p>
 <h2 id="safe-bools"><a class="header" href="#safe-bools">Safe bools</a></h2>
 <p>The safe bool idiom exists to make it possible to use types as conditions. Since
 C++11 this idiom is straightforward to implement.</p>
-<pre><code class="language-c++">struct Wire {
+<pre><code class="language-cpp">struct Wire {
   bool ready;
   unsigned int value;
 

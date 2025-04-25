@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -167,7 +168,7 @@ values</a>:</p>
 <li>working in a codebase that uses C-style of C++, and</li>
 <li>performance concerns.</li>
 </ul>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 
 bool safe_divide(unsigned int dividend,
                  unsigned int divisor,
@@ -259,7 +260,7 @@ values</a>.</p>
 <h2 id="similarities-with-c-since-c17"><a class="header" href="#similarities-with-c-since-c17">Similarities with C++ since C++17</a></h2>
 <p>C++17 and later offer <code>std::optional</code>, which can be used to express optional
 return values in a way similar to the idiomatic Rust example.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;optional&gt;
 
 std::optional&lt;unsigned int&gt; safe_divide(unsigned int dividend,

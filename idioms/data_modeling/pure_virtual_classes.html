@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -158,11 +159,17 @@
                     <main>
                         <h1 id="pure-virtual-classes-interfaces-and-dynamic-dispatch"><a class="header" href="#pure-virtual-classes-interfaces-and-dynamic-dispatch">Pure virtual classes, interfaces, and dynamic dispatch</a></h1>
 <p>Pure virtual classes are used to model interfaces when objects meeting the
-interface will be used with dynamic dispatch to resolve the invoked method.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
-#include &lt;memory&gt;
-
-struct Shape {
+interface will be used with dynamic dispatch to resolve the invoked method.
+In Rust the interface is given by a <em>trait</em>, which is then implemented for the
+types that support that trait. Programs can then be written over <em>trait objects</em>
+that use that trait as their base type.</p>
+<p>For example, this program shows how to translate a <code>Shape</code> virtual class in C++ into a <code>Shape</code> trait in Rust,
+along with corresponding <code>Triangle</code> and <code>Rectangle</code> implementations of <code>Shape</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;iostream&gt;
+</span><span class="boring">#include &lt;memory&gt;
+</span><span class="boring">
+</span>struct Shape {
   Shape() {};
   virtual ~Shape() {};
   virtual double area() = 0;
@@ -172,7 +179,8 @@ struct Triangle : Shape {
   double base;
   double height;
 
-  Triangle(double base, double height) : base(base), height(height) {}
+  Triangle(double base, double height) : 
+    base(base), height(height) {}
 
   double area() override { return 0.5 * base * height; }
 };
@@ -181,70 +189,61 @@ struct Rectangle : Shape {
   double width;
   double height;
 
-  Rectangle(double width, double height) : width(width), height(height) {}
+  Rectangle(double width, double height) : 
+    width(width), height(height) {}
 
   double area() override { return width * height; }
 };
 
 int main() {
   Shape &amp;&amp;triangle = Triangle{1.0, 1.0};
-  std::unique_ptr&lt;Shape&gt; rectangle = std::make_unique&lt;Rectangle&gt;(1.0, 1.0);
+  std::unique_ptr&lt;Shape&gt; rectangle = 
+    std::make_unique&lt;Rectangle&gt;(1.0, 1.0);
 
   std::cout &lt;&lt; triangle.area() &lt;&lt; std::endl;
   std::cout &lt;&lt; rectangle-&gt;area() &lt;&lt; std::endl;
 }
 </code></pre>
-<p>In Rust the interface is given by a trait, which is then implemented for the
-types that support that trait. Programs can then be written over trait objects
-that use that trait as their base type.</p>
-<p>Similarly to how in C++ programs use of an object via a pure virtual superclass
-interface requires accessing that object via a pointer, in Rust the same kind of
-indirection is required. In the example below, one trait object is a reference
-(with type <code>&amp;dyn Shape</code>) and the other is a heap-allocated owned value (with
-type <code>Box&lt;dyn Shape&gt;</code>). These correspond to the reference and <code>std::unique_ptr</code>
-used in the above C++ example.</p>
 <pre><pre class="playground"><code class="language-rust">trait Shape {
-    fn area(&amp;self) -&gt; f64;
+  fn area(&amp;self) -&gt; f64;
 }
 
 struct Triangle {
-    base: f64,
-    height: f64,
+  base: f64,
+  height: f64,
 }
 
 impl Shape for Triangle {
-    fn area(&amp;self) -&gt; f64 {
-        0.5 * self.base * self.height
-    }
+  fn area(&amp;self) -&gt; f64 { 0.5 * self.base * self.height }
 }
 
 struct Rectangle {
-    width: f64,
-    height: f64,
+  width: f64,
+  height: f64,
 }
 
 impl Shape for Rectangle {
-    fn area(&amp;self) -&gt; f64 {
-        self.width * self.height
-    }
+  fn area(&amp;self) -&gt; f64 { self.width * self.height }
 }
 
 fn main() {
-    let triangle: &amp;dyn Shape = &amp;Triangle {
-        base: 1.0,
-        height: 1.0,
-    };
-    let rectangle: Box&lt;dyn Shape&gt; = Box::new(Rectangle {
-        width: 1.0,
-        height: 1.0,
-    });
+  let triangle: &amp;dyn Shape = 
+    &amp;Triangle { base: 1.0, height: 1.0 };
+  let rectangle: Box&lt;dyn Shape&gt; = 
+    Box::new(Rectangle { width: 1.0, height: 1.0 });
 
-    println!("{}", triangle.area());
-    println!("{}", rectangle.area());
+  println!("{}", triangle.area());
+  println!("{}", rectangle.area());
 }</code></pre></pre>
-<p>Not all traits can be used as the base trait for trait objects. The most
+</div>
+<p>In C++, to use an object via a pure virtual class, this requires accessing the object via a pointer.
+Rust requires a similar kind of indirection. In the example above, one trait object is a reference
+(with type <code>&amp;dyn Shape</code>) and the other is a heap-allocated owned value (with
+type <code>Box&lt;dyn Shape&gt;</code>). These correspond to the reference and <code>std::unique_ptr</code>
+used in the above C++ example, respectively.</p>
+<p>In Rust, not all traits can be used as the base trait for trait objects. The most
 commonly encountered restriction is that traits that require knowledge of the
-object's size via a <code>Sized</code> supertrait are not <code>dyn</code> compatible. There are
+object's size via a <code>Sized</code> supertrait are not <code>dyn</code>-compatible. There are
 <a href="https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility">additional
 restrictions</a>.</p>
 

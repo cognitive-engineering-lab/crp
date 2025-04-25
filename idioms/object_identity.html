@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -172,7 +173,7 @@ values.</p>
 <p>For example, when implementing the copy-assignment operator, one might
 short-circuit when the copied object and the assignee are the same.
 Not that in this use the pointer values are not stored.</p>
-<pre><code class="language-c++">struct Person
+<pre><code class="language-cpp">struct Person
 {
     std::string name;
     // many other expensive-to-copy fields
@@ -199,7 +200,7 @@ referring to the same object.</p>
 the object's primary use is to be stored in a hash set), and comparison of
 unequal objects is expensive, comparing object identity might be used as
 optimization for the equality comparison operator overload.</p>
-<pre><code class="language-c++">struct Person
+<pre><code class="language-cpp">struct Person
 {
     std::string name;
     // many other expensive-to-compare fields
@@ -253,7 +254,7 @@ refers</a>.</p>
 <p>Similarly, when comparing whether two variable declarations represent
 declarations of the same variable, <a href="https://github.com/llvm/llvm-project/blob/aa33c095617400a23a2b814c4defeb12e7761639/clang/lib/AST/Stmt.cpp#L1476-L1485">a pointer to some canonical <code>VarDecl</code> is
 used</a>:</p>
-<pre><code class="language-c++">VarDecl *VarDecl::getCanonicalDecl();
+<pre><code class="language-cpp">VarDecl *VarDecl::getCanonicalDecl();
 
 bool CapturedStmt::capturesVariable(const VarDecl *Var) const {
   for (const auto &amp;I : captures()) {

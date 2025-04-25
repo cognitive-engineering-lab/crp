@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -160,7 +161,7 @@
 <h2 id="private-members"><a class="header" href="#private-members">Private members</a></h2>
 <p>In C++ the unit of encapsulation is the class, and so visibility controls access
 to members at the class boundary. For example,</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;string&gt;
 
 class Person {
@@ -218,7 +219,7 @@ the nodes of the tree declare the main binary tree class as a friend in order
 for it to access internal methods while keeping them private from other uses.
 This would be required even if the <code>TreeNode</code> class were defined as an inner
 class of <code>BinaryTree</code>.</p>
-<pre><code class="language-c++">#include &lt;memory&gt;
+<pre><code class="language-cpp">#include &lt;memory&gt;
 
 class BinaryTree;
 
@@ -336,7 +337,7 @@ idiom</a>.</p>
 <p>The passkey idiom is also sometimes used to provide finer-grained control over
 access to members than is possible with friend declarations. In either case, the
 effect is achieved by modeling a capability-like system.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;memory&gt;
 #include &lt;string&gt;
 
@@ -435,7 +436,7 @@ mod person {
 available for unit testing. Though this practice is often discouraged in C++, it
 is sometimes necessary in order to test other-wise private helper inner classes
 or helper methods.</p>
-<pre><code class="language-C++">#include &lt;string&gt;
+<pre><code class="language-cpp">#include &lt;string&gt;
 
 class Person {
 public:

@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -165,7 +166,7 @@ methods. This use case is common in the STL for container classes (such as
 adjacency list, where the graph is generic in the type of the labels on the
 nodes. Though the example shows a template class, the same comparisons with Rust
 apply to template methods and template functions.</p>
-<pre><code class="language-c++">#include &lt;stdexcept&gt;
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
 #include &lt;vector&gt;
 
 template &lt;typename Label&gt;
@@ -234,7 +235,7 @@ in C++, one can instead take a type parameter in Rust.</p>
 <h2 id="operations-on-the-parameterized-type"><a class="header" href="#operations-on-the-parameterized-type">Operations on the parameterized type</a></h2>
 <p>The differences become more apparent when one attempts to perform operations on
 the values. For example, adding a method to get the smallest node in the graph.</p>
-<pre><code class="language-c++">#include &lt;optional&gt;
+<pre><code class="language-cpp">#include &lt;optional&gt;
 //...
 
 template &lt;typename Label&gt;
@@ -381,7 +382,7 @@ where
 <p>Rust also supports the equivalent of constexpr template parameters. For example,
 one can define a generic function that returns an array consecutive integers
 starting from a specific value and whose size is determined at compile time.</p>
-<pre><code class="language-c++">#include &lt;array&gt;
+<pre><code class="language-cpp">#include &lt;array&gt;
 
 template &lt;constexpr N&gt;
 std::array&lt;int, N&gt; makeSequentialArray(int start) {

@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -162,7 +163,7 @@ each of those enumerators maps to a specific integer value, such as is needed
 when working with hardware, system calls, or protocol implementations.</p>
 <p>For example, the various modes for a GPIO pin could be modeled as an enum, which
 would restrict methods using the mode to valid values.</p>
-<pre><code class="language-c++">#include &lt;cstdint&gt;
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
 
 enum Pin : uint8_t {
     Pin1 = 0x01,
@@ -220,7 +221,7 @@ However, this <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.
 themselves</a>.
 Often the conversion is done by a function that checks that the value to convert
 is a valid enum value.</p>
-<pre><code class="language-c++">Pin cast_to_pin(uint8_t pin) {
+<pre><code class="language-cpp">Pin cast_to_pin(uint8_t pin) {
     return static_cast&lt;Pin&gt;(pin);
 }
 

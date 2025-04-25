@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -165,7 +166,7 @@ on it failing when it is used with a type that does not have that method. This
 is significantly less restrictive than the other two C++ approaches, because it
 does not require that <code>area()</code> return a <code>double</code>, only that it return a value
 that can be promoted to a double.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 
 struct Triangle {
   double base;
@@ -190,7 +191,7 @@ int main() {
 </code></pre>
 <p>The second C++ approach uses a concept to restrict the return type, but
 otherwise is the same as the first.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 
 template &lt;typename T&gt;
 concept shape = requires(T t) {
@@ -256,7 +257,7 @@ of having defined a compatible method.</p>
 <p>A closer equivalent to the above Rust program in C++ would be the following,
 which uses a combination of pure virtual classes and concepts to achieve both
 static dispatch and nominal typing.</p>
-<pre><code class="language-c++">#include &lt;concepts&gt;
+<pre><code class="language-cpp">#include &lt;concepts&gt;
 #include &lt;iostream&gt;
 
 struct Shape {

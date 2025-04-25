@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -167,7 +168,7 @@ implementations of the <code>Clone</code> and <code>Copy</code> traits are good 
 purposes.</p>
 <p>For the following C++ classes, the implicitly defined copy and move constructors
 are sufficient.</p>
-<pre><code class="language-c++">#include &lt;memory&gt;
+<pre><code class="language-cpp">#include &lt;memory&gt;
 #include &lt;string&gt;
 
 struct Age {
@@ -207,7 +208,7 @@ struct Person {
 <h2 id="user-defined-constructors"><a class="header" href="#user-defined-constructors">User-defined constructors</a></h2>
 <p>On the other hand, the following example require a user-defined copy and move
 constructor because it manages a resource (a pointer acquired from a C library).</p>
-<pre><code class="language-c++">#include &lt;cstdlib&gt;
+<pre><code class="language-cpp">#include &lt;cstdlib&gt;
 #include &lt;cstring&gt;
 
 // widget.h

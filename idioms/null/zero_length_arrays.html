@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -160,7 +161,7 @@
 <p>In C++ codebases that are written in a C style or that make use of C libraries,
 null pointers may be used to represent empty arrays. This is because there is
 little practical difference between an array of size zero and a null pointer.</p>
-<pre><code class="language-c++">#include &lt;cstddef&gt;
+<pre><code class="language-cpp">#include &lt;cstddef&gt;
 #include &lt;cassert&gt;
 
 int c_style_sum(std::size_t len, int arr[]) {

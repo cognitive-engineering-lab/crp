@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -159,7 +160,7 @@
                         <h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
 <p>C++ has a special concept of default constructors to support several scenarios
 in which they are implicitly called.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
     int age;
 
 public:
@@ -197,7 +198,7 @@ impl Default for Person {
 <p>In C++ if a member is not explicitly initialized by a constructor, then it is
 default-initialized. When the type of the member is a class, the
 default-initialization invokes the default constructor.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
   int age;
 
 public:
@@ -284,7 +285,7 @@ impl Student {
 <h2 id="implicit-initialization-of-array-values"><a class="header" href="#implicit-initialization-of-array-values">Implicit initialization of array values</a></h2>
 <p>In C++, arrays without explicit initialization are default-initialized using the
 default constructors.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
   int age;
 
 public:
@@ -324,7 +325,7 @@ fn main() {
 types, such as <code>std::vector</code>. Before C++11 one value would be default
 constructed, and the elements would be copy constructed from that initial
 element. Since C++11, all elements are default constructed.</p>
-<pre><code class="language-c++">#include &lt;vector&gt;
+<pre><code class="language-cpp">#include &lt;vector&gt;
 
 class Person {
   int age;
@@ -366,7 +367,7 @@ fn main() {
 <h2 id="implicit-initialization-of-local-variables"><a class="header" href="#implicit-initialization-of-local-variables">Implicit initialization of local variables</a></h2>
 <p>In C++, the default constructor is used to perform default-initialization of
 local variables that are not explicitly initialized.</p>
-<pre><code class="language-c++">class Person {
+<pre><code class="language-cpp">class Person {
   int age;
 
 public:
@@ -391,7 +392,7 @@ fn main() {
 <h2 id="implicit-initialization-of-the-base-class-object"><a class="header" href="#implicit-initialization-of-the-base-class-object">Implicit initialization of the base class object</a></h2>
 <p>In C++, the default constructor is used to initialize the base class object if
 it no other constructor is specified.</p>
-<pre><code class="language-c++">class Base {
+<pre><code class="language-cpp">class Base {
   int x;
 
 public:

@@ -1,0 +1,41 @@
+.comparison {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1em;
+
+  @media (min-width: 1600px) {
+    margin-left: -10vw;
+    margin-right: -10vw;
+  }
+  
+  > pre {
+    width: calc(50% - 0.5em);
+    min-width: 50ch;
+    margin: 0;
+    
+    > .playground {
+      margin: 0;
+    }
+  }
+}
+
+.language-cpp:before, .language-rust:before {
+  content: ' ';
+  background-size:cover;
+  position:absolute;
+  right: 5px;
+  top: 5px;  
+}
+
+.language-cpp:before {
+  background-image: url('/img/cpp.svg'); /* aspect: 306 / 344 */
+  width: 20px;
+  height: 22.5px;
+}
+
+.language-rust:before {
+  background-image: url('/img/rust.svg'); /* aspect: 1 / 1 */
+  width: 25px;
+  height: 25px;
+}

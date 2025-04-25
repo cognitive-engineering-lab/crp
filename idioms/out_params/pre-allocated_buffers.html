@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -170,7 +171,7 @@ Some of these situations include:</p>
 <p>In these situations, C++ programs tend to pre-allocate buffers that are reused
 for all calls. This also usually enables allocating the buffer on the stack,
 rather than having to perform dynamic allocation. For example,</p>
-<pre><code class="language-c++">#include &lt;fstream&gt;
+<pre><code class="language-cpp">#include &lt;fstream&gt;
 
 int main() {
     std::ifstream file("/path/to/file");

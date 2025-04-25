@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -159,7 +160,7 @@
                         <h1 id="overloading"><a class="header" href="#overloading">Overloading</a></h1>
 <p>C++ supports overloading of functions, so long as the invocations of the
 functions can be distinguished by the number or types of their arguments.</p>
-<pre><code class="language-c++">#include &lt;string&gt;
+<pre><code class="language-cpp">#include &lt;string&gt;
 
 double twice(double x) {
 	return x + x;
@@ -187,7 +188,7 @@ apparent in the code.</p>
 <span class="boring">}</span></code></pre></pre>
 <p>In practice, an example like the above would also likely be implemented in a
 more structured way even in C++, using templates.</p>
-<pre><code class="language-c++">template &lt;typename T&gt;
+<pre><code class="language-cpp">template &lt;typename T&gt;
 T twice(T x) {
 	return x + x;
 }
@@ -281,7 +282,7 @@ fn main() {
 <h2 id="overloaded-operators"><a class="header" href="#overloaded-operators">Overloaded operators</a></h2>
 <p>In C++ most operators can either be overloaded either with a free-standing
 function or by providing a method defining the operator on a class.</p>
-<pre><code class="language-c++">struct Vec2 {
+<pre><code class="language-cpp">struct Vec2 {
   double x;
   double y;
 
@@ -421,7 +422,7 @@ fn main() {
 <h2 id="default-arguments"><a class="header" href="#default-arguments">Default arguments</a></h2>
 <p>Default arguments in C++ are sometimes implemented in terms of function
 overloading.</p>
-<pre><code class="language-c++">unsigned int shift(unsigned int x, unsigned int shiftAmount) {
+<pre><code class="language-cpp">unsigned int shift(unsigned int x, unsigned int shiftAmount) {
     return x &lt;&lt; shiftAmount;
 }
 

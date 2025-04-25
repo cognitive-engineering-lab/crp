@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -160,7 +161,7 @@
 <h2 id="c-style-tagged-unions"><a class="header" href="#c-style-tagged-unions">C-style tagged unions</a></h2>
 <p>Because unions cannot be used for type punning in C++, when they are used it is
 usually with a tag to discriminate between which variant of the union is active.</p>
-<pre><code class="language-c++">enum Tag { Rectangle, Triangle };
+<pre><code class="language-cpp">enum Tag { Rectangle, Triangle };
 
 struct Shape {
   Tag tag;
@@ -213,7 +214,7 @@ in the type so that the second check (and corresponding error handling) can be
 omitted.</p>
 <p>A C++ program like the following requires more restructuring of the types to
 achieve the same goal in Rust.</p>
-<pre><code class="language-c++">#include &lt;ranges&gt;
+<pre><code class="language-cpp">#include &lt;ranges&gt;
 #include &lt;vector&gt;
 
 std::vector&lt;Shape&gt; get_shapes() {
@@ -295,7 +296,7 @@ fn main() {
 their own types from the start.</p>
 <h2 id="stdvariant-since-c17"><a class="header" href="#stdvariant-since-c17"><code>std::variant</code> (since C++17)</a></h2>
 <p>In more modern C++, <code>std::variant</code> is more similar in usage to Rust.</p>
-<pre><code class="language-c++">#include &lt;variant&gt;
+<pre><code class="language-cpp">#include &lt;variant&gt;
 
 struct Rectangle {
   double width;
@@ -327,7 +328,7 @@ messages when a variant is missed or when a new variant is added are easier to
 read, which removes one of the barriers to using tagged unions more frequently.
 Compare the errors in C++ (using gcc) and Rust when the <code>Triangle</code> case is
 omitted.</p>
-<pre><code class="language-c++">#include &lt;variant&gt;
+<pre><code class="language-cpp">#include &lt;variant&gt;
 
 struct Rectangle {
   double width;

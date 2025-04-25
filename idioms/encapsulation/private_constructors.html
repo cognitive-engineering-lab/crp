@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -159,7 +160,7 @@
                         <h1 id="private-constructors"><a class="header" href="#private-constructors">Private constructors</a></h1>
 <p>In C++ constructors for classes can be made private by declaring them private,
 or by defining a class using <code>class</code> and using the default private visibility.</p>
-<pre><code class="language-c++">#include &lt;string&gt;
+<pre><code class="language-cpp">#include &lt;string&gt;
 
 struct Person {
   std::string name;
@@ -222,7 +223,7 @@ control over the visibility of their variants or the fields of their variants.
 In the following example, the <code>circle</code> variant of the <code>Shape</code> union is not
 public, so it can only be accessed from within the definition of <code>Shape</code>, as it
 is by the <code>make_circle</code> static method.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 
 struct Triangle {
   double base;

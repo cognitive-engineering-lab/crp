@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -163,7 +164,7 @@ result in a linking error at best and possibly undefined behavior at runtime.</p
 <p>For example, without the use of anonymous namespaces, the following would result
 in undefined behavior (and no linking error, due to the use of inline producing
 weak symbols in the object files).</p>
-<pre><code class="language-c++">/// a.cc
+<pre><code class="language-cpp">/// a.cc
 namespace {
     inline void common_function_name() {
         // ...

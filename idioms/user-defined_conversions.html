@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -165,7 +166,7 @@ converting constructors are opt-out (via the <code>explicit</code> specifier), i
 conversions occur with regularity in C++ code. In the following example both the
 assignments and the function calls make use of implicit conversions as provided
 by a converting constructor.</p>
-<pre><code class="language-c++">struct Widget {
+<pre><code class="language-cpp">struct Widget {
   Widget(int) {}
   Widget(int, int) {}
 };
@@ -223,7 +224,7 @@ for types that implement the <code>From</code> trait.</p>
 <h2 id="conversion-functions"><a class="header" href="#conversion-functions">Conversion functions</a></h2>
 <p>C++ conversion functions enable conversions in the other direction, from the
 defined class to another type.</p>
-<pre><code class="language-c++">#include &lt;utility&gt;
+<pre><code class="language-cpp">#include &lt;utility&gt;
 
 struct Point {
   int x;
@@ -274,7 +275,7 @@ Rust</a>.</p>
 <p>An important part of <code>From</code> is that the conversion takes ownership of the
 converted value. When this is not desired in C++, the conversion function can
 just take and return references.</p>
-<pre><code class="language-c++">#include &lt;iostream&gt;
+<pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;string&gt;
 
 struct Person {
@@ -361,7 +362,7 @@ literal strings can more easily be used as paths.</p>
 <h2 id="fallible-conversions"><a class="header" href="#fallible-conversions">Fallible conversions</a></h2>
 <p>In C++ when conversions might fail it is possible (though bad practice) to throw
 an exception from the converting constructor or converting function.</p>
-<pre><code class="language-c++">#include &lt;stdexcept&gt;
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
 #include &lt;string&gt;
 
 class NonEmpty {

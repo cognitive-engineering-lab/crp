@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -192,7 +193,7 @@ any way to construct new values of type <code>T</code>, and the use of reference
 give any way for the function to store one of <code>x</code> or <code>y</code> from an earlier call to
 return in a later call.</p>
 <p>Compare this with a C++ function with a similar signature:</p>
-<pre><code class="language-c++">template &lt;totally_ordered T&gt;
+<pre><code class="language-cpp">template &lt;totally_ordered T&gt;
 T max(const T &amp;x, const T &amp;y) {
   return (x &gt; y) ? x : y;
 }

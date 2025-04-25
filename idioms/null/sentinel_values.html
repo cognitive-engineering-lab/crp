@@ -30,6 +30,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -163,7 +164,7 @@ having reached the end of valid data in an iterator.</p>
 <p>Many designs in C++ borrow the convention from C of using a null pointer as a
 sentinel value for a method that returns owned pointers. For example, a method
 that parses a large structure may produce <code>std::nullptr</code> in the case of failure.</p>
-<pre><code class="language-c++">#include &lt;memory&gt;
+<pre><code class="language-cpp">#include &lt;memory&gt;
 
 class LargeStructure {
   int field;
@@ -208,7 +209,7 @@ make the reason for the failure available at runtime.</p>
 <p>When a possibly-failing function produces an integer, it is also common to use
 an otherwise unused or unlikely integer value as a sentinel value, such as <code>0</code>
 or <code>INT_MAX</code>.</p>
-<pre><code class="language-c++">#include &lt;algorithm&gt;
+<pre><code class="language-cpp">#include &lt;algorithm&gt;
 
 int gcd(int a, int b) {
   if (b == 0 || a == 0) {
