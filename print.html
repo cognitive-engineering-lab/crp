@@ -3168,12 +3168,13 @@ where
 }
 <span class="boring">}</span></code></pre></pre>
 <h2 id="overloaded-methods"><a class="header" href="#overloaded-methods">Overloaded methods</a></h2>
-<p>In C++ it is possible to have multiple methods with different signatures on the
-same type. In Rust there can be at most one method with the same signature for
-each trait implementation and at most one inherent method with the same
-signature for a type.</p>
-<p>In those cases, the desired method must be distinguished at the call site by
-specifying the trait.</p>
+<p>In C++ it is possible to have methods with the same name but different
+signatures on the same type. In Rust there can be at most one method with the
+same name for each trait implementation and at most one inherent method with the
+same name for a type.</p>
+<p>In cases where there are multiple methods with the same names because the method
+is defined for multiple traits, the desired method must be distinguished at the
+call site by specifying the trait.</p>
 <pre><pre class="playground"><code class="language-rust">trait TraitA {
     fn go(&amp;self) -&gt; String;
 }
@@ -3213,6 +3214,31 @@ fn main() {
 
     // Calling the method from TraitB
     println!("{}", TraitB::go(&amp;my_struct));
+}</code></pre></pre>
+<p>One exception to this is when the methods are all from the same generic trait
+with with different type parameters for the implementations. In that case, if
+the signature is sufficient to determine which implementation to use, the trait
+does not need to be specified to resolve the method. This is common when using
+the <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code> trait</a>.</p>
+<pre><pre class="playground"><code class="language-rust">struct Widget;
+
+impl From&lt;i32&gt; for Widget {
+    fn from(x: i32) -&gt; Widget {
+        Widget
+    }
+}
+
+impl From&lt;f32&gt; for Widget {
+    fn from(x: f32) -&gt; Widget {
+        Widget
+    }
+}
+
+fn main() {
+    // Calls &lt;Widget as From&lt;i32&gt;&gt;::from
+    Widget::from(5);
+    // Calls &lt;Widget as From&lt;f32&gt;&gt;::from
+    Widget::from(1.0);
 }</code></pre></pre>
 <h2 id="overloaded-operators"><a class="header" href="#overloaded-operators">Overloaded operators</a></h2>
 <p>In C++ most operators can either be overloaded either with a free-standing
