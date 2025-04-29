@@ -166,30 +166,29 @@ unit (though, to enforce this convention other mechanisms, such as <a href="/idi
 namespaces</a>, are required).</p>
 <pre><code class="language-cpp">// person.h
 class Person {
-    std::string name;
+  std::string name;
+
 public:
-    Person(std::string name) : name(name) {}
-    const std::string&amp; getName();
+  Person(std::string name) : name(name) {}
+  const std::string &amp;getName();
 };
 
 // person.cc
-std::string&amp; Person::getName() {
-    return this.name;
+std::string &amp;Person::getName() {
+  return this.name;
 }
 
 // client.cc
 #include "person.h"
 
-int go() {
-    Person p("Alice");
-    std::string&amp; name = p.getName();
+int main() {
+  Person p("Alice".to_string());
+  std::string &amp;name = p.getName();
 
-    // ...
-
-    return 0;
+  // ...
 }
 </code></pre>
-<p>Rust does uses neither textually-included header files nor forward declarations.
+<p>Rust uses neither textually-included header files nor forward declarations.
 Instead, Rust modules control visibility and linkage simultaneously and expose
 public definitions for use by other modules. Using Rust modules, something like
 the above definitions becomes</p>
@@ -213,24 +212,26 @@ mod person;
 
 use person::*;
 
-fn go() {
+fn main() {
     let p = Person::new("Alice");
+    // doesn't compile, private field
+    // let name = p.name;
     let name = p.name();
 
     //...
 }</code></pre>
-<p>In the <code>person.rs</code>, the <code>Person</code> type is public by the <code>name</code> field is not. This
+<p>In <code>person.rs</code>, the <code>Person</code> type is public but the <code>name</code> field is not. This
 prevents both direct construction of values of the type (similar to private
-members preventing aggregate initialization) and field access (including
-preventing pattern matching). The static method <code>new</code> and method <code>name</code> are
-exposed to clients of the module by the <code>pub</code> visibility declarations.</p>
+members preventing aggregate initialization in C++) and prevents field access.
+The static method <code>Person::new(String)</code> and method <code>Person::name()</code> are exposed
+to clients of the module by the <code>pub</code> visibility declarations.</p>
 <p>In the <code>client</code> module, the <code>mod</code> declaration defines the content of <code>person.rs</code>
 as a submodule named <code>person</code>. The <code>use</code> declaration brings the contents of the
 <code>person</code> module into scope.</p>
 <h2 id="the-essence-of-the-difference"><a class="header" href="#the-essence-of-the-difference">The essence of the difference</a></h2>
 <p>A C++ program is a collection of translation units. Header files are required to
-make the providing of forward declarations of definitions from other translation
-units manageable.</p>
+make providing forward declarations of definitions from other translation units
+manageable.</p>
 <p>A Rust program is a tree of modules. Definitions in one module may access items
 from other modules based on visibility declarations given in the definitions of
 the module themselves.</p>

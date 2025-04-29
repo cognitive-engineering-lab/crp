@@ -158,14 +158,11 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="concepts-interfaces-and-static-dispatch"><a class="header" href="#concepts-interfaces-and-static-dispatch">Concepts, interfaces, and static dispatch</a></h1>
-<p>When static dispatch over an interface is desired in C++, there are three
-approaches that can be used, two of which are purely structural (i.e., they rely
-only on the type having a matching method defined) and one of which is nominal.</p>
-<p>The first is to define a template function that uses an <code>area()</code> method and rely
-on it failing when it is used with a type that does not have that method. This
-is significantly less restrictive than the other two C++ approaches, because it
-does not require that <code>area()</code> return a <code>double</code>, only that it return a value
-that can be promoted to a double.</p>
+<p>In C++ static dispatch over an interface is achieved by implementing a template
+function or template method that interacts with the type using some expected
+interface.</p>
+<p>The template function <code>twice_area</code> in the example below makes use of an <code>area()</code>
+method on the template type parameter.</p>
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 
 struct Triangle {
@@ -174,7 +171,9 @@ struct Triangle {
 
   Triangle(double base, double height) : base(base), height(height) {}
 
-  double area() { return 0.5 * base * height; }
+  double area() {
+    return 0.5 * base * height;
+  }
 };
 
 template &lt;class T&gt;
@@ -189,40 +188,13 @@ int main() {
   return 0;
 }
 </code></pre>
-<p>The second C++ approach uses a concept to restrict the return type, but
-otherwise is the same as the first.</p>
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-
-template &lt;typename T&gt;
-concept shape = requires(T t) {
-  { t.area() } -&gt; std::same_as&lt;double&gt;;
-};
-
-struct Triangle {
-  double base;
-  double height;
-
-  Triangle(double base, double height) : base(base), height(height) {}
-
-  double area() { return 0.5 * base * height; }
-};
-
-template &lt;shape T&gt;
-double twice_area(T shape) {
-  return shape.area() * 2;
-}
-
-int main() {
-  Triangle triangle{1.0, 1.0};
-
-  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
-  return 0;
-}
-</code></pre>
-<p>The closest equivalent to this in Rust is the following. Note that the
-definition of the trait and the struct have not changed from the original
-example using virtual methods and dynamic dispatch. Despite this, this example
-does use static dispatch.</p>
+<p>To achieve the same goal in Rust involves defining a trait with the desired
+method and using the trait as a bound on the type parameter for the generic
+function.</p>
+<p>Note that in the following Rust example, the definition of the trait and the
+struct have not changed from the example in the chapter on <a href="/idioms/data_modeling/pure_virtual_classes.html">virtual methods and
+dynamic dispatch</a>. Even so, this
+example does use static dispatch.</p>
 <pre><pre class="playground"><code class="language-rust">trait Shape {
     fn area(&amp;self) -&gt; f64;
 }
@@ -250,46 +222,12 @@ fn main() {
 
     println!("{}", twice_area(triangle));
 }</code></pre></pre>
-<p>This is not quite the same as the above C++ programs because Rust requires that
-the <code>Triangle</code> type explicitly declare that it implements the <code>Shape</code> interface,
-while in the above C++ program the type implements the concept simply by virtue
-of having defined a compatible method.</p>
-<p>A closer equivalent to the above Rust program in C++ would be the following,
-which uses a combination of pure virtual classes and concepts to achieve both
-static dispatch and nominal typing.</p>
-<pre><code class="language-cpp">#include &lt;concepts&gt;
-#include &lt;iostream&gt;
-
-struct Shape {
-  Shape() {}
-  virtual ~Shape() {}
-  virtual double area() = 0;
-};
-
-template &lt;typename T&gt;
-concept shape = std::derived_from&lt;T, Shape&gt;;
-
-struct Triangle : Shape {
-  double base;
-  double height;
-
-  Triangle(double base, double height) : base(base), height(height) {}
-
-  double area() override { return 0.5 * base * height; }
-};
-
-template &lt;shape T&gt;
-double twice_area(T shape) {
-  return shape.area() * 2;
-}
-
-int main() {
-  Triangle triangle{1.0, 1.0};
-
-  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
-  return 0;
-}
-</code></pre>
+<p>The difference between Rust and C++ in the above examples arises from Rust being
+nominally typed (types must opt in to supporting a specific interface, merely
+having the right methods isn't enough) and C++'s template meta-programming
+enabling a kind of structural or duck typing (types only need to have the
+methods actually used, and there is no need to explicitly opt in to supporting
+an interface).</p>
 <h2 id="templates-vs-generic-functions"><a class="header" href="#templates-vs-generic-functions">Templates vs generic functions</a></h2>
 <p>The reason why Rust is nominally typed instead of structurally typed has to do
 with the difference between C++ templates and Rust generic functions. In
@@ -307,6 +245,101 @@ for which a C++ compiler can give many fewer static guarantees, since it would
 not be possible to test all possible instantiations.</p>
 <p>In both C++ and Rust, however, multiple implementations are generated by the
 compiler in order to achieve static dispatch.</p>
+<h2 id="c-concepts"><a class="header" href="#c-concepts">C++ concepts</a></h2>
+<p>Rust's approach to static dispatch over an interface can be partially (but only
+partially) modeled with a strict application of C++ concepts.</p>
+<p>The usual way to apply concepts is still structural and does not model Rust's
+approach: it only requires that a method with specific properties be present on
+the type.</p>
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+
+template &lt;typename T&gt;
+concept shape = requires(T t) {
+  { t.area() } -&gt; std::same_as&lt;double&gt;;
+};
+
+template &lt;shape T&gt;
+double twice_area(T shape) {
+  return shape.area() * 2;
+}
+</code></pre>
+<p>A closer equivalent to the above Rust program in C++ is to use a combination of
+pure virtual classes and concepts.</p>
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+
+struct Shape {
+  Shape() {}
+  virtual ~Shape() {}
+  virtual double area() = 0;
+};
+
+template &lt;typename T&gt;
+concept shape = std::derived_from&lt;T, Shape&gt;;
+
+struct Triangle : Shape {
+  double base;
+  double height;
+
+  Triangle(double base, double height) : base(base), height(height) {}
+
+  double area() override {
+    return 0.5 * base * height;
+  }
+};
+
+template &lt;shape T&gt;
+double twice_area(T shape) {
+  return shape.area() * 2;
+}
+
+int main() {
+  Triangle triangle{1.0, 1.0};
+
+  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
+  return 0;
+}
+</code></pre>
+<p>This is still not the same, however, because the concept only creates a
+requirement on the use of the template, not on the use of values of type <code>T</code>
+within the template. In Rust, the trait bound constrains both. So the following
+still compiles in C++.</p>
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+
+struct Shape {
+  Shape() {}
+  virtual ~Shape() {}
+  virtual double area() = 0;
+};
+
+template &lt;typename T&gt;
+concept shape = std::derived_from&lt;T, Shape&gt;;
+
+template &lt;shape T&gt;
+double twice_area(T shape) {
+  // note the call to a method not defined in Shape
+  return shape.volume() * 2;
+}
+</code></pre>
+<p>However, the equivalent does not compile in Rust and instead produces an error.</p>
+<pre><code class="language-rust ignore">trait Shape {
+    fn area(&amp;self) -&gt; f64;
+}
+
+fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
+    // note the call to a method not defined in Shape
+    2.0 * shape.volume()
+}</code></pre>
+<pre><code class="language-text">error[E0599]: no method named `volume` found for type parameter `T` in the current scope
+ --&gt; example.rs:7:17
+  |
+5 | fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
+  |               - method `volume` not found for this type parameter
+6 |     // note the call to a method not defined in Shape
+7 |     2.0 * shape.volume()
+  |                 ^^^^^^ method not found in `T`
+</code></pre>
+<p>These additional static checks mean that in many situations where C++ templates
+would be useful but hard to implement correctly, Rust generics are freely used.</p>
 <h2 id="required-traits-and-ergonomics"><a class="header" href="#required-traits-and-ergonomics">Required traits and ergonomics</a></h2>
 <p>In the above examples, the function requiring a trait was defined like the following.</p>
 <pre><code class="language-rust ignore">fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {

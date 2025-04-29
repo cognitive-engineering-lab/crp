@@ -167,16 +167,19 @@ is because move semantics are the default, and the automatically derived
 implementations of the <code>Clone</code> and <code>Copy</code> traits are good enough for most
 purposes.</p>
 <p>For the following C++ classes, the implicitly defined copy and move constructors
-are sufficient.</p>
-<pre><code class="language-cpp">#include &lt;memory&gt;
-#include &lt;string&gt;
-
-struct Age {
+are sufficient. The equivalent in Rust uses a derive macro provided by the
+standard library to implement the corresponding traits.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;memory&gt;
+</span><span class="boring">#include &lt;string&gt;
+</span><span class="boring">
+</span>struct Age {
   unsigned int years;
 
   Age(unsigned int years) : years(years) {}
 
-  // copy and move constructors and destructor implicilty declared and defined
+  // copy and move constructors and destructor
+  // implicilty declared and defined
 };
 
 struct Person {
@@ -184,14 +187,19 @@ struct Person {
   std::string name;
   std::shared_ptr&lt;Person&gt; best_friend;
 
-  Person(Age age, std::string name, std::shared_ptr&lt;Person&gt; best_friend)
-      : age(age), name(name), best_friend(best_friend) {}
+  Person(Age age,
+         std::string name,
+         std::shared_ptr&lt;Person&gt; best_friend)
+      : age(age), name(name),
+        best_friend(best_friend) {}
 
-  // copy and move constructors and destructor implicilty declared and defined
+  // copy and move constructors and destructor
+  // implicilty declared and defined
 };
 </code></pre>
-<p>The equivalent in Rust is</p>
-<pre><code class="language-Rust">use std::rc::Rc;
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::rc::Rc;
 
 #[derive(Clone, Copy)]
 struct Age {
@@ -204,10 +212,13 @@ struct Person {
     name: String,
     best_friend: Rc&lt;Person&gt;,
 }
-</code></pre>
+<span class="boring">}</span></code></pre></pre>
+</div>
 <h2 id="user-defined-constructors"><a class="header" href="#user-defined-constructors">User-defined constructors</a></h2>
 <p>On the other hand, the following example require a user-defined copy and move
-constructor because it manages a resource (a pointer acquired from a C library).</p>
+constructor because it manages a resource (a pointer acquired from a C library).
+The equivalent in Rust requires a custom implementation of the <code>Clone</code> trait.</p>
+<div class="comparison">
 <pre><code class="language-cpp">#include &lt;cstdlib&gt;
 #include &lt;cstring&gt;
 
@@ -237,21 +248,27 @@ public:
   }
 };
 </code></pre>
-<p>The equivalent in Rust is requires a custom implementation of the <code>Clone</code> trait.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span><span class="boring">mod example {
 </span>mod widget_ffi {
-    // Models an opaque type. See https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs
+    // Models an opaque type.
+    // See https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs
     #[repr(C)]
     pub struct CWidget {
         _data: [u8; 0],
-        _marker: core::marker::PhantomData&lt;(*mut u8, core::marker::PhantomPinned)&gt;,
+        _marker: core::marker::PhantomData&lt;(
+            *mut u8,
+            core::marker::PhantomPinned,
+        )&gt;,
     }
 
     extern "C" {
         pub fn make_widget() -&gt; *mut CWidget;
-        pub fn copy_widget(dst: *mut CWidget, src: *mut CWidget);
+        pub fn copy_widget(
+            dst: *mut CWidget,
+            src: *mut CWidget,
+        );
         pub fn free_widget(ptr: *mut CWidget);
     }
 }
@@ -287,6 +304,7 @@ impl Drop for Widget {
 }
 <span class="boring">}
 </span><span class="boring">}</span></code></pre></pre>
+</div>
 <p>Just as with how in C++ it is uncommon to need user-defined implementations for
 copy and move constructors or user-defined implementations for destructors, in
 Rust it is rare to need to implement the <code>Clone</code> and <code>Drop</code> traits by hand for
@@ -317,12 +335,12 @@ does not. This is because neither <code>std::String</code> nor <code>Rc&lt;Perso
 <code>Copy</code>. They do not implement <code>Copy</code> because they own data that lives on the
 heap, and so are not trivially copyable.</p>
 <p>Rust prevents implementing <code>Copy</code> for a type if any of its fields are not
-<code>Copy</code>. but does not prevent implementing <code>Copy</code> for types that should not be
+<code>Copy</code>, but does not prevent implementing <code>Copy</code> for types that should not be
 copied bit-for-bit due to their intended meaning, which is usually indicated by
-a user-defined <code>Clone</code> implementation. Rust does not permit the implementation
-of both <code>Copy</code> and <code>Drop</code> for the same type. This aligns with the C++ standard's
-requirement that trivially copyable types not implement a user-defined
-destructor.</p>
+a user-defined <code>Clone</code> implementation.</p>
+<p>Rust does not permit the implementation of both <code>Copy</code> and <code>Drop</code> for the same
+type. This aligns with the C++ standard's requirement that trivially copyable
+types not implement a user-defined destructor.</p>
 <h2 id="move-constructors"><a class="header" href="#move-constructors">Move constructors</a></h2>
 <p>In Rust, all types support move semantics by default, and custom move semantics
 cannot be (and do not need to be) defined. This is because what "move" means in
@@ -341,9 +359,9 @@ implicitly copies and then moves.</p>
     let w = *y; // implicitly copies the content of the Box and then moves the copy
 }</code></pre></pre>
 <p>For situations where something like a user-defined copy assignment could avoid
-allocations, the <code>Clone</code> trait has an additional method called <code>clone_from</code>.
-The method is usually automatically defined, but can be overridden when
-implementing the <code>Clone</code> trait to provide an efficient implementation.</p>
+allocations, the <code>Clone</code> trait has an additional method called <code>clone_from</code>. The
+method is automatically defined, but can be overridden when implementing the
+<code>Clone</code> trait to provide an efficient implementation.</p>
 <p>The method is not used for normal assignments, but can be explicitly used in
 situations where the performance of the assignment is significant and would be
 improved by using the more efficient implementation, if one is defined.</p>

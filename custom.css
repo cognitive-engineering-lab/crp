@@ -8,12 +8,13 @@
     margin-left: -10vw;
     margin-right: -10vw;
   }
-  
+
   > pre {
+    flex-grow: 1;
     width: calc(50% - 0.5em);
     min-width: 50ch;
     margin: 0;
-    
+
     > .playground {
       margin: 0;
     }
@@ -25,7 +26,7 @@
   background-size:cover;
   position:absolute;
   right: 5px;
-  top: 5px;  
+  top: 5px;
 }
 
 .language-cpp:before {

@@ -158,26 +158,19 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="how-to-use-this-book"><a class="header" href="#how-to-use-this-book">How to use this book</a></h1>
-<blockquote>
-<ol start="10">
-<li>Get into a rut early: Do the same process the same way. Accumulate idioms.
-Standardize. The only difference(!) between Shakespeare and you was the
-size of his idiom list - not the size of his vocabulary.</li>
-</ol>
-</blockquote>
-<p>—Alan Perlis, Epigrams on Programming</p>
+                        <h1 id="rust-phrasebook-for-c-programmers"><a class="header" href="#rust-phrasebook-for-c-programmers">Rust Phrasebook for C++ Programmers</a></h1>
 <p>The goal of this book is to make programming in Rust less frustrating for C++
 programmers by providing translations of common C++ idioms and patterns into
-idiomatic Rust, along with explanations of the reasons for and engineering
-trade-offs with the differences.</p>
-<p>The translations are often not straightforward transliterations, but rather are
-more comprehensive changes of to how to approach, using stable Rust, the kinds
-of problems that the C++ idioms and patterns are intended to address.</p>
+idiomatic Rust. Along with the translations, there are explanations of the
+reasons for the differences and descriptions of the and engineering trade-offs
+involved.</p>
+<p>The translations are often not straightforward transliterations. Instead, they
+are more comprehensive changes of to how to approach, using Rust, the kinds of
+problems that the C++ idioms and patterns are intended to address.</p>
 <p>The book is structured to make it possible to read it front-to-back. Ideally,
 after reading this book, one's "idiom list" for Rust should be significantly
-more fleshed out, leading to a more enjoyable and productive experience
-programming in Rust.</p>
+more robust, leading to a more enjoyable and productive experience programming
+in Rust.</p>
 <p>The chapters are also organized around C++ concepts instead of Rust concepts, to
 aid C++ programmers in finding a specific solution to a problem in terms that
 will be natural to them while they are learning Rust.</p>
@@ -645,13 +638,17 @@ interface will be used with dynamic dispatch to resolve the invoked method.
 In Rust the interface is given by a <em>trait</em>, which is then implemented for the
 types that support that trait. Programs can then be written over <em>trait objects</em>
 that use that trait as their base type.</p>
-<p>For example, this program shows how to translate a <code>Shape</code> virtual class in C++ into a <code>Shape</code> trait in Rust,
-along with corresponding <code>Triangle</code> and <code>Rectangle</code> implementations of <code>Shape</code>.</p>
+<p>The following example defines an interface, two implementations of that
+interface, and a function that takes an argument that satisfies the interface.
+In C++ the interface is defined with an abstract class where all of the methods
+are pure virtual methods, and in Rust the interface is defined with a trait.</p>
+<p>In both languages the function (<code>printArea</code> in C++ and <code>print_area</code> in Rust)
+invokes a method using dynamic dispatch.</p>
 <div class="comparison">
-<pre><code class="language-cpp"><span class="boring">#include &lt;iostream&gt;
-</span><span class="boring">#include &lt;memory&gt;
-</span><span class="boring">
-</span>struct Shape {
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;memory&gt;
+
+struct Shape {
   Shape() {};
   virtual ~Shape() {};
   virtual double area() = 0;
@@ -661,82 +658,220 @@ struct Triangle : Shape {
   double base;
   double height;
 
-  Triangle(double base, double height) : 
-    base(base), height(height) {}
+  Triangle(double base, double height)
+      : base(base), height(height) {}
 
-  double area() override { return 0.5 * base * height; }
+  double area() override {
+    return 0.5 * base * height;
+  }
 };
 
 struct Rectangle : Shape {
   double width;
   double height;
 
-  Rectangle(double width, double height) : 
-    width(width), height(height) {}
+  Rectangle(double width, double height)
+      : width(width), height(height) {}
 
-  double area() override { return width * height; }
+  double area() override {
+    return width * height;
+  }
 };
 
-int main() {
-  Shape &amp;&amp;triangle = Triangle{1.0, 1.0};
-  std::unique_ptr&lt;Shape&gt; rectangle = 
-    std::make_unique&lt;Rectangle&gt;(1.0, 1.0);
+void printArea(Shape &amp;shape) {
+  std::cout &lt;&lt; shape.area() &lt;&lt; std::endl;
+}
 
-  std::cout &lt;&lt; triangle.area() &lt;&lt; std::endl;
-  std::cout &lt;&lt; rectangle-&gt;area() &lt;&lt; std::endl;
+int main() {
+  Triangle triangle = Triangle{1.0, 1.0};
+
+  printArea(triangle);
+
+  std::unique_ptr&lt;Shape&gt; shape;
+  if (true) {
+    shape = std::make_unique&lt;Rectangle&gt;(1.0, 1.0);
+  } else {
+    shape = std::make_unique&lt;Triangle&gt;(
+        std::move(triangle));
+  }
+
+  printArea(*shape);
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust">trait Shape {
-  fn area(&amp;self) -&gt; f64;
+    fn area(&amp;self) -&gt; f64;
 }
 
 struct Triangle {
-  base: f64,
-  height: f64,
+    base: f64,
+    height: f64,
 }
 
 impl Shape for Triangle {
-  fn area(&amp;self) -&gt; f64 { 0.5 * self.base * self.height }
+    fn area(&amp;self) -&gt; f64 {
+        0.5 * self.base * self.height
+    }
 }
 
 struct Rectangle {
-  width: f64,
-  height: f64,
+    width: f64,
+    height: f64,
 }
 
 impl Shape for Rectangle {
-  fn area(&amp;self) -&gt; f64 { self.width * self.height }
+    fn area(&amp;self) -&gt; f64 {
+        self.width * self.height
+    }
+}
+
+fn print_area(shape: &amp;dyn Shape) {
+    println!("{}", shape.area());
 }
 
 fn main() {
-  let triangle: &amp;dyn Shape = 
-    &amp;Triangle { base: 1.0, height: 1.0 };
-  let rectangle: Box&lt;dyn Shape&gt; = 
-    Box::new(Rectangle { width: 1.0, height: 1.0 });
+    let triangle = Triangle {
+        base: 1.0,
+        height: 1.0,
+    };
 
-  println!("{}", triangle.area());
-  println!("{}", rectangle.area());
+    print_area(&amp;triangle);
+
+    let shape: Box&lt;dyn Shape&gt; = if true {
+        Box::new(Rectangle {
+            width: 1.0,
+            height: 1.0,
+        })
+    } else {
+        Box::new(triangle)
+    };
+
+    print_area(shape.as_ref());
 }</code></pre></pre>
 </div>
-<p>In C++, to use an object via a pure virtual class, this requires accessing the object via a pointer.
-Rust requires a similar kind of indirection. In the example above, one trait object is a reference
-(with type <code>&amp;dyn Shape</code>) and the other is a heap-allocated owned value (with
-type <code>Box&lt;dyn Shape&gt;</code>). These correspond to the reference and <code>std::unique_ptr</code>
-used in the above C++ example, respectively.</p>
+<h2 id="indirection-object-slicing-and-rust-trait-object-types"><a class="header" href="#indirection-object-slicing-and-rust-trait-object-types">Indirection, object slicing, and Rust trait object types</a></h2>
+<p>In C++, using an object via an abstract base class is done by accessing the
+object via a pointer or a reference, supported by a vtable.</p>
+<p>Rust also requires the indirection. The type <code>dyn Shape</code> in the above example is
+the type of a trait object for the <code>Shape</code> trait. A trait object includes a
+vtable along with the underlying value.</p>
+<p>The indirection is enforced by the type <code>dyn Shape</code> not implementing the <code>Sized</code>
+marker trait, preventing it from being used in contexts that require knowing the
+size of a type statically.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">trait Shape {
+</span><span class="boring">    fn area(&amp;self) -&gt; f64;
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">struct Triangle {
+</span><span class="boring">    base: f64,
+</span><span class="boring">    height: f64,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">impl Shape for Triangle {
+</span><span class="boring">    fn area(&amp;self) -&gt; f64 {
+</span><span class="boring">        0.5 * self.base * self.height
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn main() {
+    // Local variables must have a known size.
+    // let v: dyn Shape = Triangle { base: 1.0, height: 1.0 };
+
+    // References always have a known size.
+    let shape: &amp;dyn Shape = &amp;Triangle {
+        base: 1.0,
+        height: 1.0,
+    };
+    // Boxes also always have a known size.
+    let boxed_shape: Box&lt;dyn Shape&gt; = Box::new(Triangle {
+        base: 1.0,
+        height: 1.0,
+    });
+
+    // Types like Option&lt;T&gt; the value of type T directly, and so also need to
+    // know the size of T.
+    // let v: Option&lt;dyn Shape&gt; = Some(Triangle { base: 1.0, height: 1.0 });
+}
+
+// Parameter types must have a known size.
+// fn print_area(shape: dyn Shape) { }
+fn print_area(shape: &amp;dyn Shape) {}</code></pre></pre>
+<p>The forbidden uses correspond to situations in which object slicing would occur
+in C++.</p>
+<h2 id="limitations-of-trait-objects-in-rust"><a class="header" href="#limitations-of-trait-objects-in-rust">Limitations of trait objects in Rust</a></h2>
 <p>In Rust, not all traits can be used as the base trait for trait objects. The most
 commonly encountered restriction is that traits that require knowledge of the
 object's size via a <code>Sized</code> supertrait are not <code>dyn</code>-compatible. There are
 <a href="https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility">additional
 restrictions</a>.</p>
+<h2 id="trait-objects-and-lifetimes"><a class="header" href="#trait-objects-and-lifetimes">Trait objects and lifetimes</a></h2>
+<p>Objects which are used with dynamic dispatch may contain pointers or references
+to other objects. In C++ the lifetimes of those references must be tracked
+manually by the programmer.</p>
+<p>Rust checks the bounds on the lifetimes of references that the trait objects may
+contain. If the bounds are not given explicitly, they are determined according
+to the <a href="https://doc.rust-lang.org/reference/lifetime-elision.html#r-lifetime-elision.trait-object">lifetime elision
+rules</a>.</p>
+<p>Usually the elision rules pick the correct lifetime bound. Sometimes, the rules
+result in surprising error messages from the compiler. In those situations or
+when the compiler cannot determine which lifetime bound to assign, the bound may
+be given manually. The following example shows explicitly what the inferred
+lifetimes are for a structure storing a trait object and for the <code>print_area</code>
+function.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">trait Shape {
+</span><span class="boring">    fn area(&amp;self) -&gt; f64;
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">struct Triangle {
+</span><span class="boring">    base: f64,
+</span><span class="boring">    height: f64,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">impl Shape for Triangle {
+</span><span class="boring">    fn area(&amp;self) -&gt; f64 {
+</span><span class="boring">        0.5 * self.base * self.height
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span>struct Scaled {
+    scale: f64,
+    // 'static is the lifetime that would be inferred by the lifetime elision
+    // rule [lifetime-elision.trait-object.default].
+    shape: Box&lt;dyn Shape + 'static&gt;,
+}
+
+impl Shape for Scaled {
+    fn area(&amp;self) -&gt; f64 {
+        self.scale * self.shape.area()
+    }
+}
+
+// These are the lifetimes that would be inferred by the lifetime elision rule
+// [lifetime-elision.function.implicit-lifetime-parameters] for the reference
+// and [lifetime-elision.trait-object.containing-type-unique] for the trait
+// bound.
+fn print_area&lt;'a&gt;(shape: &amp;'a (dyn Shape + 'a)) {
+    println!("{}", shape.area());
+}
+
+fn main() {
+    let triangle = Triangle {
+        base: 1.0,
+        height: 1.0,
+    };
+    print_area(&amp;triangle);
+
+    let scaled_triangle = Scaled {
+        scale: 2.0,
+        shape: Box::new(triangle),
+    };
+    print_area(&amp;scaled_triangle);
+}</code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="concepts-interfaces-and-static-dispatch"><a class="header" href="#concepts-interfaces-and-static-dispatch">Concepts, interfaces, and static dispatch</a></h1>
-<p>When static dispatch over an interface is desired in C++, there are three
-approaches that can be used, two of which are purely structural (i.e., they rely
-only on the type having a matching method defined) and one of which is nominal.</p>
-<p>The first is to define a template function that uses an <code>area()</code> method and rely
-on it failing when it is used with a type that does not have that method. This
-is significantly less restrictive than the other two C++ approaches, because it
-does not require that <code>area()</code> return a <code>double</code>, only that it return a value
-that can be promoted to a double.</p>
+<p>In C++ static dispatch over an interface is achieved by implementing a template
+function or template method that interacts with the type using some expected
+interface.</p>
+<p>The template function <code>twice_area</code> in the example below makes use of an <code>area()</code>
+method on the template type parameter.</p>
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 
 struct Triangle {
@@ -745,7 +880,9 @@ struct Triangle {
 
   Triangle(double base, double height) : base(base), height(height) {}
 
-  double area() { return 0.5 * base * height; }
+  double area() {
+    return 0.5 * base * height;
+  }
 };
 
 template &lt;class T&gt;
@@ -760,40 +897,13 @@ int main() {
   return 0;
 }
 </code></pre>
-<p>The second C++ approach uses a concept to restrict the return type, but
-otherwise is the same as the first.</p>
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-
-template &lt;typename T&gt;
-concept shape = requires(T t) {
-  { t.area() } -&gt; std::same_as&lt;double&gt;;
-};
-
-struct Triangle {
-  double base;
-  double height;
-
-  Triangle(double base, double height) : base(base), height(height) {}
-
-  double area() { return 0.5 * base * height; }
-};
-
-template &lt;shape T&gt;
-double twice_area(T shape) {
-  return shape.area() * 2;
-}
-
-int main() {
-  Triangle triangle{1.0, 1.0};
-
-  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
-  return 0;
-}
-</code></pre>
-<p>The closest equivalent to this in Rust is the following. Note that the
-definition of the trait and the struct have not changed from the original
-example using virtual methods and dynamic dispatch. Despite this, this example
-does use static dispatch.</p>
+<p>To achieve the same goal in Rust involves defining a trait with the desired
+method and using the trait as a bound on the type parameter for the generic
+function.</p>
+<p>Note that in the following Rust example, the definition of the trait and the
+struct have not changed from the example in the chapter on <a href="idioms/data_modeling//idioms/data_modeling/pure_virtual_classes.html">virtual methods and
+dynamic dispatch</a>. Even so, this
+example does use static dispatch.</p>
 <pre><pre class="playground"><code class="language-rust">trait Shape {
     fn area(&amp;self) -&gt; f64;
 }
@@ -821,46 +931,12 @@ fn main() {
 
     println!("{}", twice_area(triangle));
 }</code></pre></pre>
-<p>This is not quite the same as the above C++ programs because Rust requires that
-the <code>Triangle</code> type explicitly declare that it implements the <code>Shape</code> interface,
-while in the above C++ program the type implements the concept simply by virtue
-of having defined a compatible method.</p>
-<p>A closer equivalent to the above Rust program in C++ would be the following,
-which uses a combination of pure virtual classes and concepts to achieve both
-static dispatch and nominal typing.</p>
-<pre><code class="language-cpp">#include &lt;concepts&gt;
-#include &lt;iostream&gt;
-
-struct Shape {
-  Shape() {}
-  virtual ~Shape() {}
-  virtual double area() = 0;
-};
-
-template &lt;typename T&gt;
-concept shape = std::derived_from&lt;T, Shape&gt;;
-
-struct Triangle : Shape {
-  double base;
-  double height;
-
-  Triangle(double base, double height) : base(base), height(height) {}
-
-  double area() override { return 0.5 * base * height; }
-};
-
-template &lt;shape T&gt;
-double twice_area(T shape) {
-  return shape.area() * 2;
-}
-
-int main() {
-  Triangle triangle{1.0, 1.0};
-
-  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
-  return 0;
-}
-</code></pre>
+<p>The difference between Rust and C++ in the above examples arises from Rust being
+nominally typed (types must opt in to supporting a specific interface, merely
+having the right methods isn't enough) and C++'s template meta-programming
+enabling a kind of structural or duck typing (types only need to have the
+methods actually used, and there is no need to explicitly opt in to supporting
+an interface).</p>
 <h2 id="templates-vs-generic-functions"><a class="header" href="#templates-vs-generic-functions">Templates vs generic functions</a></h2>
 <p>The reason why Rust is nominally typed instead of structurally typed has to do
 with the difference between C++ templates and Rust generic functions. In
@@ -878,6 +954,101 @@ for which a C++ compiler can give many fewer static guarantees, since it would
 not be possible to test all possible instantiations.</p>
 <p>In both C++ and Rust, however, multiple implementations are generated by the
 compiler in order to achieve static dispatch.</p>
+<h2 id="c-concepts"><a class="header" href="#c-concepts">C++ concepts</a></h2>
+<p>Rust's approach to static dispatch over an interface can be partially (but only
+partially) modeled with a strict application of C++ concepts.</p>
+<p>The usual way to apply concepts is still structural and does not model Rust's
+approach: it only requires that a method with specific properties be present on
+the type.</p>
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+
+template &lt;typename T&gt;
+concept shape = requires(T t) {
+  { t.area() } -&gt; std::same_as&lt;double&gt;;
+};
+
+template &lt;shape T&gt;
+double twice_area(T shape) {
+  return shape.area() * 2;
+}
+</code></pre>
+<p>A closer equivalent to the above Rust program in C++ is to use a combination of
+pure virtual classes and concepts.</p>
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+
+struct Shape {
+  Shape() {}
+  virtual ~Shape() {}
+  virtual double area() = 0;
+};
+
+template &lt;typename T&gt;
+concept shape = std::derived_from&lt;T, Shape&gt;;
+
+struct Triangle : Shape {
+  double base;
+  double height;
+
+  Triangle(double base, double height) : base(base), height(height) {}
+
+  double area() override {
+    return 0.5 * base * height;
+  }
+};
+
+template &lt;shape T&gt;
+double twice_area(T shape) {
+  return shape.area() * 2;
+}
+
+int main() {
+  Triangle triangle{1.0, 1.0};
+
+  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
+  return 0;
+}
+</code></pre>
+<p>This is still not the same, however, because the concept only creates a
+requirement on the use of the template, not on the use of values of type <code>T</code>
+within the template. In Rust, the trait bound constrains both. So the following
+still compiles in C++.</p>
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+
+struct Shape {
+  Shape() {}
+  virtual ~Shape() {}
+  virtual double area() = 0;
+};
+
+template &lt;typename T&gt;
+concept shape = std::derived_from&lt;T, Shape&gt;;
+
+template &lt;shape T&gt;
+double twice_area(T shape) {
+  // note the call to a method not defined in Shape
+  return shape.volume() * 2;
+}
+</code></pre>
+<p>However, the equivalent does not compile in Rust and instead produces an error.</p>
+<pre><code class="language-rust ignore">trait Shape {
+    fn area(&amp;self) -&gt; f64;
+}
+
+fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
+    // note the call to a method not defined in Shape
+    2.0 * shape.volume()
+}</code></pre>
+<pre><code class="language-text">error[E0599]: no method named `volume` found for type parameter `T` in the current scope
+ --&gt; example.rs:7:17
+  |
+5 | fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
+  |               - method `volume` not found for this type parameter
+6 |     // note the call to a method not defined in Shape
+7 |     2.0 * shape.volume()
+  |                 ^^^^^^ method not found in `T`
+</code></pre>
+<p>These additional static checks mean that in many situations where C++ templates
+would be useful but hard to implement correctly, Rust generics are freely used.</p>
 <h2 id="required-traits-and-ergonomics"><a class="header" href="#required-traits-and-ergonomics">Required traits and ergonomics</a></h2>
 <p>In the above examples, the function requiring a trait was defined like the following.</p>
 <pre><code class="language-rust ignore">fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
@@ -1585,30 +1756,29 @@ unit (though, to enforce this convention other mechanisms, such as <a href="idio
 namespaces</a>, are required).</p>
 <pre><code class="language-cpp">// person.h
 class Person {
-    std::string name;
+  std::string name;
+
 public:
-    Person(std::string name) : name(name) {}
-    const std::string&amp; getName();
+  Person(std::string name) : name(name) {}
+  const std::string &amp;getName();
 };
 
 // person.cc
-std::string&amp; Person::getName() {
-    return this.name;
+std::string &amp;Person::getName() {
+  return this.name;
 }
 
 // client.cc
 #include "person.h"
 
-int go() {
-    Person p("Alice");
-    std::string&amp; name = p.getName();
+int main() {
+  Person p("Alice".to_string());
+  std::string &amp;name = p.getName();
 
-    // ...
-
-    return 0;
+  // ...
 }
 </code></pre>
-<p>Rust does uses neither textually-included header files nor forward declarations.
+<p>Rust uses neither textually-included header files nor forward declarations.
 Instead, Rust modules control visibility and linkage simultaneously and expose
 public definitions for use by other modules. Using Rust modules, something like
 the above definitions becomes</p>
@@ -1632,24 +1802,26 @@ mod person;
 
 use person::*;
 
-fn go() {
+fn main() {
     let p = Person::new("Alice");
+    // doesn't compile, private field
+    // let name = p.name;
     let name = p.name();
 
     //...
 }</code></pre>
-<p>In the <code>person.rs</code>, the <code>Person</code> type is public by the <code>name</code> field is not. This
+<p>In <code>person.rs</code>, the <code>Person</code> type is public but the <code>name</code> field is not. This
 prevents both direct construction of values of the type (similar to private
-members preventing aggregate initialization) and field access (including
-preventing pattern matching). The static method <code>new</code> and method <code>name</code> are
-exposed to clients of the module by the <code>pub</code> visibility declarations.</p>
+members preventing aggregate initialization in C++) and prevents field access.
+The static method <code>Person::new(String)</code> and method <code>Person::name()</code> are exposed
+to clients of the module by the <code>pub</code> visibility declarations.</p>
 <p>In the <code>client</code> module, the <code>mod</code> declaration defines the content of <code>person.rs</code>
 as a submodule named <code>person</code>. The <code>use</code> declaration brings the contents of the
 <code>person</code> module into scope.</p>
 <h2 id="the-essence-of-the-difference"><a class="header" href="#the-essence-of-the-difference">The essence of the difference</a></h2>
 <p>A C++ program is a collection of translation units. Header files are required to
-make the providing of forward declarations of definitions from other translation
-units manageable.</p>
+make providing forward declarations of definitions from other translation units
+manageable.</p>
 <p>A Rust program is a tree of modules. Definitions in one module may access items
 from other modules based on visibility declarations given in the definitions of
 the module themselves.</p>
@@ -1659,9 +1831,10 @@ example. More details on how to use modules, <code>pub</code>, and <code>use</co
 encapsulation goals are described in the chapter on <a href="idioms/encapsulation/./idioms/encapsulation/private_members.html">private members and
 friends</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="anonymous-namespaces-and-static"><a class="header" href="#anonymous-namespaces-and-static">Anonymous namespaces and <code>static</code></a></h1>
-<p>Anonymous namespaces are used in C++ to prevent symbols defined in one
-translation unit from colliding with those defined in another, which would
-result in a linking error at best and possibly undefined behavior at runtime.</p>
+<p>Anonymous namespaces in C++ are used to avoid symbol collisions between
+different translation units. Such collisions violate <a href="https://timsong-cpp.github.io/cppwp/n4950/basic.def.odr#14">the one definition
+rule</a> and result in
+undefined behavior (which at best manifests as linking errors).</p>
 <p>For example, without the use of anonymous namespaces, the following would result
 in undefined behavior (and no linking error, due to the use of inline producing
 weak symbols in the object files).</p>
@@ -1682,9 +1855,15 @@ namespace {
 <p>C++ static declarations are also used to achieve the same goal by making it so that
 a declaration has internal linkage (and so is not visible outside of the
 translation unit).</p>
-<p>Thus, the following Rust program achieves the same goal as the C++ program above
-in terms of avoiding the collision of the two functions while making them
-available for use within the defining files.</p>
+<p>Rust avoids the linkage problem by controlling linkage and visibility
+simultaneously, with declarations always also being definitions. Instead of
+translation units, programs are structured in terms of
+<a href="idioms/encapsulation//idioms/encapsulation/headers.html">modules</a>, which provide both namespaces and
+visibility controls over definitions, enabling the Rust compiler to guarantee
+that symbol collision issues cannot happen.</p>
+<p>The following Rust program achieves the same goal as the C++ program above, in
+terms of avoiding the collision of the two functions while making them available
+for use within the defining files.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// a.rs
@@ -1701,12 +1880,6 @@ available for use within the defining files.</p>
 }
 <span class="boring">}
 </span><span class="boring">}</span></code></pre></pre>
-<p>Rust avoids the linkage problem by controlling linkage and visibility
-simultaneously, with declarations always also being definitions. Instead of
-translation units, programs are structured in terms of
-<a href="idioms/encapsulation//idioms/encapsulation/headers.html">modules</a>, which provide both namespaces and
-visibility controls over definitions, enabling the Rust compiler to guarantee
-that symbol collision issues cannot happen.</p>
 <p>Additionally,</p>
 <ol>
 <li>Unlike C++ namespaces, Rust modules (which provide namespacing as well as
@@ -1715,15 +1888,20 @@ compiler.</li>
 <li>Each file <a href="https://doc.rust-lang.org/stable/book/ch07-05-separating-modules-into-different-files.html">defines a module which has to be explicitly included in the module
 hierarchy</a>.</li>
 <li>Modules from Rust crates (libraries) are always qualified with some root
-module name, so they cannot conflict. If the would conflict, <a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#renaming-dependencies-in-cargotoml">the root module
-name must be replaced with some user-chosen
+module name, so they cannot conflict. If they would conflict, <a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#renaming-dependencies-in-cargotoml">the root
+module name must be replaced with some user-chosen
 name</a>.</li>
 </ol>
-<h2 id="a-caveat-about-using-c-and-c-libraries"><a class="header" href="#a-caveat-about-using-c-and-c-libraries">A caveat about using C and C++ libraries</a></h2>
+<h2 id="caveats-about-c-interoperability"><a class="header" href="#caveats-about-c-interoperability">Caveats about C interoperability</a></h2>
 <p>When using libraries not managed by Rust, such as C or C++ static or dynamic
 libraries or when producing Rust static or dynamic libraries to be used by C or
 C++ programs, the usual problems can occur if there are symbol collisions in the
 object files.</p>
+<p>Additionally, using
+<a href="https://doc.rust-lang.org/reference/abi.html#the-no_mangle-attribute"><code>#[unsafe(no_mangle)]</code></a>
+in Rust to bypass name mangling in order to produce functions that can be easily
+referred to from C or C++ can cause undefined behavior due to name collision
+during linking.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="private-members-and-friends"><a class="header" href="#private-members-and-friends">Private members and friends</a></h1>
 <h2 id="private-members"><a class="header" href="#private-members">Private members</a></h2>
 <p>In C++ the unit of encapsulation is the class, and so visibility controls access
@@ -3883,16 +4061,19 @@ is because move semantics are the default, and the automatically derived
 implementations of the <code>Clone</code> and <code>Copy</code> traits are good enough for most
 purposes.</p>
 <p>For the following C++ classes, the implicitly defined copy and move constructors
-are sufficient.</p>
-<pre><code class="language-cpp">#include &lt;memory&gt;
-#include &lt;string&gt;
-
-struct Age {
+are sufficient. The equivalent in Rust uses a derive macro provided by the
+standard library to implement the corresponding traits.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;memory&gt;
+</span><span class="boring">#include &lt;string&gt;
+</span><span class="boring">
+</span>struct Age {
   unsigned int years;
 
   Age(unsigned int years) : years(years) {}
 
-  // copy and move constructors and destructor implicilty declared and defined
+  // copy and move constructors and destructor
+  // implicilty declared and defined
 };
 
 struct Person {
@@ -3900,14 +4081,19 @@ struct Person {
   std::string name;
   std::shared_ptr&lt;Person&gt; best_friend;
 
-  Person(Age age, std::string name, std::shared_ptr&lt;Person&gt; best_friend)
-      : age(age), name(name), best_friend(best_friend) {}
+  Person(Age age,
+         std::string name,
+         std::shared_ptr&lt;Person&gt; best_friend)
+      : age(age), name(name),
+        best_friend(best_friend) {}
 
-  // copy and move constructors and destructor implicilty declared and defined
+  // copy and move constructors and destructor
+  // implicilty declared and defined
 };
 </code></pre>
-<p>The equivalent in Rust is</p>
-<pre><code class="language-Rust">use std::rc::Rc;
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::rc::Rc;
 
 #[derive(Clone, Copy)]
 struct Age {
@@ -3920,10 +4106,13 @@ struct Person {
     name: String,
     best_friend: Rc&lt;Person&gt;,
 }
-</code></pre>
+<span class="boring">}</span></code></pre></pre>
+</div>
 <h2 id="user-defined-constructors"><a class="header" href="#user-defined-constructors">User-defined constructors</a></h2>
 <p>On the other hand, the following example require a user-defined copy and move
-constructor because it manages a resource (a pointer acquired from a C library).</p>
+constructor because it manages a resource (a pointer acquired from a C library).
+The equivalent in Rust requires a custom implementation of the <code>Clone</code> trait.</p>
+<div class="comparison">
 <pre><code class="language-cpp">#include &lt;cstdlib&gt;
 #include &lt;cstring&gt;
 
@@ -3953,21 +4142,27 @@ public:
   }
 };
 </code></pre>
-<p>The equivalent in Rust is requires a custom implementation of the <code>Clone</code> trait.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span><span class="boring">mod example {
 </span>mod widget_ffi {
-    // Models an opaque type. See https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs
+    // Models an opaque type.
+    // See https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs
     #[repr(C)]
     pub struct CWidget {
         _data: [u8; 0],
-        _marker: core::marker::PhantomData&lt;(*mut u8, core::marker::PhantomPinned)&gt;,
+        _marker: core::marker::PhantomData&lt;(
+            *mut u8,
+            core::marker::PhantomPinned,
+        )&gt;,
     }
 
     extern "C" {
         pub fn make_widget() -&gt; *mut CWidget;
-        pub fn copy_widget(dst: *mut CWidget, src: *mut CWidget);
+        pub fn copy_widget(
+            dst: *mut CWidget,
+            src: *mut CWidget,
+        );
         pub fn free_widget(ptr: *mut CWidget);
     }
 }
@@ -4003,6 +4198,7 @@ impl Drop for Widget {
 }
 <span class="boring">}
 </span><span class="boring">}</span></code></pre></pre>
+</div>
 <p>Just as with how in C++ it is uncommon to need user-defined implementations for
 copy and move constructors or user-defined implementations for destructors, in
 Rust it is rare to need to implement the <code>Clone</code> and <code>Drop</code> traits by hand for
@@ -4033,12 +4229,12 @@ does not. This is because neither <code>std::String</code> nor <code>Rc&lt;Perso
 <code>Copy</code>. They do not implement <code>Copy</code> because they own data that lives on the
 heap, and so are not trivially copyable.</p>
 <p>Rust prevents implementing <code>Copy</code> for a type if any of its fields are not
-<code>Copy</code>. but does not prevent implementing <code>Copy</code> for types that should not be
+<code>Copy</code>, but does not prevent implementing <code>Copy</code> for types that should not be
 copied bit-for-bit due to their intended meaning, which is usually indicated by
-a user-defined <code>Clone</code> implementation. Rust does not permit the implementation
-of both <code>Copy</code> and <code>Drop</code> for the same type. This aligns with the C++ standard's
-requirement that trivially copyable types not implement a user-defined
-destructor.</p>
+a user-defined <code>Clone</code> implementation.</p>
+<p>Rust does not permit the implementation of both <code>Copy</code> and <code>Drop</code> for the same
+type. This aligns with the C++ standard's requirement that trivially copyable
+types not implement a user-defined destructor.</p>
 <h2 id="move-constructors"><a class="header" href="#move-constructors">Move constructors</a></h2>
 <p>In Rust, all types support move semantics by default, and custom move semantics
 cannot be (and do not need to be) defined. This is because what "move" means in
@@ -4057,9 +4253,9 @@ implicitly copies and then moves.</p>
     let w = *y; // implicitly copies the content of the Box and then moves the copy
 }</code></pre></pre>
 <p>For situations where something like a user-defined copy assignment could avoid
-allocations, the <code>Clone</code> trait has an additional method called <code>clone_from</code>.
-The method is usually automatically defined, but can be overridden when
-implementing the <code>Clone</code> trait to provide an efficient implementation.</p>
+allocations, the <code>Clone</code> trait has an additional method called <code>clone_from</code>. The
+method is automatically defined, but can be overridden when implementing the
+<code>Clone</code> trait to provide an efficient implementation.</p>
 <p>The method is not used for normal assignments, but can be explicitly used in
 situations where the performance of the assignment is significant and would be
 improved by using the more efficient implementation, if one is defined.</p>
