@@ -35,8 +35,18 @@
   height: 22.5px;
 }
 
-.language-rust:before {
-  background-image: url('img/rust.svg'); /* aspect: 1 / 1 */
-  width: 25px;
-  height: 25px;
+html.rust, html.light {
+  .language-rust:before {
+    background-image: url('img/rust-black.svg'); /* aspect: 1 / 1 */
+    width: 25px;
+    height: 25px;
+  }
+}
+
+html.coal, html.navy, html.ayu {
+  .language-rust:before {
+    background-image: url('img/rust-white.svg'); /* aspect: 1 / 1 */
+    width: 25px;
+    height: 25px;
+  }
 }
