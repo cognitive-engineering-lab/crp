@@ -1,0 +1,49 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+For the following C++ abstract virtual class, which of the following snippets represents the most idiomatic translation into Rust?
+```cpp
+template<typename Item>
+struct Iterable {
+  Iterable() {};
+  virtual ~Iterable() {};
+  virtual Item* next() = 0;
+};
+```
+"""
+prompt.distractors = [
+"""
+```rust
+struct Iterable<Item> {}
+impl<Item> Iterable<Item> {
+  fn next(&mut self) -> Option<Item>;
+}
+```
+""",
+"""
+```rust
+struct Iterable<Item> {
+  fn next(&mut self) -> Option<Item>;
+}
+```
+""",
+"""
+```rust
+trait Iterable {
+  type Item;
+  fn new() -> Self;
+  fn drop(self);
+  fn next(&mut self) -> Option<Item>;
+}
+```
+""",
+]
+answer.answer = """
+```rust
+trait Iterable {
+  type Item;
+  fn next(&mut self) -> Option<Item>;
+}
+```
+"""
+id = "507115c6-4ed1-4a16-9f40-f5a01d3830a8"
