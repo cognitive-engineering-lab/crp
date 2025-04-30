@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Pure virtual classes, interfaces, and dynamic dispatch - Rust Phrasebook for C++ Programmers</title>
+        <title>Abstract classes, interfaces, and dynamic dispatch - Rust Phrasebook for C++ Programmers</title>
 
 
         <!-- Custom HTML head -->
@@ -157,28 +157,31 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="pure-virtual-classes-interfaces-and-dynamic-dispatch"><a class="header" href="#pure-virtual-classes-interfaces-and-dynamic-dispatch">Pure virtual classes, interfaces, and dynamic dispatch</a></h1>
-<p>Pure virtual classes are used to model interfaces when objects meeting the
-interface will be used with dynamic dispatch to resolve the invoked method.
-In Rust the interface is given by a <em>trait</em>, which is then implemented for the
-types that support that trait. Programs can then be written over <em>trait objects</em>
-that use that trait as their base type.</p>
+                        <h1 id="abstract-classes-interfaces-and-dynamic-dispatch"><a class="header" href="#abstract-classes-interfaces-and-dynamic-dispatch">Abstract classes, interfaces, and dynamic dispatch</a></h1>
+<p>In C++ when an interface will be used with dynamic dispatch to resolve invoked
+methods, the interface is defined using an abstract class. Types that implement
+the interface inherit from the abstract class. In Rust the interface is given by
+a <em>trait</em>, which is then implemented for the types that support that trait.
+Programs can then be written over <em>trait objects</em> that use that trait as their
+base type.</p>
 <p>The following example defines an interface, two implementations of that
 interface, and a function that takes an argument that satisfies the interface.
 In C++ the interface is defined with an abstract class where all of the methods
-are pure virtual methods, and in Rust the interface is defined with a trait.</p>
-<p>In both languages the function (<code>printArea</code> in C++ and <code>print_area</code> in Rust)
+are pure virtual methods, and in Rust the interface is defined with a trait. In
+both languages, the function (<code>printArea</code> in C++ and <code>print_area</code> in Rust)
 invokes a method using dynamic dispatch.</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;memory&gt;
 
+// Define an abstract class for an interface
 struct Shape {
-  Shape() {};
-  virtual ~Shape() {};
+  Shape() = default;
+  virtual ~Shape() = default;
   virtual double area() = 0;
 };
 
+// Implement the interface for a concrete class
 struct Triangle : Shape {
   double base;
   double height;
@@ -191,6 +194,7 @@ struct Triangle : Shape {
   }
 };
 
+// Implement the interface for a concrete class
 struct Rectangle : Shape {
   double width;
   double height;
@@ -203,6 +207,7 @@ struct Rectangle : Shape {
   }
 };
 
+// Use an object via a reference to the interface
 void printArea(Shape &amp;shape) {
   std::cout &lt;&lt; shape.area() &lt;&lt; std::endl;
 }
@@ -212,6 +217,8 @@ int main() {
 
   printArea(triangle);
 
+  // Use an object via an owned pointer to the
+  // interface
   std::unique_ptr&lt;Shape&gt; shape;
   if (true) {
     shape = std::make_unique&lt;Rectangle&gt;(1.0, 1.0);
@@ -220,10 +227,12 @@ int main() {
         std::move(triangle));
   }
 
+  // Convert to a reference to the interface
   printArea(*shape);
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust">trait Shape {
+<pre><pre class="playground"><code class="language-rust">// Define an interface
+trait Shape {
     fn area(&amp;self) -&gt; f64;
 }
 
@@ -232,6 +241,7 @@ struct Triangle {
     height: f64,
 }
 
+// Implement the interface for a concrete type
 impl Shape for Triangle {
     fn area(&amp;self) -&gt; f64 {
         0.5 * self.base * self.height
@@ -243,12 +253,14 @@ struct Rectangle {
     height: f64,
 }
 
+// Implement the interface for a concrete type
 impl Shape for Rectangle {
     fn area(&amp;self) -&gt; f64 {
         self.width * self.height
     }
 }
 
+// Use a value via a reference to the interface
 fn print_area(shape: &amp;dyn Shape) {
     println!("{}", shape.area());
 }
@@ -261,6 +273,8 @@ fn main() {
 
     print_area(&amp;triangle);
 
+    // Use a value via an owned pointer to the
+    // interface
     let shape: Box&lt;dyn Shape&gt; = if true {
         Box::new(Rectangle {
             width: 1.0,
@@ -270,18 +284,40 @@ fn main() {
         Box::new(triangle)
     };
 
+    // Convert to a reference to the interface
     print_area(shape.as_ref());
 }</code></pre></pre>
 </div>
-<h2 id="indirection-object-slicing-and-rust-trait-object-types"><a class="header" href="#indirection-object-slicing-and-rust-trait-object-types">Indirection, object slicing, and Rust trait object types</a></h2>
-<p>In C++, using an object via an abstract base class is done by accessing the
-object via a pointer or a reference, supported by a vtable.</p>
-<p>Rust also requires the indirection. The type <code>dyn Shape</code> in the above example is
-the type of a trait object for the <code>Shape</code> trait. A trait object includes a
-vtable along with the underlying value.</p>
-<p>The indirection is enforced by the type <code>dyn Shape</code> not implementing the <code>Sized</code>
-marker trait, preventing it from being used in contexts that require knowing the
-size of a type statically.</p>
+<p>Rust does not have an equivalent for the virtual destructor declaration because
+in Rust every vtable includes the drop behavior (whether given by a user defined
+<code>Drop</code> implementation or not) required for the value.</p>
+<h2 id="vtables-and-rust-trait-object-types"><a class="header" href="#vtables-and-rust-trait-object-types">Vtables and Rust trait object types</a></h2>
+<p>In C++ dynamic dispatch against an interface defined by an abstract base class
+is achieved by accessing the object through a pointer or reference. To make this
+possible, objects include a vtable.</p>
+<p>Rust requires the same kind of indirection. The type <code>dyn Shape</code> in the above
+example is the type of a trait object for the <code>Shape</code> trait. A trait object
+includes a vtable along with the underlying value.</p>
+<p>In C++ all objects whose class inheriting from a class with a virtual method
+have a vtable in their representation, whether dynamic dispatch is used or not.
+Pointers or references to objects are the same size as pointers to objects
+without virtual methods, but every object includes its vtable.</p>
+<p>In Rust, vtables are present only when values are represented as trait objects.
+The reference to the trait object is twice the size as a normal reference since
+it includes both the pointer to the value and the pointer to the vtable. In the
+Rust example above, the local variable <code>triangle</code> in <code>main</code> does not have a
+vtable in its representation, but when the reference to it is converted to a
+reference to a trait object (so that it can be passed to <code>print_area</code>), that
+does include a pointer to the vtable.</p>
+<p>Additionally, just as abstract classes in C++ cannot be used as the type of a
+local variable, the type of a parameter of a function, or the type of a return
+value of a function, trait object types in Rust cannot be used in corresponding
+contexts. In Rust, this is enforced by the type <code>dyn Shape</code> not implementing the
+<code>Sized</code> marker trait, preventing it from being used in contexts that require
+knowing the size of a type statically.</p>
+<p>The following example shows some places where a trait object type can and cannot
+be used due to not implementing <code>Sized</code>. The uses forbidden in Rust would also
+be forbidden in C++ because <code>Shape</code> is an abstract class.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">trait Shape {
 </span><span class="boring">    fn area(&amp;self) -&gt; f64;
 </span><span class="boring">}
@@ -320,12 +356,14 @@ size of a type statically.</p>
 // Parameter types must have a known size.
 // fn print_area(shape: dyn Shape) { }
 fn print_area(shape: &amp;dyn Shape) {}</code></pre></pre>
-<p>The forbidden uses correspond to situations in which object slicing would occur
-in C++.</p>
+<p>The decision to include the vtable in the reference instead of in the value is
+one part of what makes it reasonable to use traits both for polymorphism via
+dynamic dispatch and for <a href="/idioms/data_modeling/concepts.html">polymorphism via static dispatch, where one would use
+concepts in C++</a>.</p>
 <h2 id="limitations-of-trait-objects-in-rust"><a class="header" href="#limitations-of-trait-objects-in-rust">Limitations of trait objects in Rust</a></h2>
-<p>In Rust, not all traits can be used as the base trait for trait objects. The most
-commonly encountered restriction is that traits that require knowledge of the
-object's size via a <code>Sized</code> supertrait are not <code>dyn</code>-compatible. There are
+<p>In Rust, not all traits can be used as the base trait for trait objects. The
+most commonly encountered restriction is that traits that require knowledge of
+the object's size via a <code>Sized</code> supertrait are not <code>dyn</code>-compatible. There are
 <a href="https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility">additional
 restrictions</a>.</p>
 <h2 id="trait-objects-and-lifetimes"><a class="header" href="#trait-objects-and-lifetimes">Trait objects and lifetimes</a></h2>
@@ -335,7 +373,8 @@ manually by the programmer.</p>
 <p>Rust checks the bounds on the lifetimes of references that the trait objects may
 contain. If the bounds are not given explicitly, they are determined according
 to the <a href="https://doc.rust-lang.org/reference/lifetime-elision.html#r-lifetime-elision.trait-object">lifetime elision
-rules</a>.</p>
+rules</a>.
+The bound is part of the type of the trait object.</p>
 <p>Usually the elision rules pick the correct lifetime bound. Sometimes, the rules
 result in surprising error messages from the compiler. In those situations or
 when the compiler cannot determine which lifetime bound to assign, the bound may

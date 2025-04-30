@@ -161,41 +161,41 @@
 <p>In C++ static dispatch over an interface is achieved by implementing a template
 function or template method that interacts with the type using some expected
 interface.</p>
-<p>The template function <code>twice_area</code> in the example below makes use of an <code>area()</code>
+<p>The template function <code>twiceArea</code> in the example below makes use of an <code>area()</code>
 method on the template type parameter.</p>
+<p>To achieve the same goal in Rust involves defining a trait (<code>Shape</code>) with the
+desired method (<code>twice_area</code>) and using the trait as a bound on the type
+parameter for the generic function.</p>
+<div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 
 struct Triangle {
   double base;
   double height;
 
-  Triangle(double base, double height) : base(base), height(height) {}
+  Triangle(double base, double height)
+      : base(base), height(height) {}
 
   double area() {
     return 0.5 * base * height;
   }
 };
 
+// Generic function using interface
 template &lt;class T&gt;
-double twice_area(T shape) {
+double twiceArea(T shape) {
   return shape.area() * 2;
 }
 
 int main() {
   Triangle triangle{1.0, 1.0};
 
-  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
+  std::cout &lt;&lt; twiceArea(triangle) &lt;&lt; std::endl;
   return 0;
 }
 </code></pre>
-<p>To achieve the same goal in Rust involves defining a trait with the desired
-method and using the trait as a bound on the type parameter for the generic
-function.</p>
-<p>Note that in the following Rust example, the definition of the trait and the
-struct have not changed from the example in the chapter on <a href="/idioms/data_modeling/pure_virtual_classes.html">virtual methods and
-dynamic dispatch</a>. Even so, this
-example does use static dispatch.</p>
-<pre><pre class="playground"><code class="language-rust">trait Shape {
+<pre><pre class="playground"><code class="language-rust">// Interface that generic function will use
+trait Shape {
     fn area(&amp;self) -&gt; f64;
 }
 
@@ -204,12 +204,14 @@ struct Triangle {
     height: f64,
 }
 
+// Implementation of interface for type
 impl Shape for Triangle {
     fn area(&amp;self) -&gt; f64 {
         0.5 * self.base * self.height
     }
 }
 
+// Generic function using interface
 fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
     2.0 * shape.area()
 }
@@ -222,6 +224,11 @@ fn main() {
 
     println!("{}", twice_area(triangle));
 }</code></pre></pre>
+</div>
+<p>Note that in the Rust example, the definition of the trait and the struct have
+not changed from the example in the chapter on <a href="/idioms/data_modeling/pure_virtual_classes.html">virtual methods and dynamic
+dispatch</a>. Even so, this example
+does use static dispatch.</p>
 <p>The difference between Rust and C++ in the above examples arises from Rust being
 nominally typed (types must opt in to supporting a specific interface, merely
 having the right methods isn't enough) and C++'s template meta-programming
@@ -259,7 +266,7 @@ concept shape = requires(T t) {
 };
 
 template &lt;shape T&gt;
-double twice_area(T shape) {
+double twiceArea(T shape) {
   return shape.area() * 2;
 }
 </code></pre>
@@ -288,14 +295,14 @@ struct Triangle : Shape {
 };
 
 template &lt;shape T&gt;
-double twice_area(T shape) {
+double twiceArea(T shape) {
   return shape.area() * 2;
 }
 
 int main() {
   Triangle triangle{1.0, 1.0};
 
-  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
+  std::cout &lt;&lt; twiceArea(triangle) &lt;&lt; std::endl;
   return 0;
 }
 </code></pre>
@@ -315,7 +322,7 @@ template &lt;typename T&gt;
 concept shape = std::derived_from&lt;T, Shape&gt;;
 
 template &lt;shape T&gt;
-double twice_area(T shape) {
+double twiceArea(T shape) {
   // note the call to a method not defined in Shape
   return shape.volume() * 2;
 }
@@ -359,7 +366,7 @@ those type parameters must implement many traits.</p>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../idioms/data_modeling/pure_virtual_classes.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../idioms/data_modeling/abstract_classes.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -373,7 +380,7 @@ those type parameters must implement many traits.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../idioms/data_modeling/pure_virtual_classes.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../idioms/data_modeling/abstract_classes.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

@@ -164,6 +164,10 @@ of the declarations in multiple files. By convention, declarations that are not
 included in the header are considered to be private to the defining translation
 unit (though, to enforce this convention other mechanisms, such as <a href="/idioms/encapsulation/anonymous_namespaces.html">anonymous
 namespaces</a>, are required).</p>
+<p>In contrast, Rust uses neither textually-included header files nor forward
+declarations. Instead, Rust modules control visibility and linkage
+simultaneously and expose public definitions for use by other modules.</p>
+<div class="comparison">
 <pre><code class="language-cpp">// person.h
 class Person {
   std::string name;
@@ -174,24 +178,24 @@ public:
 };
 
 // person.cc
-std::string &amp;Person::getName() {
-  return this.name;
+#include &lt;string&gt;
+#include "person.h"
+
+const std::string &amp;Person::getName() {
+  return this-&gt;name;
 }
 
 // client.cc
+#include &lt;string&gt;
 #include "person.h"
 
 int main() {
-  Person p("Alice".to_string());
-  std::string &amp;name = p.getName();
+  Person p("Alice");
+  const std::string &amp;name = p.getName();
 
   // ...
 }
 </code></pre>
-<p>Rust uses neither textually-included header files nor forward declarations.
-Instead, Rust modules control visibility and linkage simultaneously and expose
-public definitions for use by other modules. Using Rust modules, something like
-the above definitions becomes</p>
 <pre><code class="language-rust ignore">// person.rs
 pub struct Person {
     name: String,
@@ -213,13 +217,14 @@ mod person;
 use person::*;
 
 fn main() {
-    let p = Person::new("Alice");
+    let p = Person::new("Alice".to_string());
     // doesn't compile, private field
     // let name = p.name;
     let name = p.name();
 
     //...
 }</code></pre>
+</div>
 <p>In <code>person.rs</code>, the <code>Person</code> type is public but the <code>name</code> field is not. This
 prevents both direct construction of values of the type (similar to private
 members preventing aggregate initialization in C++) and prevents field access.

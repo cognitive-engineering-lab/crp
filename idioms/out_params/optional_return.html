@@ -168,6 +168,9 @@ values</a>:</p>
 <li>working in a codebase that uses C-style of C++, and</li>
 <li>performance concerns.</li>
 </ul>
+<p>The idiomatic Rust approach for optionally returning a value is to return a
+value of type <a href="https://doc.rust-lang.org/std/option/index.html"><code>Option</code></a>.</p>
+<div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 
 bool safe_divide(unsigned int dividend,
@@ -181,7 +184,8 @@ bool safe_divide(unsigned int dividend,
   }
 }
 
-void go(unsigned int dividend, unsigned int divisor) {
+void go(unsigned int dividend,
+        unsigned int divisor) {
   unsigned int quotient;
   if (safe_divide(dividend, divisor, quotient)) {
     std::cout &lt;&lt; quotient &lt;&lt; std::endl;
@@ -195,9 +199,10 @@ int main() {
   go(10, 0);
 }
 </code></pre>
-<p>The idiomatic Rust approach for optionally returning a value is to return a
-value of type <a href="https://doc.rust-lang.org/std/option/index.html"><code>Option</code></a>.</p>
-<pre><pre class="playground"><code class="language-rust">fn safe_divide(dividend: u32, divisor: u32) -&gt; Option&lt;u32&gt; {
+<pre><pre class="playground"><code class="language-rust">fn safe_divide(
+    dividend: u32,
+    divisor: u32,
+) -&gt; Option&lt;u32&gt; {
     if divisor != 0 {
         Some(dividend / divisor)
     } else {
@@ -220,6 +225,7 @@ fn main() {
     go(10, 2);
     go(10, 0);
 }</code></pre></pre>
+</div>
 <p>When there is useful information to provide in the failing case, the <a href="https://doc.rust-lang.org/std/result/"><code>Result</code>
 type</a> can be used instead. The <a href="/idioms/exceptions.html">chapter
 on error handling</a> describes the use of <code>Result</code>.</p>

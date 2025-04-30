@@ -198,6 +198,9 @@ impl Default for Person {
 <p>In C++ if a member is not explicitly initialized by a constructor, then it is
 default-initialized. When the type of the member is a class, the
 default-initialization invokes the default constructor.</p>
+<p>In Rust, if all of the fields of a struct implement the <code>Default</code> trait, then an
+implementation for the structure can be provided by the compiler.</p>
+<div class="comparison">
 <pre><code class="language-cpp">class Person {
   int age;
 
@@ -209,8 +212,6 @@ class Student {
   Person person;
 }
 </code></pre>
-<p>In Rust, if all of the fields of a struct implement the <code>Default</code> trait, then an
-implementation for the structure can be provided by the compiler.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[derive(Default)]
@@ -223,7 +224,8 @@ struct Student {
     person: Person,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>This is equivalent to writing</p>
+</div>
+<p>The use of the derive macros in Rust is equivalent to writing the following.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Person {
@@ -285,6 +287,8 @@ impl Student {
 <h2 id="implicit-initialization-of-array-values"><a class="header" href="#implicit-initialization-of-array-values">Implicit initialization of array values</a></h2>
 <p>In C++, arrays without explicit initialization are default-initialized using the
 default constructors.</p>
+<p>In Rust, the value with which to initialize the array must be provided.</p>
+<div class="comparison">
 <pre><code class="language-cpp">class Person {
   int age;
 
@@ -297,7 +301,6 @@ int main() {
   // ...
 }
 </code></pre>
-<p>n Rust, the value with which to initialize the array must be provided.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
 struct Person {
     age: i32,
@@ -308,6 +311,7 @@ fn main() {
     let people: [Person; 3] = std::array::from_fn(|_| Default::default());
     // ...
 }</code></pre></pre>
+</div>
 <p>If the type happens to be <a href="/idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">trivially
 copyable</a>,
 then a shorthand can be used.</p>
@@ -325,6 +329,10 @@ fn main() {
 types, such as <code>std::vector</code>. Before C++11 one value would be default
 constructed, and the elements would be copy constructed from that initial
 element. Since C++11, all elements are default constructed.</p>
+<p>As with array initialization, the values must be explicitly specified in Rust.
+The vector can be constructed from an array, enabling the same syntax as with
+arrays.</p>
+<div class="comparison">
 <pre><code class="language-cpp">#include &lt;vector&gt;
 
 class Person {
@@ -339,9 +347,6 @@ int main() {
   // ...
 }
 </code></pre>
-<p>As with array initialization, the values must be explicitly specified in Rust.
-The vector can be constructed from an array, enabling the same syntax as with
-arrays.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
 struct Person {
     age: i32,
@@ -352,6 +357,7 @@ fn main() {
     let people: Vec&lt;Person&gt; = Vec::from(people_arr);
     // ...
 }</code></pre></pre>
+</div>
 <p>If the type implements the <code>Clone</code> trait, then the array can be constructed
 using the <code>vec!</code> macro. See the chapter on <a href="copy_constructors.html">copy
 constructors</a> for more details on <code>Clone</code>.</p>
@@ -367,6 +373,8 @@ fn main() {
 <h2 id="implicit-initialization-of-local-variables"><a class="header" href="#implicit-initialization-of-local-variables">Implicit initialization of local variables</a></h2>
 <p>In C++, the default constructor is used to perform default-initialization of
 local variables that are not explicitly initialized.</p>
+<p>In Rust, initialization of local variables is always explicit.</p>
+<div class="comparison">
 <pre><code class="language-cpp">class Person {
   int age;
 
@@ -379,7 +387,6 @@ int main() {
   // ...
 }
 </code></pre>
-<p>In Rust, initialization of local variables is always explicit.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
 struct Person {
     age: i32,
@@ -389,6 +396,7 @@ fn main() {
     let person = Person::default();
     // ...
 }</code></pre></pre>
+</div>
 <h2 id="implicit-initialization-of-the-base-class-object"><a class="header" href="#implicit-initialization-of-the-base-class-object">Implicit initialization of the base class object</a></h2>
 <p>In C++, the default constructor is used to initialize the base class object if
 it no other constructor is specified.</p>

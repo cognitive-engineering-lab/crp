@@ -632,28 +632,31 @@ error: aborting due to 1 previous error
 
 For more information about this error, try `rustc --explain E0004`.
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="pure-virtual-classes-interfaces-and-dynamic-dispatch"><a class="header" href="#pure-virtual-classes-interfaces-and-dynamic-dispatch">Pure virtual classes, interfaces, and dynamic dispatch</a></h1>
-<p>Pure virtual classes are used to model interfaces when objects meeting the
-interface will be used with dynamic dispatch to resolve the invoked method.
-In Rust the interface is given by a <em>trait</em>, which is then implemented for the
-types that support that trait. Programs can then be written over <em>trait objects</em>
-that use that trait as their base type.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="abstract-classes-interfaces-and-dynamic-dispatch"><a class="header" href="#abstract-classes-interfaces-and-dynamic-dispatch">Abstract classes, interfaces, and dynamic dispatch</a></h1>
+<p>In C++ when an interface will be used with dynamic dispatch to resolve invoked
+methods, the interface is defined using an abstract class. Types that implement
+the interface inherit from the abstract class. In Rust the interface is given by
+a <em>trait</em>, which is then implemented for the types that support that trait.
+Programs can then be written over <em>trait objects</em> that use that trait as their
+base type.</p>
 <p>The following example defines an interface, two implementations of that
 interface, and a function that takes an argument that satisfies the interface.
 In C++ the interface is defined with an abstract class where all of the methods
-are pure virtual methods, and in Rust the interface is defined with a trait.</p>
-<p>In both languages the function (<code>printArea</code> in C++ and <code>print_area</code> in Rust)
+are pure virtual methods, and in Rust the interface is defined with a trait. In
+both languages, the function (<code>printArea</code> in C++ and <code>print_area</code> in Rust)
 invokes a method using dynamic dispatch.</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;memory&gt;
 
+// Define an abstract class for an interface
 struct Shape {
-  Shape() {};
-  virtual ~Shape() {};
+  Shape() = default;
+  virtual ~Shape() = default;
   virtual double area() = 0;
 };
 
+// Implement the interface for a concrete class
 struct Triangle : Shape {
   double base;
   double height;
@@ -666,6 +669,7 @@ struct Triangle : Shape {
   }
 };
 
+// Implement the interface for a concrete class
 struct Rectangle : Shape {
   double width;
   double height;
@@ -678,6 +682,7 @@ struct Rectangle : Shape {
   }
 };
 
+// Use an object via a reference to the interface
 void printArea(Shape &amp;shape) {
   std::cout &lt;&lt; shape.area() &lt;&lt; std::endl;
 }
@@ -687,6 +692,8 @@ int main() {
 
   printArea(triangle);
 
+  // Use an object via an owned pointer to the
+  // interface
   std::unique_ptr&lt;Shape&gt; shape;
   if (true) {
     shape = std::make_unique&lt;Rectangle&gt;(1.0, 1.0);
@@ -695,10 +702,12 @@ int main() {
         std::move(triangle));
   }
 
+  // Convert to a reference to the interface
   printArea(*shape);
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust">trait Shape {
+<pre><pre class="playground"><code class="language-rust">// Define an interface
+trait Shape {
     fn area(&amp;self) -&gt; f64;
 }
 
@@ -707,6 +716,7 @@ struct Triangle {
     height: f64,
 }
 
+// Implement the interface for a concrete type
 impl Shape for Triangle {
     fn area(&amp;self) -&gt; f64 {
         0.5 * self.base * self.height
@@ -718,12 +728,14 @@ struct Rectangle {
     height: f64,
 }
 
+// Implement the interface for a concrete type
 impl Shape for Rectangle {
     fn area(&amp;self) -&gt; f64 {
         self.width * self.height
     }
 }
 
+// Use a value via a reference to the interface
 fn print_area(shape: &amp;dyn Shape) {
     println!("{}", shape.area());
 }
@@ -736,6 +748,8 @@ fn main() {
 
     print_area(&amp;triangle);
 
+    // Use a value via an owned pointer to the
+    // interface
     let shape: Box&lt;dyn Shape&gt; = if true {
         Box::new(Rectangle {
             width: 1.0,
@@ -745,18 +759,40 @@ fn main() {
         Box::new(triangle)
     };
 
+    // Convert to a reference to the interface
     print_area(shape.as_ref());
 }</code></pre></pre>
 </div>
-<h2 id="indirection-object-slicing-and-rust-trait-object-types"><a class="header" href="#indirection-object-slicing-and-rust-trait-object-types">Indirection, object slicing, and Rust trait object types</a></h2>
-<p>In C++, using an object via an abstract base class is done by accessing the
-object via a pointer or a reference, supported by a vtable.</p>
-<p>Rust also requires the indirection. The type <code>dyn Shape</code> in the above example is
-the type of a trait object for the <code>Shape</code> trait. A trait object includes a
-vtable along with the underlying value.</p>
-<p>The indirection is enforced by the type <code>dyn Shape</code> not implementing the <code>Sized</code>
-marker trait, preventing it from being used in contexts that require knowing the
-size of a type statically.</p>
+<p>Rust does not have an equivalent for the virtual destructor declaration because
+in Rust every vtable includes the drop behavior (whether given by a user defined
+<code>Drop</code> implementation or not) required for the value.</p>
+<h2 id="vtables-and-rust-trait-object-types"><a class="header" href="#vtables-and-rust-trait-object-types">Vtables and Rust trait object types</a></h2>
+<p>In C++ dynamic dispatch against an interface defined by an abstract base class
+is achieved by accessing the object through a pointer or reference. To make this
+possible, objects include a vtable.</p>
+<p>Rust requires the same kind of indirection. The type <code>dyn Shape</code> in the above
+example is the type of a trait object for the <code>Shape</code> trait. A trait object
+includes a vtable along with the underlying value.</p>
+<p>In C++ all objects whose class inheriting from a class with a virtual method
+have a vtable in their representation, whether dynamic dispatch is used or not.
+Pointers or references to objects are the same size as pointers to objects
+without virtual methods, but every object includes its vtable.</p>
+<p>In Rust, vtables are present only when values are represented as trait objects.
+The reference to the trait object is twice the size as a normal reference since
+it includes both the pointer to the value and the pointer to the vtable. In the
+Rust example above, the local variable <code>triangle</code> in <code>main</code> does not have a
+vtable in its representation, but when the reference to it is converted to a
+reference to a trait object (so that it can be passed to <code>print_area</code>), that
+does include a pointer to the vtable.</p>
+<p>Additionally, just as abstract classes in C++ cannot be used as the type of a
+local variable, the type of a parameter of a function, or the type of a return
+value of a function, trait object types in Rust cannot be used in corresponding
+contexts. In Rust, this is enforced by the type <code>dyn Shape</code> not implementing the
+<code>Sized</code> marker trait, preventing it from being used in contexts that require
+knowing the size of a type statically.</p>
+<p>The following example shows some places where a trait object type can and cannot
+be used due to not implementing <code>Sized</code>. The uses forbidden in Rust would also
+be forbidden in C++ because <code>Shape</code> is an abstract class.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">trait Shape {
 </span><span class="boring">    fn area(&amp;self) -&gt; f64;
 </span><span class="boring">}
@@ -795,12 +831,14 @@ size of a type statically.</p>
 // Parameter types must have a known size.
 // fn print_area(shape: dyn Shape) { }
 fn print_area(shape: &amp;dyn Shape) {}</code></pre></pre>
-<p>The forbidden uses correspond to situations in which object slicing would occur
-in C++.</p>
+<p>The decision to include the vtable in the reference instead of in the value is
+one part of what makes it reasonable to use traits both for polymorphism via
+dynamic dispatch and for <a href="idioms/data_modeling//idioms/data_modeling/concepts.html">polymorphism via static dispatch, where one would use
+concepts in C++</a>.</p>
 <h2 id="limitations-of-trait-objects-in-rust"><a class="header" href="#limitations-of-trait-objects-in-rust">Limitations of trait objects in Rust</a></h2>
-<p>In Rust, not all traits can be used as the base trait for trait objects. The most
-commonly encountered restriction is that traits that require knowledge of the
-object's size via a <code>Sized</code> supertrait are not <code>dyn</code>-compatible. There are
+<p>In Rust, not all traits can be used as the base trait for trait objects. The
+most commonly encountered restriction is that traits that require knowledge of
+the object's size via a <code>Sized</code> supertrait are not <code>dyn</code>-compatible. There are
 <a href="https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility">additional
 restrictions</a>.</p>
 <h2 id="trait-objects-and-lifetimes"><a class="header" href="#trait-objects-and-lifetimes">Trait objects and lifetimes</a></h2>
@@ -810,7 +848,8 @@ manually by the programmer.</p>
 <p>Rust checks the bounds on the lifetimes of references that the trait objects may
 contain. If the bounds are not given explicitly, they are determined according
 to the <a href="https://doc.rust-lang.org/reference/lifetime-elision.html#r-lifetime-elision.trait-object">lifetime elision
-rules</a>.</p>
+rules</a>.
+The bound is part of the type of the trait object.</p>
 <p>Usually the elision rules pick the correct lifetime bound. Sometimes, the rules
 result in surprising error messages from the compiler. In those situations or
 when the compiler cannot determine which lifetime bound to assign, the bound may
@@ -871,41 +910,41 @@ fn main() {
 <p>In C++ static dispatch over an interface is achieved by implementing a template
 function or template method that interacts with the type using some expected
 interface.</p>
-<p>The template function <code>twice_area</code> in the example below makes use of an <code>area()</code>
+<p>The template function <code>twiceArea</code> in the example below makes use of an <code>area()</code>
 method on the template type parameter.</p>
+<p>To achieve the same goal in Rust involves defining a trait (<code>Shape</code>) with the
+desired method (<code>twice_area</code>) and using the trait as a bound on the type
+parameter for the generic function.</p>
+<div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 
 struct Triangle {
   double base;
   double height;
 
-  Triangle(double base, double height) : base(base), height(height) {}
+  Triangle(double base, double height)
+      : base(base), height(height) {}
 
   double area() {
     return 0.5 * base * height;
   }
 };
 
+// Generic function using interface
 template &lt;class T&gt;
-double twice_area(T shape) {
+double twiceArea(T shape) {
   return shape.area() * 2;
 }
 
 int main() {
   Triangle triangle{1.0, 1.0};
 
-  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
+  std::cout &lt;&lt; twiceArea(triangle) &lt;&lt; std::endl;
   return 0;
 }
 </code></pre>
-<p>To achieve the same goal in Rust involves defining a trait with the desired
-method and using the trait as a bound on the type parameter for the generic
-function.</p>
-<p>Note that in the following Rust example, the definition of the trait and the
-struct have not changed from the example in the chapter on <a href="idioms/data_modeling//idioms/data_modeling/pure_virtual_classes.html">virtual methods and
-dynamic dispatch</a>. Even so, this
-example does use static dispatch.</p>
-<pre><pre class="playground"><code class="language-rust">trait Shape {
+<pre><pre class="playground"><code class="language-rust">// Interface that generic function will use
+trait Shape {
     fn area(&amp;self) -&gt; f64;
 }
 
@@ -914,12 +953,14 @@ struct Triangle {
     height: f64,
 }
 
+// Implementation of interface for type
 impl Shape for Triangle {
     fn area(&amp;self) -&gt; f64 {
         0.5 * self.base * self.height
     }
 }
 
+// Generic function using interface
 fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
     2.0 * shape.area()
 }
@@ -932,6 +973,11 @@ fn main() {
 
     println!("{}", twice_area(triangle));
 }</code></pre></pre>
+</div>
+<p>Note that in the Rust example, the definition of the trait and the struct have
+not changed from the example in the chapter on <a href="idioms/data_modeling//idioms/data_modeling/pure_virtual_classes.html">virtual methods and dynamic
+dispatch</a>. Even so, this example
+does use static dispatch.</p>
 <p>The difference between Rust and C++ in the above examples arises from Rust being
 nominally typed (types must opt in to supporting a specific interface, merely
 having the right methods isn't enough) and C++'s template meta-programming
@@ -969,7 +1015,7 @@ concept shape = requires(T t) {
 };
 
 template &lt;shape T&gt;
-double twice_area(T shape) {
+double twiceArea(T shape) {
   return shape.area() * 2;
 }
 </code></pre>
@@ -998,14 +1044,14 @@ struct Triangle : Shape {
 };
 
 template &lt;shape T&gt;
-double twice_area(T shape) {
+double twiceArea(T shape) {
   return shape.area() * 2;
 }
 
 int main() {
   Triangle triangle{1.0, 1.0};
 
-  std::cout &lt;&lt; twice_area(triangle) &lt;&lt; std::endl;
+  std::cout &lt;&lt; twiceArea(triangle) &lt;&lt; std::endl;
   return 0;
 }
 </code></pre>
@@ -1025,7 +1071,7 @@ template &lt;typename T&gt;
 concept shape = std::derived_from&lt;T, Shape&gt;;
 
 template &lt;shape T&gt;
-double twice_area(T shape) {
+double twiceArea(T shape) {
   // note the call to a method not defined in Shape
   return shape.volume() * 2;
 }
@@ -1755,6 +1801,10 @@ of the declarations in multiple files. By convention, declarations that are not
 included in the header are considered to be private to the defining translation
 unit (though, to enforce this convention other mechanisms, such as <a href="idioms/encapsulation//idioms/encapsulation/anonymous_namespaces.html">anonymous
 namespaces</a>, are required).</p>
+<p>In contrast, Rust uses neither textually-included header files nor forward
+declarations. Instead, Rust modules control visibility and linkage
+simultaneously and expose public definitions for use by other modules.</p>
+<div class="comparison">
 <pre><code class="language-cpp">// person.h
 class Person {
   std::string name;
@@ -1765,24 +1815,24 @@ public:
 };
 
 // person.cc
-std::string &amp;Person::getName() {
-  return this.name;
+#include &lt;string&gt;
+#include "person.h"
+
+const std::string &amp;Person::getName() {
+  return this-&gt;name;
 }
 
 // client.cc
+#include &lt;string&gt;
 #include "person.h"
 
 int main() {
-  Person p("Alice".to_string());
-  std::string &amp;name = p.getName();
+  Person p("Alice");
+  const std::string &amp;name = p.getName();
 
   // ...
 }
 </code></pre>
-<p>Rust uses neither textually-included header files nor forward declarations.
-Instead, Rust modules control visibility and linkage simultaneously and expose
-public definitions for use by other modules. Using Rust modules, something like
-the above definitions becomes</p>
 <pre><code class="language-rust ignore">// person.rs
 pub struct Person {
     name: String,
@@ -1804,13 +1854,14 @@ mod person;
 use person::*;
 
 fn main() {
-    let p = Person::new("Alice");
+    let p = Person::new("Alice".to_string());
     // doesn't compile, private field
     // let name = p.name;
     let name = p.name();
 
     //...
 }</code></pre>
+</div>
 <p>In <code>person.rs</code>, the <code>Person</code> type is public but the <code>name</code> field is not. This
 prevents both direct construction of values of the type (similar to private
 members preventing aggregate initialization in C++) and prevents field access.
@@ -3807,6 +3858,9 @@ impl Default for Person {
 <p>In C++ if a member is not explicitly initialized by a constructor, then it is
 default-initialized. When the type of the member is a class, the
 default-initialization invokes the default constructor.</p>
+<p>In Rust, if all of the fields of a struct implement the <code>Default</code> trait, then an
+implementation for the structure can be provided by the compiler.</p>
+<div class="comparison">
 <pre><code class="language-cpp">class Person {
   int age;
 
@@ -3818,8 +3872,6 @@ class Student {
   Person person;
 }
 </code></pre>
-<p>In Rust, if all of the fields of a struct implement the <code>Default</code> trait, then an
-implementation for the structure can be provided by the compiler.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[derive(Default)]
@@ -3832,7 +3884,8 @@ struct Student {
     person: Person,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>This is equivalent to writing</p>
+</div>
+<p>The use of the derive macros in Rust is equivalent to writing the following.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Person {
@@ -3894,6 +3947,8 @@ impl Student {
 <h2 id="implicit-initialization-of-array-values"><a class="header" href="#implicit-initialization-of-array-values">Implicit initialization of array values</a></h2>
 <p>In C++, arrays without explicit initialization are default-initialized using the
 default constructors.</p>
+<p>In Rust, the value with which to initialize the array must be provided.</p>
+<div class="comparison">
 <pre><code class="language-cpp">class Person {
   int age;
 
@@ -3906,7 +3961,6 @@ int main() {
   // ...
 }
 </code></pre>
-<p>n Rust, the value with which to initialize the array must be provided.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
 struct Person {
     age: i32,
@@ -3917,6 +3971,7 @@ fn main() {
     let people: [Person; 3] = std::array::from_fn(|_| Default::default());
     // ...
 }</code></pre></pre>
+</div>
 <p>If the type happens to be <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">trivially
 copyable</a>,
 then a shorthand can be used.</p>
@@ -3934,6 +3989,10 @@ fn main() {
 types, such as <code>std::vector</code>. Before C++11 one value would be default
 constructed, and the elements would be copy constructed from that initial
 element. Since C++11, all elements are default constructed.</p>
+<p>As with array initialization, the values must be explicitly specified in Rust.
+The vector can be constructed from an array, enabling the same syntax as with
+arrays.</p>
+<div class="comparison">
 <pre><code class="language-cpp">#include &lt;vector&gt;
 
 class Person {
@@ -3948,9 +4007,6 @@ int main() {
   // ...
 }
 </code></pre>
-<p>As with array initialization, the values must be explicitly specified in Rust.
-The vector can be constructed from an array, enabling the same syntax as with
-arrays.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
 struct Person {
     age: i32,
@@ -3961,6 +4017,7 @@ fn main() {
     let people: Vec&lt;Person&gt; = Vec::from(people_arr);
     // ...
 }</code></pre></pre>
+</div>
 <p>If the type implements the <code>Clone</code> trait, then the array can be constructed
 using the <code>vec!</code> macro. See the chapter on <a href="idioms/constructors/copy_constructors.html">copy
 constructors</a> for more details on <code>Clone</code>.</p>
@@ -3976,6 +4033,8 @@ fn main() {
 <h2 id="implicit-initialization-of-local-variables"><a class="header" href="#implicit-initialization-of-local-variables">Implicit initialization of local variables</a></h2>
 <p>In C++, the default constructor is used to perform default-initialization of
 local variables that are not explicitly initialized.</p>
+<p>In Rust, initialization of local variables is always explicit.</p>
+<div class="comparison">
 <pre><code class="language-cpp">class Person {
   int age;
 
@@ -3988,7 +4047,6 @@ int main() {
   // ...
 }
 </code></pre>
-<p>In Rust, initialization of local variables is always explicit.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
 struct Person {
     age: i32,
@@ -3998,6 +4056,7 @@ fn main() {
     let person = Person::default();
     // ...
 }</code></pre></pre>
+</div>
 <h2 id="implicit-initialization-of-the-base-class-object"><a class="header" href="#implicit-initialization-of-the-base-class-object">Implicit initialization of the base class object</a></h2>
 <p>In C++, the default constructor is used to initialize the base class object if
 it no other constructor is specified.</p>
@@ -4552,6 +4611,16 @@ standards.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="multiple-return-values"><a class="header" href="#multiple-return-values">Multiple return values</a></h1>
 <p>One idiom for returning multiple values from a function or method in C++ is to
 pass in references to which the values can be assigned.</p>
+<p>There are several reasons why this idiom might be used:</p>
+<ul>
+<li>compatibility with versions of C++ earlier than C++11,</li>
+<li>working in a codebase that uses C-style of C++, or</li>
+<li>performance concerns.</li>
+</ul>
+<p>The idiomatic translation of this program into Rust makes use of either
+<a href="https://doc.rust-lang.org/std/primitive.tuple.html">tuples</a> or a named
+structure for the return type.</p>
+<div class="comparison">
 <pre><code class="language-cpp">void get_point(int &amp;x, int &amp;y) {
   x = 5;
   y = 6;
@@ -4563,15 +4632,6 @@ int main() {
   // ...
 }
 </code></pre>
-<p>There are several reasons why this idiom might be used:</p>
-<ul>
-<li>compatibility with versions of C++ earlier than C++11,</li>
-<li>working in a codebase that uses C-style of C++, or</li>
-<li>performance concerns.</li>
-</ul>
-<p>The idiomatic translation of this program into Rust makes use of either
-<a href="https://doc.rust-lang.org/std/primitive.tuple.html">tuples</a> or a named
-structure for the return type.</p>
 <pre><pre class="playground"><code class="language-rust">fn get_point() -&gt; (i32, i32) {
     (5, 6)
 }
@@ -4580,6 +4640,7 @@ fn main() {
     let (x, y) = get_point();
     // ...
 }</code></pre></pre>
+</div>
 <p>Rust has a dedicated tuple syntax and supports pattern matching with <code>let</code>
 bindings in part to support use cases like this one.</p>
 <h2 id="problems-with-the-direct-transliteration"><a class="header" href="#problems-with-the-direct-transliteration">Problems with the direct transliteration</a></h2>
@@ -4636,6 +4697,9 @@ values</a>:</p>
 <li>working in a codebase that uses C-style of C++, and</li>
 <li>performance concerns.</li>
 </ul>
+<p>The idiomatic Rust approach for optionally returning a value is to return a
+value of type <a href="https://doc.rust-lang.org/std/option/index.html"><code>Option</code></a>.</p>
+<div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 
 bool safe_divide(unsigned int dividend,
@@ -4649,7 +4713,8 @@ bool safe_divide(unsigned int dividend,
   }
 }
 
-void go(unsigned int dividend, unsigned int divisor) {
+void go(unsigned int dividend,
+        unsigned int divisor) {
   unsigned int quotient;
   if (safe_divide(dividend, divisor, quotient)) {
     std::cout &lt;&lt; quotient &lt;&lt; std::endl;
@@ -4663,9 +4728,10 @@ int main() {
   go(10, 0);
 }
 </code></pre>
-<p>The idiomatic Rust approach for optionally returning a value is to return a
-value of type <a href="https://doc.rust-lang.org/std/option/index.html"><code>Option</code></a>.</p>
-<pre><pre class="playground"><code class="language-rust">fn safe_divide(dividend: u32, divisor: u32) -&gt; Option&lt;u32&gt; {
+<pre><pre class="playground"><code class="language-rust">fn safe_divide(
+    dividend: u32,
+    divisor: u32,
+) -&gt; Option&lt;u32&gt; {
     if divisor != 0 {
         Some(dividend / divisor)
     } else {
@@ -4688,6 +4754,7 @@ fn main() {
     go(10, 2);
     go(10, 0);
 }</code></pre></pre>
+</div>
 <p>When there is useful information to provide in the failing case, the <a href="https://doc.rust-lang.org/std/result/"><code>Result</code>
 type</a> can be used instead. The <a href="idioms/out_params//idioms/exceptions.html">chapter
 on error handling</a> describes the use of <code>Result</code>.</p>

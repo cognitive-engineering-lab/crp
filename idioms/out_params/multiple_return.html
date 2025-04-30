@@ -160,6 +160,16 @@
                         <h1 id="multiple-return-values"><a class="header" href="#multiple-return-values">Multiple return values</a></h1>
 <p>One idiom for returning multiple values from a function or method in C++ is to
 pass in references to which the values can be assigned.</p>
+<p>There are several reasons why this idiom might be used:</p>
+<ul>
+<li>compatibility with versions of C++ earlier than C++11,</li>
+<li>working in a codebase that uses C-style of C++, or</li>
+<li>performance concerns.</li>
+</ul>
+<p>The idiomatic translation of this program into Rust makes use of either
+<a href="https://doc.rust-lang.org/std/primitive.tuple.html">tuples</a> or a named
+structure for the return type.</p>
+<div class="comparison">
 <pre><code class="language-cpp">void get_point(int &amp;x, int &amp;y) {
   x = 5;
   y = 6;
@@ -171,15 +181,6 @@ int main() {
   // ...
 }
 </code></pre>
-<p>There are several reasons why this idiom might be used:</p>
-<ul>
-<li>compatibility with versions of C++ earlier than C++11,</li>
-<li>working in a codebase that uses C-style of C++, or</li>
-<li>performance concerns.</li>
-</ul>
-<p>The idiomatic translation of this program into Rust makes use of either
-<a href="https://doc.rust-lang.org/std/primitive.tuple.html">tuples</a> or a named
-structure for the return type.</p>
 <pre><pre class="playground"><code class="language-rust">fn get_point() -&gt; (i32, i32) {
     (5, 6)
 }
@@ -188,6 +189,7 @@ fn main() {
     let (x, y) = get_point();
     // ...
 }</code></pre></pre>
+</div>
 <p>Rust has a dedicated tuple syntax and supports pattern matching with <code>let</code>
 bindings in part to support use cases like this one.</p>
 <h2 id="problems-with-the-direct-transliteration"><a class="header" href="#problems-with-the-direct-transliteration">Problems with the direct transliteration</a></h2>

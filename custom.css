@@ -12,7 +12,7 @@
   > pre {
     flex-grow: 1;
     width: calc(50% - 0.5em);
-    min-width: 50ch;
+    min-width: min(50ch, 100%);
     margin: 0;
 
     > .playground {
