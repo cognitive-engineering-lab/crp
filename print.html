@@ -932,7 +932,7 @@ struct Triangle {
 
 // Generic function using interface
 template &lt;class T&gt;
-double twiceArea(T shape) {
+double twiceArea(T &amp;shape) {
   return shape.area() * 2;
 }
 
@@ -961,7 +961,7 @@ impl Shape for Triangle {
 }
 
 // Generic function using interface
-fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
+fn twice_area&lt;T: Shape&gt;(shape: &amp;T) -&gt; f64 {
     2.0 * shape.area()
 }
 
@@ -971,7 +971,7 @@ fn main() {
         height: 1.0,
     };
 
-    println!("{}", twice_area(triangle));
+    println!("{}", twice_area(&amp;triangle));
 }</code></pre></pre>
 </div>
 <p>Note that in the Rust example, the definition of the trait and the struct have
@@ -1081,28 +1081,25 @@ double twiceArea(T shape) {
     fn area(&amp;self) -&gt; f64;
 }
 
-fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
+fn twice_area&lt;T: Shape&gt;(shape: &amp;T) -&gt; f64 {
     // note the call to a method not defined in Shape
     2.0 * shape.volume()
 }</code></pre>
-<pre><code class="language-text">error[E0599]: no method named `volume` found for type parameter `T` in the current scope
+<pre><code class="language-text">error[E0599]: no method named `volume` found for reference `&amp;T` in the current scope
  --&gt; example.rs:7:17
   |
-5 | fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
-  |               - method `volume` not found for this type parameter
-6 |     // note the call to a method not defined in Shape
 7 |     2.0 * shape.volume()
-  |                 ^^^^^^ method not found in `T`
+  |                 ^^^^^^ method not found in `&amp;T`
 </code></pre>
 <p>These additional static checks mean that in many situations where C++ templates
 would be useful but hard to implement correctly, Rust generics are freely used.</p>
 <h2 id="required-traits-and-ergonomics"><a class="header" href="#required-traits-and-ergonomics">Required traits and ergonomics</a></h2>
 <p>In the above examples, the function requiring a trait was defined like the following.</p>
-<pre><code class="language-rust ignore">fn twice_area&lt;T: Shape&gt;(shape: T) -&gt; f64 {
+<pre><code class="language-rust ignore">fn twice_area&lt;T: Shape&gt;(shape: &amp;T) -&gt; f64 {
     2.0 * shape.area()
 }</code></pre>
 <p>This is a commonly used shorthand for the following:</p>
-<pre><code class="language-rust ignore">fn twice_area&lt;T&gt;(shape: T) -&gt; f64
+<pre><code class="language-rust ignore">fn twice_area&lt;T&gt;(shape: &amp;T) -&gt; f64
 where
     T: Shape,
 {
@@ -1110,6 +1107,93 @@ where
 }</code></pre>
 <p>The more verbose form is preferred used when there are many type parameters or
 those type parameters must implement many traits.</p>
+<h2 id="generics-and-lifetimes"><a class="header" href="#generics-and-lifetimes">Generics and lifetimes</a></h2>
+<p>When defining a template in C++ that makes use of a type template parameter, the
+lifetimes of references stored within objects of that type must be tracked
+manually by the programmer.</p>
+<p>Rust checks the bounds on lifetimes of references contained within type
+parameters. <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html#trait-objects-and-lifetimes">Just as with trait object
+types</a>,
+these bounds are usually inferred according to the <a href="https://doc.rust-lang.org/reference/lifetime-elision.html">lifetime elision
+rules</a>. When they
+cannot be inferred, or they are inferred incorrectly, the bounds can be declared
+manually.</p>
+<p>In the following example, the bounds have to be given manually because the
+inferred bounds are incorrect.</p>
+<pre><code class="language-rust ignore">trait Shape {}
+
+fn store&lt;S: Shape&gt;(x: S, data: &amp;mut Box&lt;dyn Shape&gt;) {
+    *data = Box::new(x);
+}</code></pre>
+<pre><code class="language-text">error[E0310]: the parameter type `S` may not live long enough
+ --&gt; example.rs:7:5
+  |
+7 |     *data = Box::new(x);
+  |     ^^^^^
+  |     |
+  |     the parameter type `S` must be valid for the static lifetime...
+  |     ...so that the type `S` will meet its required lifetime bounds
+  |
+</code></pre>
+<p>The error message becomes clearer when the inferred lifetime bounds are made
+explicit. With the given type for <code>store</code>, the argument for <code>x</code> could be
+something that has a lifetime that does not last as long as the lifetimes in the
+contents in the box.</p>
+<pre><code class="language-rust ignore"><span class="boring">trait Shape {}
+</span><span class="boring">
+</span><span class="boring">struct Triangle {
+</span><span class="boring">    base: f64,
+</span><span class="boring">    height: f64,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">impl Shape for Triangle {}
+</span><span class="boring">
+</span>// The type parameter S is assigned no lifetime bound.
+fn store&lt;'a, S: Shape&gt;(
+    x: S,
+    // The reference is assigned a fresh lifetime by rule
+    // [lifetime-elision.function.implicit-lifetime-parameters].
+    //
+    // The trait object is assigned 'static by rule
+    // [lifetime-elision.trait-object.default] and
+    // [lifetime-elision.trait-object.innermost-type].
+    data: &amp;'a mut Box&lt;dyn Shape + 'static&gt;,
+) {
+    *data = Box::new(x);
+}
+
+// An example of how the implementation of store could be misused with
+// the given type.
+fn main() {
+    let triangle = Triangle {
+        base: 1.0,
+        height: 2.0,
+    };
+    let mut b: Box&lt;dyn Shape&gt; = Box::new(triangle);
+    {
+        let short_lived_triangle = Triangle {
+            base: 5.0,
+            height: 10.0,
+        };
+        store(short_lived_triangle, &amp;mut b);
+    }
+    // Here b contains a dangling reference.
+}</code></pre>
+<p>For this specific case, the most general solution is to define a new lifetime
+parameter to bound both <code>S</code> and <code>dyn Shape</code>. The type parameter for the
+reference can be elided, because it will be assigned a fresh lifetime parameter.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>trait Shape {}
+
+// Note the common bound
+// -----------------here-\
+// ----------------------|---------------------------and here-\
+//                       v                                    v
+fn store&lt;'s, S: Shape + 's&gt;(x: S, data: &amp;mut Box&lt;dyn Shape + 's&gt;) {
+    *data = Box::new(x);
+}
+<span class="boring">}</span></code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="inheritance-and-implementation-reuse"><a class="header" href="#inheritance-and-implementation-reuse">Inheritance and implementation reuse</a></h1>
 <p>Rust does not have inheritance and so the primary means of reuse of
 implementations in Rust are composition, aggregation, and <a href="idioms/data_modeling/TODO">generics</a>.</p>
