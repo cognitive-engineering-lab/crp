@@ -50,3 +50,13 @@ html.coal, html.navy, html.ayu {
     height: 25px;
   }
 }
+
+.feedback-link {
+  display: inline-block;
+  border: 1px solid var(--theme-popup-border);
+  background-color: var(--theme-popup-bg);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 80%;
+  margin-top: 2em;
+}
