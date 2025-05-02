@@ -25,18 +25,19 @@
         <link rel="stylesheet" href="../../fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="../../highlight.css">
-        <link rel="stylesheet" href="../../tomorrow-night.css">
-        <link rel="stylesheet" href="../../ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="../../custom.css">
 
 
-        <!-- Provide site root to javascript -->
+        <!-- Provide site root and default themes to javascript -->
         <script>
-            var path_to_root = "../../";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc.js"></script>
@@ -46,8 +47,8 @@
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -61,7 +62,8 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             const html = document.documentElement;
@@ -74,8 +76,8 @@
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var sidebar = null;
-            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -111,6 +113,7 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
@@ -379,7 +382,8 @@ should instead use a reference (<code>&amp;T</code> or <code>&amp;mut T</code>) 
 <a href="https://doc.rust-lang.org/std/rc/index.html"><code>Rc&lt;T&gt;</code></a>). These approaches
 correspond to passing by reference, or using a <code>std::unique_ptr</code>
 <code>std::shared_ptr</code> in C++.</p>
-
+<div class="quiz-placeholder" data-quiz-name="&quot;copy_and_move_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;A type can only implement `Copy` if all of its fields implement `Copy`, just how\nin C++ a type is only trivially copyable if all of its members are. `Box` does\nnot implement `Copy`.\n&quot;,&quot;id&quot;:&quot;ec3c58d9-cb13-4f88-ac67-7c1d5baf46e2&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;no&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;yes&quot;],&quot;prompt&quot;:&quot;Does the following program compile?\n\n```rust\n#[derive(Clone, Copy)]\nstruct BinaryTreeNode {\n    value: i32,\n    left_child: Box&lt;BinaryTreeNode&gt;,\n    right_child: Box&lt;BinaryTreeNode&gt;,\n}\n```\n&quot;}},{&quot;context&quot;:&quot;While `Copy` requires `Clone`, it does not pose any constraints on the\nimplementation of clone. Even though the given implementation of `Clone` is most\ncertainly wrong, the program will still compile.\n&quot;,&quot;id&quot;:&quot;0a4bc647-44c9-4244-9dfc-3002d6abc069&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;yes&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;no&quot;],&quot;prompt&quot;:&quot;Does the following program compile?\n\n```rust\n#[derive(Copy)]\nstruct Age {\n    value: u32,\n}\n\nimpl Clone for Age {\n    fn clone(&amp;self) -&gt; Self {\n       Age {\n           value: 1 + self.value,\n       }\n    }\n}\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` implements a copy constructor which corresponds to the `Clone`\ntrait in Rust. It is also trivially copyable, which corresponds to implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;4636f71a-599b-46d3-a6e6-e0c35b344140&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n};\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` has a user-defined copy constructor which corresponds to the\n`Clone` trait in Rust. Despite being user-defined, it does exactly what the\ndefault trait would do. Because the implementation is user-defined, it prevents\nthe type from being trivially copyable, which corresponds to not implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;c8e3b4da-19a1-42e9-97d4-bbb61dcd5652&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2(Vec2&amp; other) : x(other.x), y(other.y) {};\n};\n```\n&quot;}},{&quot;context&quot;:&quot;All types in Rust are \&quot;moveable\&quot; by default, because \&quot;moving\&quot; a value really\nmeans changing ownership. However, if values of a type need to have a fixed\nmemory location, then that can be achieved by wrapping it in the `Pin` type.\n&quot;,&quot;id&quot;:&quot;df52b20f-98e0-44b2-989d-6c374d26149c&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nuse std::pin::Pin;\n\n#[derive(Copy, Clone)]\npub struct Vec2Impl {\n    pub x: f64,\n    pub y: f64,\n}\n\npub type Vec2 = Pin&lt;Vec2Impl&gt;;\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy, Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2(Vec2&amp;&amp;) = delete;\n};\n```\n&quot;}}]}"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 
                         <a class="feedback-link" href="https://forms.gle/YqpaAvir8QbUY21H6">Click here to leave us feedback about this page.</a>
                     </main>
@@ -390,7 +394,7 @@ correspond to passing by reference, or using a <code>std::unique_ptr</code>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/constructors/rule_of_three_five_zero.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/out_params.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -404,7 +408,7 @@ correspond to passing by reference, or using a <code>std::unique_ptr</code>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/constructors/rule_of_three_five_zero.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/out_params.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

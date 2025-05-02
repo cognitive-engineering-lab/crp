@@ -1,0 +1,220 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Does the following program compile?
+
+```rust
+#[derive(Clone, Copy)]
+struct BinaryTreeNode {
+    value: i32,
+    left_child: Box<BinaryTreeNode>,
+    right_child: Box<BinaryTreeNode>,
+}
+```
+"""
+prompt.distractors = ["yes"]
+answer.answer = "no"
+context = """
+A type can only implement `Copy` if all of its fields implement `Copy`, just how
+in C++ a type is only trivially copyable if all of its members are. `Box` does
+not implement `Copy`.
+"""
+id = "ec3c58d9-cb13-4f88-ac67-7c1d5baf46e2"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Does the following program compile?
+
+```rust
+#[derive(Copy)]
+struct Age {
+    value: u32,
+}
+
+impl Clone for Age {
+    fn clone(&self) -> Self {
+       Age {
+           value: 1 + self.value,
+       }
+    }
+}
+```
+"""
+prompt.distractors = ["no"]
+answer.answer = "yes"
+context = """
+While `Copy` requires `Clone`, it does not pose any constraints on the
+implementation of clone. Even though the given implementation of `Clone` is most
+certainly wrong, the program will still compile.
+"""
+id = "0a4bc647-44c9-4244-9dfc-3002d6abc069"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which is the most idiomatic translation of the following C++ program?
+
+```cpp
+struct Vec2 {
+    double x;
+    double y;
+};
+```
+"""
+prompt.distractors = [
+"""
+```rust
+#[derive(Clone)]
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+""",
+"""
+```rust
+#[derive(Copy)]
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+""",
+"""
+```rust
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+"""
+]
+answer.answer = """
+```rust
+#[derive(Clone, Copy)]
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+"""
+context = """
+The C++ `Vec2` implements a copy constructor which corresponds to the `Clone`
+trait in Rust. It is also trivially copyable, which corresponds to implementing
+the `Copy` trait in Rust.
+"""
+id = "4636f71a-599b-46d3-a6e6-e0c35b344140"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which is the most idiomatic translation of the following C++ program?
+
+```cpp
+struct Vec2 {
+    double x;
+    double y;
+
+    Vec2(Vec2& other) : x(other.x), y(other.y) {};
+};
+```
+"""
+prompt.distractors = [
+"""
+```rust
+#[derive(Clone, Copy)]
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+""",
+"""
+```rust
+#[derive(Copy)]
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+""",
+"""
+```rust
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+"""
+]
+answer.answer = """
+```rust
+#[derive(Clone)]
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+"""
+context = """
+The C++ `Vec2` has a user-defined copy constructor which corresponds to the
+`Clone` trait in Rust. Despite being user-defined, it does exactly what the
+default trait would do. Because the implementation is user-defined, it prevents
+the type from being trivially copyable, which corresponds to not implementing
+the `Copy` trait in Rust.
+"""
+id = "c8e3b4da-19a1-42e9-97d4-bbb61dcd5652"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which is the most idiomatic translation of the following C++ program?
+
+```cpp
+struct Vec2 {
+    double x;
+    double y;
+
+    Vec2(Vec2&&) = delete;
+};
+```
+"""
+prompt.distractors = [
+"""
+```rust
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+""",
+"""
+```rust
+#[derive(Copy, Clone)]
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+```
+""",
+]
+answer.answer = """
+```rust
+use std::pin::Pin;
+
+#[derive(Copy, Clone)]
+pub struct Vec2Impl {
+    pub x: f64,
+    pub y: f64,
+}
+
+pub type Vec2 = Pin<Vec2Impl>;
+```
+"""
+context = """
+All types in Rust are "moveable" by default, because "moving" a value really
+means changing ownership. However, if values of a type need to have a fixed
+memory location, then that can be achieved by wrapping it in the `Pin` type.
+"""
+id = "df52b20f-98e0-44b2-989d-6c374d26149c"

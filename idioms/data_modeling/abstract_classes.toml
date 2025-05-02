@@ -33,7 +33,7 @@ trait Iterable {
   type Item;
   fn new() -> Self;
   fn drop(self);
-  fn next(&mut self) -> Option<Item>;
+  fn next(&mut self) -> Option<Self::Item>;
 }
 ```
 """,
@@ -42,7 +42,7 @@ answer.answer = """
 ```rust
 trait Iterable {
   type Item;
-  fn next(&mut self) -> Option<Item>;
+  fn next(&mut self) -> Option<Self::Item>;
 }
 ```
 """

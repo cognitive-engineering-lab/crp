@@ -25,18 +25,19 @@
         <link rel="stylesheet" href="../../fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="../../highlight.css">
-        <link rel="stylesheet" href="../../tomorrow-night.css">
-        <link rel="stylesheet" href="../../ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="../../custom.css">
 
 
-        <!-- Provide site root to javascript -->
+        <!-- Provide site root and default themes to javascript -->
         <script>
-            var path_to_root = "../../";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc.js"></script>
@@ -46,8 +47,8 @@
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -61,7 +62,8 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             const html = document.documentElement;
@@ -74,8 +76,8 @@
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var sidebar = null;
-            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -111,6 +113,7 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
@@ -226,7 +229,8 @@ object files.</p>
 in Rust to bypass name mangling in order to produce functions that can be easily
 referred to from C or C++ can cause undefined behavior due to name collision
 during linking.</p>
-
+<div class="quiz-placeholder" data-quiz-name="&quot;anonymous_namespaces&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;4ed5c1ed-81e3-448d-b20a-8f0eac301489&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n// colors.rs\npub fn red() {}\nfn blue() {}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// colors.rs\nmod colors {\n    pub fn red() {}\n    fn blue() {}\n}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;,&quot;```rust\n// colors.rs\nmod colors {\n    fn red() {}\n\n    mod {\n        fn blue() {}\n    }\n}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is an idiomatic translation of the following C++ program?\n\n```cpp\n// colors.h\nnamespace colors {\n  void red();\n}\n\n// colors.cc\n#include \&quot;colors.h\&quot;\n\nnamespace colors {\n  void red() {}\n\n  namespace {\n    void blue() {}\n  }\n}\n\n// main.cc\n#include \&quot;colors.h\&quot;\n\nusing namespace colors;\n\nint main() {}\n```\n&quot;}},{&quot;context&quot;:&quot;Even if in C++ you wouldn't use namespaces to structure the program, in Rust\nsplitting programs into separate files also means splitting them into separate\nmodules.\n&quot;,&quot;id&quot;:&quot;eb1bde49-9ca5-4e8d-b6f3-d49c95393dfb&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;red&quot;,&quot;a::red&quot;,&quot;violet&quot;,&quot;b::violet&quot;,&quot;other_colors::green&quot;,&quot;a::other_colors::green&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;orange&quot;,&quot;green&quot;,&quot;indigo&quot;,&quot;a::green&quot;],&quot;prompt&quot;:&quot;In the following Rust program, which items would be visible within the `main`\nfunction?\n\n```rust\n// a.rs\npub fn red() {}\nfn orange() {}\n\nmod other_colors {\n    pub fn green() {}\n    fn blue() {}\n}\n\n// b.rs\npub fn indigo() {};\npub fn violet() {};\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::violet;\n\nfn main() {\n   // What is visible here?\n}\n```\n&quot;}},{&quot;context&quot;:&quot;Lack of `pub` is like putting it in an anonymous namespace in terms of\nvisibility outside of the defining module.\n\n`mod` is not `#include`. `mod` defines a module, and using items from the module\nrequires either importing or qualification.\n\nResolving ambiguous items works the same as it does with C++ namespaces.\nAmbiguous use is the error, not having conflicting names in scope.\n&quot;,&quot;id&quot;:&quot;b3c2c70b-26b7-4396-8f8a-0e21541896cf&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    a::go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nfn main() {\n    a::go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\nfn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following Rust programs compile?\n&quot;}}]}"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 
                         <a class="feedback-link" href="https://forms.gle/YqpaAvir8QbUY21H6">Click here to leave us feedback about this page.</a>
                     </main>
@@ -237,7 +241,7 @@ during linking.</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/encapsulation/private_and_friends.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/constructors.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -251,7 +255,7 @@ during linking.</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/encapsulation/private_and_friends.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/constructors.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

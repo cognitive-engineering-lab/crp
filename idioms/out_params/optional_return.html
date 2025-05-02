@@ -25,18 +25,19 @@
         <link rel="stylesheet" href="../../fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="../../highlight.css">
-        <link rel="stylesheet" href="../../tomorrow-night.css">
-        <link rel="stylesheet" href="../../ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="../../custom.css">
 
 
-        <!-- Provide site root to javascript -->
+        <!-- Provide site root and default themes to javascript -->
         <script>
-            var path_to_root = "../../";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc.js"></script>
@@ -46,8 +47,8 @@
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -61,7 +62,8 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             const html = document.documentElement;
@@ -74,8 +76,8 @@
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var sidebar = null;
-            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -111,6 +113,7 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
@@ -389,7 +392,8 @@ fn main() {
     go(10, 2);
     go(10, 0);
 }</code></pre></pre>
-
+<div class="quiz-placeholder" data-quiz-name="&quot;optional_return&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;6471e372-6552-41e9-88c6-7b7f6665928e&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) -&gt; Option&lt;&amp;'a mut [u8]&gt; {\n    if buf1.len() &gt;= needed_len {\n        Some(buf1)\n    } else if buf2.len() &gt;= needed_len {\n        Some(buf2)\n    } else {\n        None\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buffer: &amp;mut &amp;'a mut [u8],\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) {\n    if buf1.len() &gt;= needed_len {\n        *buffer = buf1;\n    } else if buf2.len() &gt;= needed_len {\n        *buffer = buf2;\n    }\n}\n```\n&quot;,&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buffer: &amp;mut &amp;'a mut [u8],\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) -&gt; bool {\n    if buf1.len() &gt;= needed_len {\n        *buffer = buf1;\n        return true;\n    } else if buf2.len() &gt;= needed_len {\n        *buffer = buf2;\n        return true;\n    }\n\n    return false;\n}\n```\n&quot;,&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buffer: &amp;mut Option&lt;&amp;'a mut [u8]&gt;,\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) {\n    if buf1.len() &gt;= needed_len {\n        *buffer = Some(buf1);\n    } else if buf2.len() &gt;= needed_len {\n        *buffer = Some(buf2);\n    } else {\n        *buffer = None;\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic translation of C++ function into\nRust?\n\n```cpp\n#include &lt;cstdint&gt;\n\nvoid chooseBuffer(std::size_t neededLen,\n                  std::uint8_t **buffer,\n                  std::size_t *bufferLen,\n                  uint8_t *buf1,\n                  std::size_t buf1Len,\n                  uint8_t *buf2,\n                  std::size_t buf2Len) {\n\tif (buf1Len &gt;= neededLen) {\n\t\t*buffer = buf1;\n\t\t*bufferLen = buf1Len;\n\t} else if (buf2Len &gt;= neededLen) {\n\t\t*buffer = buf2;\n\t\t*bufferLen = buf2Len;\n\t} else {\n\t\t*buffer = nullptr;\n\t\t*bufferLen = 0;\n\t}\n}\n```\n&quot;}}]}"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 
                         <a class="feedback-link" href="https://forms.gle/YqpaAvir8QbUY21H6">Click here to leave us feedback about this page.</a>
                     </main>
@@ -400,9 +404,6 @@ fn main() {
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/out_params/pre-allocated_buffers.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -414,9 +415,6 @@ fn main() {
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/out_params/pre-allocated_buffers.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>

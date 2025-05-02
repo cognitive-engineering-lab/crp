@@ -1,0 +1,115 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Consider the following C++ program.
+
+```cpp
+template<typename T>
+struct Scaled {
+	double scale;
+	T shape;
+
+	double area() const {
+		return scale * shape.area();
+	}
+};
+
+template <typename T>
+void printArea(T &shape) {
+	std::cout << shape.area() << std::endl;
+}
+```
+
+Which of the following snippets represents the most idiomatic translation of the
+`Scaled` template class into Rust?
+"""
+prompt.distractors = [
+# Omitting the trait.
+#
+# In C++ you don't need an interface for working with templates.
+"""
+```rust
+struct Scaled<T> {
+    scale: f64,
+    shape: T,
+}
+
+impl<T> Scaled<T> {
+    fn area(&self) -> f64 {
+        self.scale * self.shape.area()
+    }
+}
+```
+""",
+# Putting the trait bound in the wrong place.
+#
+# This is where the concept requirement could reasonably go in C++.
+"""
+```rust
+trait Shape {
+    fn area(&self) -> f64;
+}
+
+struct Scaled<T> {
+    scale: f64,
+    shape: T,
+}
+
+impl<T> Shape for Scaled<T> {
+    fn area(&self) -> f64
+    where
+        T: Shape,
+    {
+        self.scale * self.shape.area()
+    }
+}
+```
+""",
+# Putting the trait bound on the struct.
+#
+# This constrains what can be used with Scaled without removing the need for
+# the bound in other places.
+"""
+```rust
+trait Shape {
+    fn area(&self) -> f64;
+}
+
+struct Scaled<T: Shape> {
+    scale: f64,
+    shape: T,
+}
+
+impl<T> Shape for Scaled<T> {
+    fn area(&self) -> f64 {
+        self.scale * self.shape.area()
+    }
+}
+```
+""",
+]
+answer.answer = """
+```rust
+trait Shape {
+    fn area(&self) -> f64;
+}
+
+struct Scaled<T> {
+    scale: f64,
+    shape: T,
+}
+
+impl<T: Shape> Shape for Scaled<T> {
+    fn area(&self) -> f64 {
+        self.scale * self.shape.area()
+    }
+}
+```
+"""
+context = """
+Rust needs to know that the type of `Scaled::shape` supports the `area` method,
+so a trait bound on the type parameter is necessary. Trait implementations are
+all or nothing, so the requirement applies to the whole implementation, not the
+individual method.
+"""
+id = "3cb5759b-5fe0-491e-ac87-4ba455b26e8f"
