@@ -209,7 +209,7 @@ pub struct Vec2Impl {
     pub y: f64,
 }
 
-pub type Vec2 = Pin<Vec2Impl>;
+pub type Vec2 = Pin<&mut Vec2Impl>;
 ```
 """
 context = """
