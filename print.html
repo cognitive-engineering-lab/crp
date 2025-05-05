@@ -180,19 +180,25 @@ Language</a> may be a better starting point.</p>
 <p>If you are primarily an embedded systems programmer using C or C++, this book is
 a complement to <a href="https://docs.rust-embedded.org/book/">The Embedded Rust Book</a>.</p>
 <h2 id="feedback-on-this-book"><a class="header" href="#feedback-on-this-book">Feedback on this book</a></h2>
-<p>TODO: add ask for feedback on missing content</p>
+<p>We're seeking feedback on this book! At the bottom of every page there is a link
+to a form where you can submit feedback. Whether you've found a mistake or just
+want to let us know which topic you'd like us to cover next, use the form to
+send us a message!</p>
+<p>This book is incomplete and may include links to chapters that have not yet been
+published. If you encounter such a link and want us to prioritize that chapter,
+let us know using the feedback form.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="data-modeling"><a class="header" href="#data-modeling">Data modeling</a></h1>
 <p>In C++ the mechanisms available for data modeling are classes, enums, and
 unions.</p>
 <p>Rust, on the other hand, uses records
 (<a href="https://doc.rust-lang.org/book/ch05-00-structs.html">structs</a>) and algebraic
 data types (<a href="https://doc.rust-lang.org/book/ch06-00-enums.html">enums</a>).</p>
-<p>Although Rust supports one major piece of object oriented design, interface
-polymorphism, Rust also has language features for modeling things using
+<p>Although Rust supports one major piece of object oriented design, polymorphism
+using interfaces, Rust also has language features for modeling things using
 algebraic data types (which in simple cases are like a much more ergonomic
 <code>std::variant</code>).</p>
 <p>This section gives examples of common constructions used when programming in C++
-data and how to achieve the same effects using Rust's features.</p>
+and how to achieve the same effects using Rust's features.</p>
 <h2 id="fixed-operations-varying-data"><a class="header" href="#fixed-operations-varying-data">Fixed operations, varying data</a></h2>
 <p>In situations where one needs to model a fixed set of operations that clients
 will use, but the data that implements those operations are not fixed ahead of
@@ -231,10 +237,10 @@ Programs can then be written over <em>trait objects</em> that use that trait as 
 base type.</p>
 <p>The following example defines an interface, two implementations of that
 interface, and a function that takes an argument that satisfies the interface.
-In C++ the interface is defined with an abstract class where all of the methods
-are pure virtual methods, and in Rust the interface is defined with a trait. In
-both languages, the function (<code>printArea</code> in C++ and <code>print_area</code> in Rust)
-invokes a method using dynamic dispatch.</p>
+In C++ the interface is defined with an abstract class with pure virtual
+methods, and in Rust the interface is defined with a trait. In both languages,
+the function (<code>printArea</code> in C++ and <code>print_area</code> in Rust) invokes a method
+using dynamic dispatch.</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;memory&gt;
@@ -247,7 +253,7 @@ struct Shape {
 };
 
 // Implement the interface for a concrete class
-struct Triangle : Shape {
+struct Triangle : public Shape {
   double base;
   double height;
 
@@ -260,7 +266,7 @@ struct Triangle : Shape {
 };
 
 // Implement the interface for a concrete class
-struct Rectangle : Shape {
+struct Rectangle : public Shape {
   double width;
   double height;
 
@@ -353,22 +359,40 @@ fn main() {
     print_area(shape.as_ref());
 }</code></pre></pre>
 </div>
-<p>Rust does not have an equivalent for the virtual destructor declaration because
-in Rust every vtable includes the drop behavior (whether given by a user defined
-<code>Drop</code> implementation or not) required for the value.</p>
+<p>There are several places where the Rust implementation differs slightly from the
+C++ implementation.</p>
+<p>In Rust, a trait's methods are always visible whenever the trait itself is
+visible. Additionally, the fact that a type implements a trait is always visible
+whenever both the trait and the type are visible. This properties of Rust
+explain the lack of visibility declarations in places where one might find them
+in C++.</p>
+<p>Rather than mark method arguments as <code>static</code> to show that they are associated
+with the type instead of with values of the type, methods that can be called on
+values of the type take an explicit <code>self</code> parameter. This syntactic choice
+makes it possible to indicate (in way similar to other parameters) whether the
+method mutates the object (by taking <code>&amp;mut self</code> instead of <code>&amp;self</code>) and whether
+it takes ownership of the object (by taking <code>self</code> instead of <code>&amp;self</code>).</p>
+<p>Rust methods do not need to be declared as virtual. Because of differences in
+vtable representation, all methods for a type are available for dynamic
+dispatch. Types of values that use vtables are indicated with the <code>dyn</code> keyword.
+This is further described <a href="idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">below</a>.</p>
+<p>Additionally, Rust does not have an equivalent for the virtual destructor
+declaration because in Rust every vtable includes the drop behavior (whether
+given by a user defined <code>Drop</code> implementation or not) required for the value.</p>
 <h2 id="vtables-and-rust-trait-object-types"><a class="header" href="#vtables-and-rust-trait-object-types">Vtables and Rust trait object types</a></h2>
-<p>In C++ dynamic dispatch against an interface defined by an abstract base class
-is achieved by accessing the object through a pointer or reference. To make this
-possible, objects include a vtable.</p>
-<p>Rust requires the same kind of indirection. The type <code>dyn Shape</code> in the above
-example is the type of a trait object for the <code>Shape</code> trait. A trait object
-includes a vtable along with the underlying value.</p>
-<p>In C++ all objects whose class inheriting from a class with a virtual method
-have a vtable in their representation, whether dynamic dispatch is used or not.
+<p>C++ and Rust both requires some kind of indirection to perform dynamic dispatch
+against an interface. In C++ this indirection takes the form of a pointer to the
+abstract class (instead of the derived concrete class), making use of a vtable
+to resolve the virtual method.</p>
+<p>In the above Rust example, the type <code>dyn Shape</code> is the type of a trait object
+for the <code>Shape</code> trait. A trait object includes a vtable along with the
+underlying value.</p>
+<p>In C++ all objects whose class inherits from a class with a virtual method have
+a vtable in their representation, whether dynamic dispatch is used or not.
 Pointers or references to objects are the same size as pointers to objects
 without virtual methods, but every object includes its vtable.</p>
 <p>In Rust, vtables are present only when values are represented as trait objects.
-The reference to the trait object is twice the size as a normal reference since
+The reference to the trait object is twice the size of a normal reference since
 it includes both the pointer to the value and the pointer to the vtable. In the
 Rust example above, the local variable <code>triangle</code> in <code>main</code> does not have a
 vtable in its representation, but when the reference to it is converted to a
@@ -515,6 +539,7 @@ struct Triangle {
   Triangle(double base, double height)
       : base(base), height(height) {}
 
+  // NOT virtual: it will be used with static dispatch
   double area() {
     return 0.5 * base * height;
   }
@@ -567,7 +592,9 @@ fn main() {
 <p>Note that in the Rust example, the definition of the trait and the struct have
 not changed from the example in the chapter on <a href="idioms/data_modeling//idioms/data_modeling/pure_virtual_classes.html">virtual methods and dynamic
 dispatch</a>. Even so, this example
-does use static dispatch.</p>
+does use static dispatch. This is the result of a design trade-off in Rust
+around the representation of vtables and vptrs which is <a href="idioms/data_modeling//idioms/data_modeling/pure_virtual_classes.html#vtables-and-rust-trait-object-types">described later in that
+chapter</a>.</p>
 <p>The difference between Rust and C++ in the above examples arises from Rust being
 nominally typed (types must opt in to supporting a specific interface, merely
 having the right methods isn't enough) and C++'s template meta-programming
@@ -586,14 +613,15 @@ before the type arguments are known.</p>
 <p>This point in the programming language design space favors simplicity of
 reasoning about these functions over the flexibility that comes from the
 template programming approach. This becomes especially valuable when writing
-libraries that both provide generic functions and that use generic functions,
-for which a C++ compiler can give many fewer static guarantees, since it would
-not be possible to test all possible instantiations.</p>
+libraries that both provide generic functions defined in terms of other generic
+functions, for which a C++ compiler can give many fewer static guarantees, since
+it would not be possible to test all possible instantiations.</p>
 <p>In both C++ and Rust, however, multiple implementations are generated by the
 compiler in order to achieve static dispatch.</p>
-<h2 id="c-concepts"><a class="header" href="#c-concepts">C++ concepts</a></h2>
+<h2 id="c-constraints-and-concepts"><a class="header" href="#c-constraints-and-concepts">C++ constraints and concepts</a></h2>
 <p>Rust's approach to static dispatch over an interface can be partially (but only
-partially) modeled with a strict application of C++ concepts.</p>
+partially) modeled with a strict application of <a href="https://en.cppreference.com/w/cpp/language/constraints">C++
+concepts</a>.</p>
 <p>The usual way to apply concepts is still structural and does not model Rust's
 approach: it only requires that a method with specific properties be present on
 the type.</p>
@@ -610,7 +638,7 @@ double twiceArea(T shape) {
 }
 </code></pre>
 <p>A closer equivalent to the above Rust program in C++ is to use a combination of
-pure virtual classes and concepts.</p>
+abstract classes and concepts.</p>
 <pre><code class="language-cpp">#include &lt;concepts&gt;
 
 struct Shape {
@@ -628,6 +656,7 @@ struct Triangle : Shape {
 
   Triangle(double base, double height) : base(base), height(height) {}
 
+  // still NOT virtual: will be used static dispatch
   double area() override {
     return 0.5 * base * height;
   }
@@ -695,12 +724,29 @@ where
 {
     2.0 * shape.area()
 }</code></pre>
-<p>The more verbose form is preferred used when there are many type parameters or
-those type parameters must implement many traits.</p>
+<p>The more verbose form is preferred when there are many type parameters or those
+type parameters must implement many traits.</p>
 <h2 id="generics-and-lifetimes"><a class="header" href="#generics-and-lifetimes">Generics and lifetimes</a></h2>
 <p>When defining a template in C++ that makes use of a type template parameter, the
 lifetimes of references stored within objects of that type must be tracked
 manually by the programmer.</p>
+<p>The following (contrived) C++ example compiles without error, but could be used
+in a way that results in undefined behavior.</p>
+<pre><code class="language-cpp"><span class="boring">#include &lt;memory&gt;
+</span><span class="boring">
+</span><span class="boring">struct Shape {
+</span><span class="boring">  Shape() {}
+</span><span class="boring">  virtual ~Shape() {}
+</span><span class="boring">  virtual double area() = 0;
+</span><span class="boring">};
+</span><span class="boring">
+</span>template&lt;typename S&gt;
+void store(S s, std::unique_ptr&lt;Shape&gt; data) {
+    // Will pointers or references in `s` become dangling while `data`
+    // is still in use?
+	*data = s;
+}
+</code></pre>
 <p>Rust checks the bounds on lifetimes of references contained within type
 parameters. <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html#trait-objects-and-lifetimes">Just as with trait object
 types</a>,
@@ -708,11 +754,12 @@ these bounds are usually inferred according to the <a href="https://doc.rust-lan
 rules</a>. When they
 cannot be inferred, or they are inferred incorrectly, the bounds can be declared
 manually.</p>
-<p>In the following example, the bounds have to be given manually because the
-inferred bounds are incorrect.</p>
-<pre><code class="language-rust ignore">trait Shape {}
-
-fn store&lt;S: Shape&gt;(x: S, data: &amp;mut Box&lt;dyn Shape&gt;) {
+<p>In the Rust transliteration of the above example, the lifetime bounds have to be
+given manually because the inferred bounds are incorrect. Without explicit
+bounds, the compiler produces an error.</p>
+<pre><code class="language-rust ignore"><span class="boring">trait Shape {}
+</span><span class="boring">
+</span>fn store&lt;S: Shape&gt;(x: S, data: &amp;mut Box&lt;dyn Shape&gt;) {
     *data = Box::new(x);
 }</code></pre>
 <pre><code class="language-text">error[E0310]: the parameter type `S` may not live long enough
@@ -790,11 +837,11 @@ fn store&lt;'s, S: Shape + 's&gt;(x: S, data: &amp;mut Box&lt;dyn Shape + 's&gt;
 boundary is the module, which may contain several types along with standalone
 functions. In larger projects, the crate may also act as an encapsulation
 boundary.</p>
-<p>This difference means that in Rust one is more likely to have multiple tightly
+<p>This difference means that in Rust one is more likely to have multiple, tightly
 coupled types that work together which are defined in one module and
 encapsulated as a whole.</p>
 <p>This section provides ways to translate between C++ and Rust's notions of
-encapsulation in terms of both mechanism and concept.</p>
+encapsulation both mechanically and conceptually.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="header-files"><a class="header" href="#header-files">Header files</a></h1>
 <p>One use of header files in C++ is to expose declarations that are defined in one
 translation units to other translation units without requiring the duplication
@@ -1009,13 +1056,14 @@ fn main() {
 }</code></pre></pre>
 <p>Typically the primary constructor for a type is named <code>new</code>, especially if it
 takes no arguments. See the chapter on <a href="idioms/constructors/default_constructors.html">default
-constructors</a>. Additional constructors
-are usually named <code>with_details</code> (e.g., <code>Person::with_name</code>). See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
+constructors</a>. Constructors based on
+some specific property of the value are usually named <code>with_details</code> (e.g.,
+<code>Person::with_name</code>). See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
 guidelines</a> for the
 conventions on how to name constructor methods in Rust.</p>
 <p>If the fields to be initialized are visible, there is a reasonable default
 value, and the value does not manage a resource, then it is also common to use
-record update syntax to initialize a value based on some default value:</p>
+record update syntax to initialize a value based on some default value.</p>
 <pre><pre class="playground"><code class="language-rust">struct Point {
     x: i32,
     y: i32,
@@ -1035,16 +1083,20 @@ fn main() {
     };
     // ...
 }</code></pre></pre>
+<p>Despite the name, "record update syntax" does not modify a record but instead
+creates a new value based on another one, taking ownership of it in order to do
+so.</p>
 <h2 id="storage-allocation-vs-initialization"><a class="header" href="#storage-allocation-vs-initialization">Storage allocation vs initialization</a></h2>
 <p>The actual construction of a structure or enum value in Rust occurs where the
 structure construction syntax <code>A { ... }</code> is, after the evaluation of the
 expressions for the fields.</p>
 <p>A significant implication of this difference is that storage is not allocated
-for a struct in Rust at the point where the "constructor" is called, and in fact
-is not allocated until after the values of the fields of a struct have been
-computed (in terms of the semantics of the language--the optimizer may still
-avoid the copy). Therefore there is no way in Rust to write the C++ example
-above where the class stores a pointer to itself upon construction.</p>
+for a struct in Rust at the point where the constructor method (such as
+<code>Person::with_age</code>) is called, and in fact is not allocated until after the
+values of the fields of a struct have been computed (in terms of the semantics
+of the language--the optimizer may still avoid the copy). Therefore there is no
+way in Rust to write the C++ example above where the class stores a pointer to
+itself upon construction.</p>
 <h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
 <p>In C++ the only way constructors can indicate failure is by throwing exceptions.</p>
 <pre><code class="language-cpp">#include &lt;iostream&gt;
@@ -1603,7 +1655,10 @@ method is automatically defined, but can be overridden when implementing the
 <code>Clone</code> trait to provide an efficient implementation.</p>
 <p>The method is not used for normal assignments, but can be explicitly used in
 situations where the performance of the assignment is significant and would be
-improved by using the more efficient implementation, if one is defined.</p>
+improved by using the more efficient implementation, if one is defined. The
+implementation can be made more efficient because <code>clone_from</code> takes ownership
+of the object to which the values are being assigned, and so can do things like
+reuse memory to avoid allocations.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>fn go(x: &amp;Vec&lt;u32&gt;) {
@@ -1619,7 +1674,7 @@ not on performance. If the size of objects being copied is a concern, then one
 should instead use a reference (<code>&amp;T</code> or <code>&amp;mut T</code>) or put the value on the heap
 (<a href="https://doc.rust-lang.org/std/boxed/index.html"><code>Box&lt;T&gt;</code></a> or
 <a href="https://doc.rust-lang.org/std/rc/index.html"><code>Rc&lt;T&gt;</code></a>). These approaches
-correspond to passing by reference, or using a <code>std::unique_ptr</code>
+correspond to passing by reference, or using a <code>std::unique_ptr</code> or
 <code>std::shared_ptr</code> in C++.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;copy_and_move_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;A type can only implement `Copy` if all of its fields implement `Copy`, just how\nin C++ a type is only trivially copyable if all of its members are. `Box` does\nnot implement `Copy`.\n&quot;,&quot;id&quot;:&quot;ec3c58d9-cb13-4f88-ac67-7c1d5baf46e2&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;no&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;yes&quot;],&quot;prompt&quot;:&quot;Does the following program compile?\n\n```rust\n#[derive(Clone, Copy)]\nstruct BinaryTreeNode {\n    value: i32,\n    left_child: Box&lt;BinaryTreeNode&gt;,\n    right_child: Box&lt;BinaryTreeNode&gt;,\n}\n```\n&quot;}},{&quot;context&quot;:&quot;While `Copy` requires `Clone`, it does not pose any constraints on the\nimplementation of clone. Even though the given implementation of `Clone` is most\ncertainly wrong, the program will still compile.\n&quot;,&quot;id&quot;:&quot;0a4bc647-44c9-4244-9dfc-3002d6abc069&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;yes&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;no&quot;],&quot;prompt&quot;:&quot;Does the following program compile?\n\n```rust\n#[derive(Copy)]\nstruct Age {\n    value: u32,\n}\n\nimpl Clone for Age {\n    fn clone(&amp;self) -&gt; Self {\n       Age {\n           value: 1 + self.value,\n       }\n    }\n}\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` implements a copy constructor which corresponds to the `Clone`\ntrait in Rust. It is also trivially copyable, which corresponds to implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;4636f71a-599b-46d3-a6e6-e0c35b344140&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n};\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` has a user-defined copy constructor which corresponds to the\n`Clone` trait in Rust. Despite being user-defined, it does exactly what the\ndefault trait would do. Because the implementation is user-defined, it prevents\nthe type from being trivially copyable, which corresponds to not implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;c8e3b4da-19a1-42e9-97d4-bbb61dcd5652&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2(Vec2&amp; other) : x(other.x), y(other.y) {};\n};\n```\n&quot;}}]}"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="out-parameters"><a class="header" href="#out-parameters">Out parameters</a></h1>
@@ -1676,7 +1731,7 @@ fn get_point(x: &amp;mut i32, y: &amp;mut i32) {
 }
 
 fn main() {
-    let mut x = 0; // initliazed to arbitrary values
+    let mut x = 0; // initialized to arbitrary values
     let mut y = 0;
     get_point(&amp;mut x, &amp;mut y);
     // ...
@@ -1697,7 +1752,7 @@ multiple values instead of assigning to reference parameters.</p>
 #include &lt;utility&gt;
 
 std::pair&lt;int, int&gt; get_point() {
-  return std::pair&lt;int, int&gt;(5, 6);
+  return std::make_pair(5, 6);
 }
 
 int main() {

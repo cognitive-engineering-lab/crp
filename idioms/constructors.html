@@ -209,13 +209,14 @@ fn main() {
 }</code></pre></pre>
 <p>Typically the primary constructor for a type is named <code>new</code>, especially if it
 takes no arguments. See the chapter on <a href="constructors/default_constructors.html">default
-constructors</a>. Additional constructors
-are usually named <code>with_details</code> (e.g., <code>Person::with_name</code>). See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
+constructors</a>. Constructors based on
+some specific property of the value are usually named <code>with_details</code> (e.g.,
+<code>Person::with_name</code>). See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
 guidelines</a> for the
 conventions on how to name constructor methods in Rust.</p>
 <p>If the fields to be initialized are visible, there is a reasonable default
 value, and the value does not manage a resource, then it is also common to use
-record update syntax to initialize a value based on some default value:</p>
+record update syntax to initialize a value based on some default value.</p>
 <pre><pre class="playground"><code class="language-rust">struct Point {
     x: i32,
     y: i32,
@@ -235,16 +236,20 @@ fn main() {
     };
     // ...
 }</code></pre></pre>
+<p>Despite the name, "record update syntax" does not modify a record but instead
+creates a new value based on another one, taking ownership of it in order to do
+so.</p>
 <h2 id="storage-allocation-vs-initialization"><a class="header" href="#storage-allocation-vs-initialization">Storage allocation vs initialization</a></h2>
 <p>The actual construction of a structure or enum value in Rust occurs where the
 structure construction syntax <code>A { ... }</code> is, after the evaluation of the
 expressions for the fields.</p>
 <p>A significant implication of this difference is that storage is not allocated
-for a struct in Rust at the point where the "constructor" is called, and in fact
-is not allocated until after the values of the fields of a struct have been
-computed (in terms of the semantics of the language--the optimizer may still
-avoid the copy). Therefore there is no way in Rust to write the C++ example
-above where the class stores a pointer to itself upon construction.</p>
+for a struct in Rust at the point where the constructor method (such as
+<code>Person::with_age</code>) is called, and in fact is not allocated until after the
+values of the fields of a struct have been computed (in terms of the semantics
+of the language--the optimizer may still avoid the copy). Therefore there is no
+way in Rust to write the C++ example above where the class stores a pointer to
+itself upon construction.</p>
 <h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
 <p>In C++ the only way constructors can indicate failure is by throwing exceptions.</p>
 <pre><code class="language-cpp">#include &lt;iostream&gt;

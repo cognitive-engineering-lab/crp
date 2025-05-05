@@ -203,7 +203,7 @@ fn get_point(x: &amp;mut i32, y: &amp;mut i32) {
 }
 
 fn main() {
-    let mut x = 0; // initliazed to arbitrary values
+    let mut x = 0; // initialized to arbitrary values
     let mut y = 0;
     get_point(&amp;mut x, &amp;mut y);
     // ...
@@ -224,7 +224,7 @@ multiple values instead of assigning to reference parameters.</p>
 #include &lt;utility&gt;
 
 std::pair&lt;int, int&gt; get_point() {
-  return std::pair&lt;int, int&gt;(5, 6);
+  return std::make_pair(5, 6);
 }
 
 int main() {
