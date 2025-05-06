@@ -5,6 +5,10 @@ Which of the following is the most idiomatic translation of this C++ function
 signature into a Rust function signature?
 
 ```cpp
+void main() {}
+```
+
+```cpp
 #include <cstdint>
 
 void splitAt(std::uint8_t *data,

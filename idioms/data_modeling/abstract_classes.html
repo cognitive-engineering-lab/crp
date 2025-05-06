@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Abstract classes, interfaces, and dynamic dispatch - Rust Phrasebook for C++ Programmers</title>
+        <title>Abstract classes, interfaces, and dynamic dispatch - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -125,7 +125,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Rust Phrasebook for C++ Programmers</h1>
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
 
                     <div class="right-buttons">
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
@@ -292,13 +292,12 @@ fn main() {
 C++ implementation.</p>
 <p>In Rust, a trait's methods are always visible whenever the trait itself is
 visible. Additionally, the fact that a type implements a trait is always visible
-whenever both the trait and the type are visible. This properties of Rust
+whenever both the trait and the type are visible. These properties of Rust
 explain the lack of visibility declarations in places where one might find them
 in C++.</p>
-<p>Rather than mark method arguments as <code>static</code> to show that they are associated
-with the type instead of with values of the type, methods that can be called on
-values of the type take an explicit <code>self</code> parameter. This syntactic choice
-makes it possible to indicate (in way similar to other parameters) whether the
+<p>In C++, to associate methods with a type rather than value of that type, you use
+the <code>static</code> keyword. In Rust, non-static methods take an explicit <code>self</code> parameter.
+This syntactic choice makes it possible to indicate (in way similar to other parameters) whether the
 method mutates the object (by taking <code>&amp;mut self</code> instead of <code>&amp;self</code>) and whether
 it takes ownership of the object (by taking <code>self</code> instead of <code>&amp;self</code>).</p>
 <p>Rust methods do not need to be declared as virtual. Because of differences in
@@ -448,10 +447,10 @@ fn main() {
     };
     print_area(&amp;scaled_triangle);
 }</code></pre></pre>
-<div class="quiz-placeholder" data-quiz-name="&quot;abstract_classes&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;507115c6-4ed1-4a16-9f40-f5a01d3830a8&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Iterable {\n  type Item;\n  fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt;;\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Iterable&lt;Item&gt; {}\nimpl&lt;Item&gt; Iterable&lt;Item&gt; {\n  fn next(&amp;mut self) -&gt; Option&lt;Item&gt;;\n}\n```\n&quot;,&quot;```rust\nstruct Iterable&lt;Item&gt; {\n  fn next(&amp;mut self) -&gt; Option&lt;Item&gt;;\n}\n```\n&quot;,&quot;```rust\ntrait Iterable {\n  type Item;\n  fn new() -&gt; Self;\n  fn drop(self);\n  fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt;;\n}\n```\n&quot;],&quot;prompt&quot;:&quot;For the following C++ abstract virtual class, which of the following snippets represents the most idiomatic translation into Rust?\n```cpp\ntemplate&lt;typename Item&gt;\nstruct Iterable {\n  Iterable() {};\n  virtual ~Iterable() {};\n  virtual Item* next() = 0;\n};\n```\n&quot;}}]}"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;abstract_classes&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;507115c6-4ed1-4a16-9f40-f5a01d3830a8&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Iterable {\n  type Item;\n  fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt;;\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Iterable&lt;Item&gt; {}\nimpl&lt;Item&gt; Iterable&lt;Item&gt; {\n  fn next(&amp;mut self) -&gt; Option&lt;Item&gt;;\n}\n```\n&quot;,&quot;```rust\nstruct Iterable&lt;Item&gt; {\n  fn next(&amp;mut self) -&gt; Option&lt;Item&gt;;\n}\n```\n&quot;,&quot;```rust\ntrait Iterable {\n  type Item;\n  fn new() -&gt; Self;\n  fn drop(self);\n  fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt;;\n}\n```\n&quot;],&quot;prompt&quot;:&quot;For the following C++ abstract virtual class, which of the following snippets represents the most idiomatic translation into Rust?\n```cpp\ntemplate&lt;typename Item&gt;\nstruct Iterable {\n  Iterable() {};\n  virtual ~Iterable() {};\n  virtual Item* next() = 0;\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 
-                        <a class="feedback-link" href="https://forms.gle/YqpaAvir8QbUY21H6">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Abstract classes, interfaces, and dynamic dispatch">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

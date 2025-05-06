@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Optional return values - Rust Phrasebook for C++ Programmers</title>
+        <title>Optional return values - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -125,7 +125,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Rust Phrasebook for C++ Programmers</h1>
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
 
                     <div class="right-buttons">
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
@@ -292,9 +292,25 @@ int main() {
 }
 </code></pre>
 <h2 id="helpful-option-utilities"><a class="header" href="#helpful-option-utilities">Helpful <code>Option</code> utilities</a></h2>
-<p>When the <code>None</code> case really is an edge case, the <a href="https://doc.rust-lang.org/rust-by-example/flow_control/let_else.html"><code>let-else</code>
-syntax</a>
-can be used to make that clearer:</p>
+<p>Rust provides several syntactic sugars for simplifying use of functions that return <code>Option</code>. If a failure should be propagated to the caller, then use the <code>?</code> operator:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">fn safe_divide(dividend: u32, divisor: u32) -&gt; Option&lt;u32&gt; {
+</span><span class="boring">    if divisor != 0 {
+</span><span class="boring">        Some(dividend / divisor)
+</span><span class="boring">    } else {
+</span><span class="boring">        None
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn go(dividend: u32, divisor: u32) -&gt; Option&lt;()&gt; {
+    let quotient = safe_divide(dividend, divisor)?;
+    println!("{}", quotient);
+    Some(())
+}
+<span class="boring">}</span></code></pre></pre>
+<p>If <code>None</code> should not be propagated, it is sometimes clearer to use <a href="https://doc.rust-lang.org/rust-by-example/flow_control/let_else.html"><code>let-else</code>
+syntax</a>:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">fn safe_divide(dividend: u32, divisor: u32) -&gt; Option&lt;u32&gt; {
 </span><span class="boring">    if divisor != 0 {
 </span><span class="boring">        Some(dividend / divisor)
@@ -392,10 +408,10 @@ fn main() {
     go(10, 2);
     go(10, 0);
 }</code></pre></pre>
-<div class="quiz-placeholder" data-quiz-name="&quot;optional_return&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;6471e372-6552-41e9-88c6-7b7f6665928e&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) -&gt; Option&lt;&amp;'a mut [u8]&gt; {\n    if buf1.len() &gt;= needed_len {\n        Some(buf1)\n    } else if buf2.len() &gt;= needed_len {\n        Some(buf2)\n    } else {\n        None\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buffer: &amp;mut &amp;'a mut [u8],\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) {\n    if buf1.len() &gt;= needed_len {\n        *buffer = buf1;\n    } else if buf2.len() &gt;= needed_len {\n        *buffer = buf2;\n    }\n}\n```\n&quot;,&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buffer: &amp;mut &amp;'a mut [u8],\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) -&gt; bool {\n    if buf1.len() &gt;= needed_len {\n        *buffer = buf1;\n        return true;\n    } else if buf2.len() &gt;= needed_len {\n        *buffer = buf2;\n        return true;\n    }\n\n    return false;\n}\n```\n&quot;,&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buffer: &amp;mut Option&lt;&amp;'a mut [u8]&gt;,\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) {\n    if buf1.len() &gt;= needed_len {\n        *buffer = Some(buf1);\n    } else if buf2.len() &gt;= needed_len {\n        *buffer = Some(buf2);\n    } else {\n        *buffer = None;\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic translation of C++ function into\nRust?\n\n```cpp\n#include &lt;cstdint&gt;\n\nvoid chooseBuffer(std::size_t neededLen,\n                  std::uint8_t **buffer,\n                  std::size_t *bufferLen,\n                  uint8_t *buf1,\n                  std::size_t buf1Len,\n                  uint8_t *buf2,\n                  std::size_t buf2Len) {\n\tif (buf1Len &gt;= neededLen) {\n\t\t*buffer = buf1;\n\t\t*bufferLen = buf1Len;\n\t} else if (buf2Len &gt;= neededLen) {\n\t\t*buffer = buf2;\n\t\t*bufferLen = buf2Len;\n\t} else {\n\t\t*buffer = nullptr;\n\t\t*bufferLen = 0;\n\t}\n}\n```\n&quot;}}]}"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;optional_return&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;6471e372-6552-41e9-88c6-7b7f6665928e&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) -&gt; Option&lt;&amp;'a mut [u8]&gt; {\n    if buf1.len() &gt;= needed_len {\n        Some(buf1)\n    } else if buf2.len() &gt;= needed_len {\n        Some(buf2)\n    } else {\n        None\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buffer: &amp;mut &amp;'a mut [u8],\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) {\n    if buf1.len() &gt;= needed_len {\n        *buffer = buf1;\n    } else if buf2.len() &gt;= needed_len {\n        *buffer = buf2;\n    }\n}\n```\n&quot;,&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buffer: &amp;mut &amp;'a mut [u8],\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) -&gt; bool {\n    if buf1.len() &gt;= needed_len {\n        *buffer = buf1;\n        return true;\n    } else if buf2.len() &gt;= needed_len {\n        *buffer = buf2;\n        return true;\n    }\n\n    return false;\n}\n```\n&quot;,&quot;```rust\nfn choose_buffer&lt;'a&gt;(\n    needed_len: usize,\n    buffer: &amp;mut Option&lt;&amp;'a mut [u8]&gt;,\n    buf1: &amp;'a mut [u8],\n    buf2: &amp;'a mut [u8],\n) {\n    if buf1.len() &gt;= needed_len {\n        *buffer = Some(buf1);\n    } else if buf2.len() &gt;= needed_len {\n        *buffer = Some(buf2);\n    } else {\n        *buffer = None;\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic translation of C++ function into\nRust?\n\n```cpp\n#include &lt;cstdint&gt;\n\nvoid chooseBuffer(std::size_t neededLen,\n                  std::uint8_t **buffer,\n                  std::size_t *bufferLen,\n                  uint8_t *buf1,\n                  std::size_t buf1Len,\n                  uint8_t *buf2,\n                  std::size_t buf2Len) {\n\tif (buf1Len &gt;= neededLen) {\n\t\t*buffer = buf1;\n\t\t*bufferLen = buf1Len;\n\t} else if (buf2Len &gt;= neededLen) {\n\t\t*buffer = buf2;\n\t\t*bufferLen = buf2Len;\n\t} else {\n\t\t*buffer = nullptr;\n\t\t*bufferLen = 0;\n\t}\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 
-                        <a class="feedback-link" href="https://forms.gle/YqpaAvir8QbUY21H6">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Optional return values">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

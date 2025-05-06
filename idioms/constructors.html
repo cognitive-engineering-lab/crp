@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Constructors - Rust Phrasebook for C++ Programmers</title>
+        <title>Constructors - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -125,7 +125,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Rust Phrasebook for C++ Programmers</h1>
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
 
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
@@ -247,11 +247,14 @@ expressions for the fields.</p>
 for a struct in Rust at the point where the constructor method (such as
 <code>Person::with_age</code>) is called, and in fact is not allocated until after the
 values of the fields of a struct have been computed (in terms of the semantics
-of the language--the optimizer may still avoid the copy). Therefore there is no
-way in Rust to write the C++ example above where the class stores a pointer to
-itself upon construction.</p>
+of the language — the optimizer may still avoid the copy). Therefore there is no
+easy way in Rust to write the C++ example above where the class stores a pointer to
+itself upon construction (this requires tools like <a href="https://doc.rust-lang.org/std/pin/struct.Pin.html"><code>Pin</code></a> and <a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a>).</p>
 <h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
-<p>In C++ the only way constructors can indicate failure is by throwing exceptions.</p>
+<p>In C++ the only way constructors can indicate failure is by throwing exceptions. In Rust, because constructors are normal static methods, fallible constructors
+can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code> (akin to
+<code>std::optional</code>).</p>
+<div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;stdexcept&gt;
 
@@ -274,9 +277,6 @@ int main() {
   }
 }
 </code></pre>
-<p>In Rust, because constructors are normal static methods, fallible constructors
-can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code> (akin to
-<code>std::optional</code>).</p>
 <pre><pre class="playground"><code class="language-rust">struct Person {
     age: i32,
 }
@@ -297,18 +297,19 @@ impl Person {
 fn main() {
     match Person::with_age(-4) {
         Err(err) =&gt; {
-            println!("{:?}", err);
+            println!("{err:?}");
         }
         Ok(person) =&gt; {
             // ...
         }
     }
 }</code></pre></pre>
+</div>
 <p>See <a href="/exceptions.html">the chapter on exceptions</a> for more information on how C++
 exceptions and exception handling translate to Rust.</p>
 
 
-                        <a class="feedback-link" href="https://forms.gle/YqpaAvir8QbUY21H6">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Constructors">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
