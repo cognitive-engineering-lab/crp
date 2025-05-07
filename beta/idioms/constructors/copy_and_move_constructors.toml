@@ -7,13 +7,37 @@ Does the following program compile?
 #[derive(Clone, Copy)]
 struct BinaryTreeNode {
     value: i32,
-    left_child: Box<BinaryTreeNode>,
-    right_child: Box<BinaryTreeNode>,
+    left_child: Option<Box<BinaryTreeNode>>,
+    right_child: Option<Box<BinaryTreeNode>>,
 }
 ```
 """
-prompt.distractors = ["yes"]
-answer.answer = "no"
+answer.answer = """
+It does not compile because `Box` doesn't implement `Copy`, so `Copy` can't be
+implemented for `BinaryTreeNode`.
+"""
+prompt.distractors = [
+"""
+It does compile.
+""",
+# Thinking Clone is implicit like a C++ copy constructor, which unique_ptr
+# doesn't have, and so Box wouldn't have.
+"""
+It does not compile because `Box` doesn't implement `Clone`, so `Clone` can't be
+derived for `BinaryTreeNode`.
+""",
+# Thinking Clone is like a user-defined copy constructor, while Copy is like a
+# defaulted one.
+"""
+It does not compile because only one of `Clone` or `Copy` can be implemented for
+a type.
+""",
+# Applying C++ rule-of-three but not understanding when it applies to Rust.
+"""
+It does not compile because `Drop` is not implemented for `BinaryTreeNode`
+even though `Clone` is.
+"""
+]
 context = """
 A type can only implement `Copy` if all of its fields implement `Copy`, just how
 in C++ a type is only trivially copyable if all of its members are. `Box` does
@@ -24,7 +48,7 @@ id = "ec3c58d9-cb13-4f88-ac67-7c1d5baf46e2"
 [[questions]]
 type = "MultipleChoice"
 prompt.prompt = """
-Does the following program compile?
+Does this program compile? If not, why not?
 
 ```rust
 #[derive(Copy)]
@@ -41,8 +65,27 @@ impl Clone for Age {
 }
 ```
 """
-prompt.distractors = ["no"]
-answer.answer = "yes"
+answer.answer = """
+It does compile, but implementing `Clone` in a way that doesn't match `Copy` is
+a bad idea.
+"""
+prompt.distractors = [
+# Thinking Clone is like a user-defined copy constructor, while Copy is like a
+# defaulted one.
+"""
+It does not compile because only one of `Clone` or `Copy` can be implemented
+for a type.
+""",
+# Not understanding that Clone and Copy are just regular traits.
+"""
+It does not compile because `Clone` must be derived in order to derive `Copy`.
+""",
+# Applying C++ rule-of-three but not understanding when it applies to Rust.
+"""
+It does not compile because `Drop` is not implemented for `Age` even though
+`Clone` is.
+"""
+]
 context = """
 While `Copy` requires `Clone`, it does not pose any constraints on the
 implementation of clone. Even though the given implementation of `Clone` is most
