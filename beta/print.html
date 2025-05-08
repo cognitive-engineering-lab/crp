@@ -8,7 +8,6 @@
 
 
         <!-- Custom HTML head -->
-        <meta name="robots" content="noindex">
 
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -203,7 +202,7 @@ time, the approach in C++ and the approach in Rust are the same. In both cases
 interfaces that defines the required operations are defined. Concrete types,
 possibly defined by the client, implement those interfaces.</p>
 <p>This way of modeling data can make use of either
-<a href="idioms//idioms/data_modeling/pure_virtual_classes.html">dynamic</a> or <a href="idioms//idioms/data_modeling/concepts.html">static
+<a href="idioms//idioms/data_modeling/abstract_classes.html">dynamic</a> or <a href="idioms//idioms/data_modeling/concepts.html">static
 dispatch</a>, each of which is covered in its
 own section.</p>
 <h2 id="fixed-data-varying-operations"><a class="header" href="#fixed-data-varying-operations">Fixed data, varying operations</a></h2>
@@ -832,6 +831,420 @@ fn store&lt;'s, S: Shape + 's&gt;(x: S, data: &amp;mut Box&lt;dyn Shape + 's&gt;
 }
 <span class="boring">}</span></code></pre></pre>
 <div class="quiz-placeholder" data-quiz-name="&quot;concepts&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust needs to know that the type of `Scaled::shape` supports the `area` method,\nso a trait bound on the type parameter is necessary. Trait implementations are\nall or nothing, so the requirement applies to the whole implementation, not the\nindividual method.\n&quot;,&quot;id&quot;:&quot;3cb5759b-5fe0-491e-ac87-4ba455b26e8f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T: Shape&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64\n    where\n        T: Shape,\n    {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T: Shape&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Consider the following C++ program.\n\n```cpp\ntemplate&lt;typename T&gt;\nstruct Scaled {\n\tdouble scale;\n\tT shape;\n\n\tdouble area() const {\n\t\treturn scale * shape.area();\n\t}\n};\n\ntemplate &lt;typename T&gt;\nvoid printArea(T &amp;shape) {\n\tstd::cout &lt;&lt; shape.area() &lt;&lt; std::endl;\n}\n```\n\nWhich of the following snippets represents the most idiomatic translation of the\n`Scaled` template class into Rust?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="tagged-unions-and-stdvariant"><a class="header" href="#tagged-unions-and-stdvariant">Tagged unions and <code>std::variant</code></a></h1>
+<h2 id="c-style-tagged-unions"><a class="header" href="#c-style-tagged-unions">C-style tagged unions</a></h2>
+<p>Because unions cannot be used for type punning in C++, they are usually used
+with a tag to discriminate between which variant of the union is active.</p>
+<p>Rust's equivalent to union types are always tagged. They are a generalization of
+Rust enums, where additional data may be associated with the enum variants.</p>
+<div class="comparison">
+<pre><code class="language-cpp">enum Tag { Rectangle, Triangle };
+
+struct Shape {
+  Tag tag;
+  union {
+    struct {
+      double width;
+      double height;
+    } rectangle;
+    struct {
+      double base;
+      double height;
+    } triangle;
+  };
+
+  double area() {
+    switch (this-&gt;tag) {
+    case Rectangle: {
+      return this-&gt;rectangle.width *
+             this-&gt;rectangle.height;
+    }
+    case Triangle: {
+      return 0.5 * this-&gt;triangle.base *
+             this-&gt;triangle.height;
+    }
+    }
+  }
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum Shape {
+    Rectangle { width: f64, height: f64 },
+    Triangle { base: f64, height: f64 },
+}
+
+impl Shape {
+    fn area(&amp;self) -&gt; f64 {
+        match self {
+            Shape::Rectangle {
+                width,
+                height,
+            } =&gt; width * height,
+            Shape::Triangle { base, height } =&gt; {
+                0.5 * base * height
+            }
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>When matching on an enum, Rust requires that all variants of the enum be
+handled. In situations where <code>default</code> would be used with a C++ <code>switch</code> on the
+tag, a wildcard can be used in the Rust <code>match</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;iostream&gt;
+</span><span class="boring">
+</span><span class="boring">enum Tag { Rectangle, Triangle, Circle };
+</span><span class="boring">
+</span>struct Shape {
+<span class="boring">  Tag tag;
+</span><span class="boring">  union {
+</span><span class="boring">    struct {
+</span><span class="boring">      double width;
+</span><span class="boring">      double height;
+</span><span class="boring">    } rectangle;
+</span><span class="boring">    struct {
+</span><span class="boring">      double base;
+</span><span class="boring">      double height;
+</span><span class="boring">    } triangle;
+</span><span class="boring">    struct {
+</span><span class="boring">      double radius;
+</span><span class="boring">    } circle;
+</span><span class="boring">  };
+</span><span class="boring">
+</span>  void print_shape() {
+    switch (this-&gt;tag) {
+    case Rectangle: {
+      std::cout &lt;&lt; "Rectangle" &lt;&lt; std::endl;
+      break;
+    }
+    default: {
+      std::cout &lt;&lt; "Some other shape"
+                &lt;&lt; std::endl;
+      break;
+    }
+    }
+  }
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">enum Shape {
+</span><span class="boring">    Rectangle { width: f64, height: f64 },
+</span><span class="boring">    Triangle { base: f64, height: f64 },
+</span><span class="boring">}
+</span><span class="boring">
+</span>impl Shape {
+    fn print_shape(&amp;self) {
+        match self {
+            Shape::Rectangle { .. } =&gt; {
+                println!("Rectangle");
+            }
+            _ =&gt; {
+                println!("Some other shape");
+            }
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>Rust does not support C++-style fallthrough where some behavior can be done
+before falling through to the next case. However, in Rust one can match on
+multiple enum variants simultaneously, so long as the simultaneous match
+patterns bind the same names with the same types.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">enum Shape {
+</span><span class="boring">    Rectangle { width: f64, height: f64 },
+</span><span class="boring">    Triangle { base: f64, height: f64 },
+</span><span class="boring">}
+</span><span class="boring">
+</span>impl Shape {
+    fn bounding_area(&amp;self) -&gt; f64 {
+        match self {
+            Shape::Rectangle { height, width }
+            | Shape::Triangle {
+                height,
+                base: width,
+            } =&gt; width * height,
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="accessing-the-value-without-checking-the-discriminant"><a class="header" href="#accessing-the-value-without-checking-the-discriminant">Accessing the value without checking the discriminant</a></h2>
+<p>Unlike with C-style unions, Rust always requires matching on the discriminant
+before accessing the values. If the variant is already known, e.g., due to an
+earlier check, then the code can usually be refactored to encode the knowledge
+in the type so that the second check (and corresponding error handling) can be
+omitted.</p>
+<p>A C++ program like the following requires more restructuring of the types to
+achieve the same goal in Rust.</p>
+<p>The corresponding Rust program requires defining separate types for each variant
+of the <code>Shape</code> enum so that the fact that all of the value are of a given type
+can be expressed in the type system by having an array of <code>Triangle</code> instead of
+an array of <code>Shape</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;ranges&gt;
+#include &lt;vector&gt;
+
+// Uses the same Shape definition.
+enum Tag { Rectangle, Triangle };
+
+struct Shape {
+  Tag tag;
+  union {
+    struct {
+      double width;
+      double height;
+    } rectangle;
+    struct {
+      double base;
+      double height;
+    } triangle;
+  };
+};
+
+std::vector&lt;Shape&gt; get_shapes() {
+  return std::vector&lt;Shape&gt;{
+      Shape{Triangle, {.triangle = {1.0, 1.0}}},
+      Shape{Triangle, {.triangle = {1.0, 1.0}}},
+      Shape{Rectangle, {.rectangle = {1.0, 1.0}}},
+  };
+}
+
+std::vector&lt;Shape&gt; get_shapes();
+
+int main() {
+  std::vector&lt;Shape&gt; shapes = get_shapes();
+
+  auto is_triangle = [](Shape shape) {
+    return shape.tag == Triangle;
+  };
+
+  // Create an iterator that only sees the
+  // triangles. (std::views::filter is from C++20,
+  // but the same effect can be acheived with a
+  // custom iterator.)
+  auto triangles =
+      shapes | std::views::filter(is_triangle);
+
+  double total_base = 0.0;
+  for (auto &amp;triangle : triangles) {
+    // Skip checking the tag because we know we
+    // have only triangles.
+    total_base += triangle.triangle.base;
+  }
+
+  return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">// Define a separate struct for each variant.
+struct Rectangle { width: f64, height: f64 }
+struct  Triangle { base: f64, height: f64 }
+
+enum Shape {
+    Rectangle(Rectangle),
+    Triangle(Triangle),
+}
+
+fn get_shapes() -&gt; Vec&lt;Shape&gt; {
+    vec![
+        Shape::Triangle(Triangle {
+            base: 1.0,
+            height: 1.0,
+        }),
+        Shape::Triangle(Triangle {
+            base: 1.0,
+            height: 1.0,
+        }),
+        Shape::Rectangle(Rectangle {
+            width: 1.0,
+            height: 1.0,
+        }),
+    ]
+}
+
+fn main() {
+    let shapes = get_shapes();
+
+    // This iterator only iterates over triangles
+    // and demonstrates that by iterating over
+    // the Triangle type instead of the Shape type.
+    let triangles = shapes
+        .iter()
+        // Keep only the triangles
+        .filter_map(|shape| match shape {
+            Shape::Triangle(t) =&gt; Some(t),
+            _ =&gt; None,
+        });
+
+    let mut total_base = 0.0;
+    for triangle in triangles {
+        // Because the iterator produces Triangles
+        // instead of Shapes, base can be accessed
+        // directly.
+        total_base += triangle.base;
+    }
+}</code></pre></pre>
+</div>
+<p>This kind of use is common enough in Rust that the variants are often designed
+to have their own types from the start.</p>
+<p>This approach is also possible in C++. It is more commonly used along with
+<code>std::variant</code> in C++17 or later.</p>
+<h2 id="stdvariant-since-c17"><a class="header" href="#stdvariant-since-c17"><code>std::variant</code> (since C++17)</a></h2>
+<p>When programming in C++ standards since C++17, <code>std::variant</code> can be used to
+represent a tagged union in a way that has more in common with Rust enums.</p>
+<pre><code class="language-cpp">#include &lt;variant&gt;
+
+struct Rectangle {
+  double width;
+  double height;
+};
+
+struct Triangle {
+  double base;
+  double height;
+};
+
+using Shape = std::variant&lt;Rectangle, Triangle&gt;;
+
+double area(const Shape &amp;shape) {
+  return std::visit(
+      [](auto &amp;&amp;arg) -&gt; double {
+        using T = std::decay_t&lt;decltype(arg)&gt;;
+        if constexpr (std::is_same_v&lt;T, Rectangle&gt;) {
+          return arg.width * arg.height;
+        } else if constexpr (std::is_same_v&lt;T, Triangle&gt;) {
+          return 0.5 * arg.base * arg.height;
+        }
+      },
+      shape);
+}
+</code></pre>
+<p>Because Rust doesn't depend on templates for this language feature, error
+messages when a variant is missed or when a new variant is added are easier to
+read, which removes one of the barriers to using tagged unions more frequently.
+Compare the errors in C++ (using gcc) and Rust when the <code>Triangle</code> case is
+omitted.</p>
+<p>The following two programs have the same error: each fails to handle a case of
+<code>Shape</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;variant&gt;
+
+struct Rectangle {
+  double width;
+  double height;
+};
+
+struct Triangle {
+  double base;
+  double height;
+};
+
+using Shape = std::variant&lt;Rectangle, Triangle&gt;;
+
+double area(const Shape &amp;shape) {
+  return std::visit(
+      [](auto &amp;&amp;arg) -&gt; double {
+        using T = std::decay_t&lt;decltype(arg)&gt;;
+        if constexpr (std::is_same_v&lt;T, Rectangle&gt;) {
+          return arg.width * arg.height;
+        }
+      },
+      shape);
+}
+</code></pre>
+<pre><code class="language-rust ignore">enum Shape {
+    Rectangle { width: f64, height: f64 },
+    Triangle { base: f64, height: f64 },
+}
+
+impl Shape {
+    fn area(&amp;self) -&gt; f64 {
+        match self {
+            Shape::Rectangle {
+                width,
+                height,
+            } =&gt; width * height,
+        }
+    }
+}</code></pre>
+</div>
+<p>However, the error messages differ significantly.</p>
+<div class="comparison">
+<pre><code class="language-text">example.cc: In instantiation of ‘area(const Shape&amp;)::&lt;lambda(auto:27&amp;&amp;)&gt; [with auto:27 = const Triangle&amp;]’:
+/usr/include/c++/14.2.1/bits/invoke.h:61:36:   required from ‘constexpr _Res std::__invoke_impl(__invoke_other, _Fn&amp;&amp;, _Args&amp;&amp; ...) [with _Res = double; _Fn = area(const Shape&amp;)::&lt;lambda(auto:27&amp;&amp;)&gt;; _Args = {const Triangle&amp;}]’
+   61 |     { return std::forward&lt;_Fn&gt;(__f)(std::forward&lt;_Args&gt;(__args)...); }
+      |              ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/14.2.1/bits/invoke.h:96:40:   required from ‘constexpr typename std::__invoke_result&lt;_Functor, _ArgTypes&gt;::type std::__invoke(_Callable&amp;&amp;, _Args&amp;&amp; ...) [with _Callable = area(const Shape&amp;)::&lt;lambda(auto:27&amp;&amp;)&gt;; _Args = {const Triangle&amp;}; typename __invoke_result&lt;_Functor, _ArgTypes&gt;::type = double]’
+   96 |       return std::__invoke_impl&lt;__type&gt;(__tag{}, std::forward&lt;_Callable&gt;(__fn),
+      |              ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   97 |                                         std::forward&lt;_Args&gt;(__args)...);
+      |                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/14.2.1/variant:1060:24:   required from ‘static constexpr decltype(auto) std::__detail::__variant::__gen_vtable_impl&lt;std::__detail::__variant::_Multi_array&lt;_Result_type (*)(_Visitor, _Variants ...)&gt;, std::integer_sequence&lt;long unsigned int, __indices ...&gt; &gt;::__visit_invoke(_Visitor&amp;&amp;, _Variants ...) [with _Result_type = std::__detail::__variant::__deduce_visit_result&lt;double&gt;; _Visitor = area(const Shape&amp;)::&lt;lambda(auto:27&amp;&amp;)&gt;&amp;&amp;; _Variants = {const std::variant&lt;Rectangle, Triangle&gt;&amp;}; long unsigned int ...__indices = {1}]’
+ 1060 |           return std::__invoke(std::forward&lt;_Visitor&gt;(__visitor),
+      |                  ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1061 |               __element_by_index_or_cookie&lt;__indices&gt;(
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1062 |                 std::forward&lt;_Variants&gt;(__vars))...);
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/14.2.1/variant:1820:5:   required from ‘constexpr decltype(auto) std::__do_visit(_Visitor&amp;&amp;, _Variants&amp;&amp; ...) [with _Result_type = __detail::__variant::__deduce_visit_result&lt;double&gt;; _Visitor = area(const Shape&amp;)::&lt;lambda(auto:27&amp;&amp;)&gt;; _Variants = {const variant&lt;Rectangle, Triangle&gt;&amp;}]’
+ 1820 |                   _GLIBCXX_VISIT_CASE(1)
+      |                   ^~~~~~~~~~~~~~~~~~~
+/usr/include/c++/14.2.1/variant:1882:34:   required from ‘constexpr std::__detail::__variant::__visit_result_t&lt;_Visitor, _Variants ...&gt; std::visit(_Visitor&amp;&amp;, _Variants&amp;&amp; ...) [with _Visitor = area(const Shape&amp;)::&lt;lambda(auto:27&amp;&amp;)&gt;; _Variants = {const variant&lt;Rectangle, Triangle&gt;&amp;}; __detail::__variant::__visit_result_t&lt;_Visitor, _Variants ...&gt; = double]’
+ 1882 |             return std::__do_visit&lt;_Tag&gt;(
+      |                    ~~~~~~~~~~~~~~~~~~~~~^
+ 1883 |               std::forward&lt;_Visitor&gt;(__visitor),
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1884 |               static_cast&lt;_Vp&gt;(__variants)...);
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+example.cc:17:20:   required from here
+   17 |   return std::visit(
+      |          ~~~~~~~~~~^
+   18 |       [](auto &amp;&amp;arg) -&gt; double {
+      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~
+   19 |         using T = std::decay_t&lt;decltype(arg)&gt;;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   20 |         if constexpr (std::is_same_v&lt;T, Rectangle&gt;) {
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   21 |           return arg.width * arg.height;
+      |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   22 |         }
+      |         ~
+   23 |       },
+      |       ~~
+   24 |       shape);
+      |       ~~~~~~
+example.cc:23:7: error: no return statement in ‘constexpr’ function returning non-void
+   23 |       },
+      |       ^
+example.cc: In lambda function:
+example.cc:23:7: warning: control reaches end of non-void function [-Wreturn-type]
+</code></pre>
+<pre><code class="language-text">error[E0004]: non-exhaustive patterns: `&amp;Shape::Triangle { .. }` not covered
+ --&gt; example.rs:8:15
+  |
+8 |         match self {
+  |               ^^^^ pattern `&amp;Shape::Triangle { .. }` not covered
+  |
+note: `Shape` defined here
+ --&gt; example.rs:1:6
+  |
+1 | enum Shape {
+  |      ^^^^^
+2 |     Rectangle { width: f64, height: f64 },
+3 |     Triangle { base: f64, height: f64 },
+  |     -------- not covered
+  = note: the matched value is of type `&amp;Shape`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
+  |
+12~             } =&gt; width * height,
+13~             &amp;Shape::Triangle { .. } =&gt; todo!(),
+  |
+</code></pre>
+</div>
+<div class="quiz-placeholder" data-quiz-name="&quot;tagged_unions&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;8019115c-c84b-4b79-a18d-d2e83ff984da&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nimpl MediaFile {\n    fn size(&amp;self) -&gt; usize {\n        match self {\n            MediaFile::Text { length, .. } =&gt; *length,\n            MediaFile::Image { height, width, .. }\n            | MediaFile::Video { height, width, .. } =&gt; height * width,\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nimpl MediaFile {\n    fn size(&amp;self) -&gt; usize {\n        match self {\n            MediaFile::Text { length, .. } =&gt; *length,\n            MediaFile::Image { height, width, .. } =&gt; // fallthrough\n            MediaFile::Video { height, width, .. } =&gt; height * width,\n        }\n    }\n}\n```\n&quot;,&quot;```rust\nimpl MediaFile {\n    fn size(&amp;self) -&gt; usize {\n        match self {\n            MediaFile::Text { length, .. } =&gt; *length,\n            _ =&gt; self.height * self.width,\n        }\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following Rust programs is the most idiomatic translation of the\ngiven C++ program?\n\n```c++\n#include &lt;chrono&gt;\n#include &lt;string&gt;\n\nenum class MediaType { Text, Image, Video };\n\nclass MediaFile {\npublic:\n  MediaType type;\n  union {\n    struct {\n      std::string language;\n      size_t length;\n    } text;\n    struct {\n      size_t height;\n      size_t width;\n    } image;\n    struct {\n      size_t height;\n      size_t width;\n      std::chrono::nanoseconds duration;\n    } video;\n  };\n\n  // constructors omitted for brevity\n\n  size_t size() const {\n    switch (type) {\n    case MediaType::Text:\n      return text.length;\n    case MediaType::Image:\n      return image.height * image.width;\n    case MediaType::Video:\n      return video.height * video.width;\n    }\n    // Should not reach here\n    return 0;\n  }\n};\n```\n\nAll of the Rust programs use this definition of `MediaFile`.\n\n```rust\nenum MediaFile {\n    Text {\n        language: String,\n        length: usize,\n    },\n    Image {\n        height: usize,\n        width: usize,\n    },\n    Video {\n        height: usize,\n        width: usize,\n        duration: std::time::Duration,\n    },\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="encapsulation"><a class="header" href="#encapsulation">Encapsulation</a></h1>
 <p>In C++ the encapsulation boundary is the class. In Rust the encapsulation
 boundary is the module, which may contain several types along with standalone
@@ -1549,8 +1962,9 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>If the type implements the <code>Clone</code> trait, then the array can be constructed
-using the <code>vec!</code> macro. See the chapter on <a href="idioms/constructors/copy_constructors.html">copy
-constructors</a> for more details on <code>Clone</code>.</p>
+using the <code>vec!</code> macro. See the chapter on <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html">copy
+constructors</a> for more
+details on <code>Clone</code>.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
 struct Person {
     age: i32,

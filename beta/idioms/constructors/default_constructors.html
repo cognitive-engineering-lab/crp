@@ -7,7 +7,6 @@
 
 
         <!-- Custom HTML head -->
-        <meta name="robots" content="noindex">
 
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -360,8 +359,9 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>If the type implements the <code>Clone</code> trait, then the array can be constructed
-using the <code>vec!</code> macro. See the chapter on <a href="copy_constructors.html">copy
-constructors</a> for more details on <code>Clone</code>.</p>
+using the <code>vec!</code> macro. See the chapter on <a href="/idioms/constructors/copy_and_move_constructors.html">copy
+constructors</a> for more
+details on <code>Clone</code>.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
 struct Person {
     age: i32,
