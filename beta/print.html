@@ -831,6 +831,220 @@ fn store&lt;'s, S: Shape + 's&gt;(x: S, data: &amp;mut Box&lt;dyn Shape + 's&gt;
 }
 <span class="boring">}</span></code></pre></pre>
 <div class="quiz-placeholder" data-quiz-name="&quot;concepts&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust needs to know that the type of `Scaled::shape` supports the `area` method,\nso a trait bound on the type parameter is necessary. Trait implementations are\nall or nothing, so the requirement applies to the whole implementation, not the\nindividual method.\n&quot;,&quot;id&quot;:&quot;3cb5759b-5fe0-491e-ac87-4ba455b26e8f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T: Shape&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64\n    where\n        T: Shape,\n    {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T: Shape&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Consider the following C++ program.\n\n```cpp\ntemplate&lt;typename T&gt;\nstruct Scaled {\n\tdouble scale;\n\tT shape;\n\n\tdouble area() const {\n\t\treturn scale * shape.area();\n\t}\n};\n\ntemplate &lt;typename T&gt;\nvoid printArea(T &amp;shape) {\n\tstd::cout &lt;&lt; shape.area() &lt;&lt; std::endl;\n}\n```\n\nWhich of the following snippets represents the most idiomatic translation of the\n`Scaled` template class into Rust?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="enums"><a class="header" href="#enums">Enums</a></h1>
+<p>In C++, enums are often used to model fixed set alternatives, especially when
+each of those enumerators maps to a specific integer value, such as is needed
+when working with hardware, system calls, or protocol implementations.</p>
+<p>For example, the various modes for a GPIO pin could be modeled as an enum, which
+would restrict methods using the mode to valid values.</p>
+<p>While Rust enums are <a href="idioms/data_modeling//idioms/data_modeling/tagged_unions.html">more general</a>,
+they can still be used for this sort of modeling.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
+
+enum Pin : uint8_t {
+  Pin1 = 0x01,
+  Pin2 = 0x02,
+  Pin3 = 0x04
+};
+
+enum Mode : uint8_t {
+  Output = 0x03,
+  Pullup = 0x04,
+  Analog = 0x27
+  // ...
+};
+
+void lowLevelSetPin(uint8_t pin, uint8_t mode);
+
+void setPinMode(Pin pin, Mode mode) {
+  lowLevelSetPin(pin, mode);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[repr(u8)]
+#[derive(Clone, Copy)]
+enum Pin {
+    Pin1 = 0x01,
+    Pin2 = 0x02,
+    Pin3 = 0x04,
+}
+
+#[repr(u8)]
+#[derive(Clone, Copy)]
+enum Mode {
+    Output = 0x03,
+    Pullup = 0x04,
+    Analog = 0x27,
+    // ...
+}
+
+extern "C" {
+    fn low_level_set_pin(pin: u8, mode: u8);
+}
+
+fn set_pin_mode(pin: Pin, mode: Mode) {
+    unsafe {
+        low_level_set_pin(pin as u8, mode as u8)
+    };
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The <code>#[repr(u8)]</code> attribute ensures that the representation of the enum is the
+same as a byte (like declaring the underlying type of an enum in C++). The enum
+values can then be freely converted to the underlying type with the <code>as</code>.</p>
+<p>In C++ the standard way to convert from an integer to an enum is a static cast.
+However, this <a href="https://eel.is/c++draft/expr.static.cast#10">requires that the user check the validity of the cast
+themselves</a>. Often the conversion
+is done by a function that checks that the value to convert is a valid enum
+value.</p>
+<p>In Rust the standard way to perform the conversion is to implement the <code>TryFrom</code>
+trait for the type and then use the <code>try_from</code> method or <code>try_into</code> method.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;cstdint&gt;
+</span><span class="boring">
+</span><span class="boring">enum Pin : uint8_t {
+</span><span class="boring">  Pin1 = 0x01,
+</span><span class="boring">  Pin2 = 0x02,
+</span><span class="boring">  Pin3 = 0x04
+</span><span class="boring">};
+</span><span class="boring">
+</span>struct InvalidPin {
+    uint8_t pin;
+};
+
+Pin to_pin(uint8_t pin) {
+  // The values are not contiguous, so we can't
+  // just check the bounds and then cast.
+  switch (pin) {
+  case 0x1: { return Pin1; }
+  case 0x2: { return Pin2; }
+  case 0x4: { return Pin3; }
+  }
+  throw InvalidPin{pin};
+}
+
+int main() {
+  try {
+    Pin p(to_pin(2));
+  } catch (InvalidPin &amp;e) {
+    return 0;
+  }
+
+  // use pin p
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#[repr(u8)]
+</span><span class="boring">#[derive(Clone, Copy)]
+</span><span class="boring">enum Pin {
+</span><span class="boring">    Pin1 = 0x01,
+</span><span class="boring">    Pin2 = 0x02,
+</span><span class="boring">    Pin3 = 0x04,
+</span><span class="boring">}
+</span><span class="boring">
+</span>use std::convert::TryFrom;
+
+struct InvalidPin(u8);
+
+impl TryFrom&lt;u8&gt; for Pin {
+    type Error = InvalidPin;
+
+    fn try_from(
+        value: u8,
+    ) -&gt; Result&lt;Self, Self::Error&gt; {
+        match value {
+            0x01 =&gt; Ok(Pin::Pin1),
+            0x02 =&gt; Ok(Pin::Pin2),
+            0x04 =&gt; Ok(Pin::Pin3),
+            pin =&gt; Err(InvalidPin(pin)),
+        }
+    }
+}
+
+fn main() {
+  let Ok(p) = Pin::try_from(2) else {
+    return;
+  };
+
+  // use pin p
+}</code></pre></pre>
+</div>
+<p>See <a href="idioms/data_modeling//idioms/exceptions.html">Exceptions and error handling</a> for examples of how
+to ergonomically handle the result of <code>try_from</code>.</p>
+<p>If low-level performance is more of a concern than memory safety,
+<code>std::mem::transmute</code> is analogous to a C++ reinterpret cast, but requires
+unsafe Rust because its use can result in undefined behavior. Uses of
+<code>std::mem::transmute</code> for this purpose should not be hidden behind an interface
+that can be called from safe Rust unless the interface can actually guarantee
+that the call will never happen with an invalid value.</p>
+<h2 id="enums-and-methods"><a class="header" href="#enums-and-methods">Enums and methods</a></h2>
+<p>In C++ enums cannot have methods. Instead, to model an enum with methods one
+must define a wrapper class for the enum and define the methods on that wrapper
+class. In Rust, methods can be defined on an enum with an <code>impl</code> block, just
+like any other type.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
+
+// Actual enum
+enum PinImpl : uint8_t {
+  Pin1 = 0x01,
+  Pin2 = 0x02,
+  Pin3 = 0x04
+};
+
+class LastPin{};
+
+// Wrapper type
+struct Pin {
+  PinImpl pin;
+
+  // Conversion constructor so that PinImpl can be
+  // used as a Pin.
+  Pin(PinImpl p) : pin(p) {}
+
+  // Conversion method so wrapper type can be
+  // used with switch statement.
+  operator PinImpl() {
+    return this-&gt;pin;
+  }
+
+  Pin next() const {
+    switch (pin) {
+    case Pin1:
+      return Pin(Pin2);
+    case Pin2:
+      return Pin(Pin3);
+    default:
+      throw LastPin{};
+    }
+  }
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[repr(u8)]
+#[derive(Clone, Copy)]
+enum Pin {
+    Pin1 = 0x01,
+    Pin2 = 0x02,
+    Pin3 = 0x04,
+}
+
+struct LastPin;
+
+impl Pin {
+    fn next(&amp;self) -&gt; Result&lt;Self, LastPin&gt; {
+        match self {
+            Pin::Pin1 =&gt; Ok(Pin::Pin2),
+            Pin::Pin2 =&gt; Ok(Pin::Pin3),
+            Pin::Pin3 =&gt; Err(LastPin),
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<div class="quiz-placeholder" data-quiz-name="&quot;enums&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;b1f69693-be11-4105-b408-7f8925c4303d&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nimpl TryFrom&lt;u8&gt; for Color {\n    type Error = InvalidColor;\n\n    fn try_from(c: u8) -&gt; Result&lt;Self, InvalidColor&gt; {\n        match c {\n            0 =&gt; Ok(Color::Red),\n            1 =&gt; Ok(Color::Blue),\n            2 =&gt; Ok(Color::Green),\n            3 =&gt; Ok(Color::Yellow),\n            _ =&gt; Err(InvalidColor(c)),\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nimpl TryFrom&lt;u8&gt; for Color {\n    type Error = InvalidColor;\n\n    fn try_from(c: u8) -&gt; Result&lt;Self, InvalidColor&gt; {\n        match c {\n            0 | 2 | 3 =&gt; Ok(c as Color),\n            _ =&gt; Err(InvalidColor(c)),\n        }\n    }\n}\n```\n&quot;,&quot;```rust\n#[derive(Clone, Copy)]\nstruct ColorWrapper {\n    color: Color,\n}\n\nimpl TryFrom&lt;u8&gt; for ColorWrapper {\n    type Error = InvalidColor;\n\n    fn try_from(c: u8) -&gt; Result&lt;Self, InvalidColor&gt; {\n        let color = match c {\n            0 =&gt; Ok(Color::Red),\n            1 =&gt; Ok(Color::Blue),\n            2 =&gt; Ok(Color::Green),\n            3 =&gt; Ok(Color::Yellow),\n            _ =&gt; Err(InvalidColor(c)),\n        }?;\n        Ok(ColorWrapper { color })\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of these Rust programs is the most idiomatic translation of the following\nC++ program?\n\n```cpp\n#include &lt;cstdint&gt;\n#include &lt;iostream&gt;\n\nenum ColorImpl : uint8_t {\n  Red,\n  Blue,\n  Green,\n  Yellow,\n};\n\nstruct InvalidColor {\n  uint8_t color;\n};\n\nstruct Color {\n  ColorImpl color;\n\n  Color(ColorImpl c) : color(c) {}\n\n  operator ColorImpl() {\n    return color;\n  }\n\n  explicit Color(uint8_t c) {\n    if (c &lt; Red || c &gt; Yellow) {\n      throw InvalidColor{c};\n    }\n    color = static_cast&lt;ColorImpl&gt;(c);\n  }\n};\n```\n\nAll of the Rust options start with the following import and definitions.\n\n```rust\nuse std::convert::TryFrom;\n\n#[repr(i8)]\n#[derive(Clone, Copy)]\nenum Color {\n    Red,\n    Blue,\n    Green,\n    Yellow,\n}\n\nstruct InvalidColor(u8);\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="tagged-unions-and-stdvariant"><a class="header" href="#tagged-unions-and-stdvariant">Tagged unions and <code>std::variant</code></a></h1>
 <h2 id="c-style-tagged-unions"><a class="header" href="#c-style-tagged-unions">C-style tagged unions</a></h2>
 <p>Because unions cannot be used for type punning in C++, they are usually used
@@ -1245,6 +1459,103 @@ help: ensure that all possible cases are being handled by adding a match arm wit
 </code></pre>
 </div>
 <div class="quiz-placeholder" data-quiz-name="&quot;tagged_unions&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;8019115c-c84b-4b79-a18d-d2e83ff984da&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nimpl MediaFile {\n    fn size(&amp;self) -&gt; usize {\n        match self {\n            MediaFile::Text { length, .. } =&gt; *length,\n            MediaFile::Image { height, width, .. }\n            | MediaFile::Video { height, width, .. } =&gt; height * width,\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nimpl MediaFile {\n    fn size(&amp;self) -&gt; usize {\n        match self {\n            MediaFile::Text { length, .. } =&gt; *length,\n            MediaFile::Image { height, width, .. } =&gt; // fallthrough\n            MediaFile::Video { height, width, .. } =&gt; height * width,\n        }\n    }\n}\n```\n&quot;,&quot;```rust\nimpl MediaFile {\n    fn size(&amp;self) -&gt; usize {\n        match self {\n            MediaFile::Text { length, .. } =&gt; *length,\n            _ =&gt; self.height * self.width,\n        }\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following Rust programs is the most idiomatic translation of the\ngiven C++ program?\n\n```c++\n#include &lt;chrono&gt;\n#include &lt;string&gt;\n\nenum class MediaType { Text, Image, Video };\n\nclass MediaFile {\npublic:\n  MediaType type;\n  union {\n    struct {\n      std::string language;\n      size_t length;\n    } text;\n    struct {\n      size_t height;\n      size_t width;\n    } image;\n    struct {\n      size_t height;\n      size_t width;\n      std::chrono::nanoseconds duration;\n    } video;\n  };\n\n  // constructors omitted for brevity\n\n  size_t size() const {\n    switch (type) {\n    case MediaType::Text:\n      return text.length;\n    case MediaType::Image:\n      return image.height * image.width;\n    case MediaType::Video:\n      return video.height * video.width;\n    }\n    // Should not reach here\n    return 0;\n  }\n};\n```\n\nAll of the Rust programs use this definition of `MediaFile`.\n\n```rust\nenum MediaFile {\n    Text {\n        language: String,\n        length: usize,\n    },\n    Image {\n        height: usize,\n        width: usize,\n    },\n    Video {\n        height: usize,\n        width: usize,\n        duration: std::time::Duration,\n    },\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="inheritance-and-implementation-reuse"><a class="header" href="#inheritance-and-implementation-reuse">Inheritance and implementation reuse</a></h1>
+<p>Rust does not have inheritance and so the primary means of reuse of
+implementations in Rust are composition, aggregation, and
+<a href="idioms/data_modeling/./idioms/data_modeling/templates.html">generics</a>.</p>
+<p>However, Rust traits do have support for default methods which resemble one
+simple case of using inheritance for reuse of implementations. For example, in
+the following example two virtual methods are used to support a method whose
+implementation is provided by the abstract class.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+class Device {
+public:
+    virtual void powerOn() = 0;
+    virtual void powerOff() = 0;
+
+    virtual void resetDevice() {
+        std::cout &lt;&lt; "Resetting device..." &lt;&lt; std::endl;
+        powerOff();
+        powerOn();
+    }
+
+    virtual ~Device() {}
+};
+
+class Printer : public Device {
+    bool powered = false;
+public:
+    void powerOn() override {
+        this.powered = true;
+        std::cout &lt;&lt; "Printer is powered on." &lt;&lt; std::endl;
+    }
+
+    void powerOff() override {
+        this.powered = false;
+        std::cout &lt;&lt; "Printer is powered off." &lt;&lt; std::endl;
+    }
+};
+
+int main() {
+    Printer myPrinter;
+    myPrinter.resetDevice();
+    return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>trait Device {
+    fn power_on(&amp;mut self);
+    fn power_off(&amp;mut self);
+
+    fn reset_device(&amp;mut self) {
+        println!("Resetting device...");
+        self.power_on();
+        self.power_off();
+    }
+}
+
+struct Printer {
+    powered: bool,
+}
+
+impl Device for Printer {
+    fn power_on(&amp;mut self) {
+        self.powered = true;
+        println!("Printer is powered on");
+    }
+
+    fn power_off(&amp;mut self) {
+        self.powered = false;
+        println!("Printer is powered off");
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>In practice, the <code>resetDevice()</code> method in the <code>Device</code> class might be made
+non-virtual in C++ if it is not expected that it will be overridden. In order to
+make it align with the Rust example, we have made it virtual here, since Rust
+traits can be used either for <a href="idioms/data_modeling/./idioms/data_modeling/abstract_classes.html">dynamic
+dispatch</a> or <a href="idioms/data_modeling//idioms/data_modeling/concepts.html">static
+dispatch</a> (with <a href="idioms/data_modeling/./idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
+static dispatch
+case</a>).</p>
+<p>Rust traits differ from abstract classes in a additional few ways. For example,
+Rust traits cannot define data members and cannot define private or protected
+methods. This limits the effectiveness of using traits to implement the template
+method pattern.</p>
+<p>Rust traits also cannot be privately implemented. Anywhere that both a trait
+and a type that implements that trait are visible, the methods of the trait are
+visible as methods on the type.</p>
+<p>Traits can, however, inherit from each other, including multiple inheritance. As
+in modern C++, inheritance hierarchies in Rust tend to be shallow. In situations
+with complex multiple inheritance, however, the diamond problem cannot arise in
+Rust because traits cannot override other traits implementations. Therefore, all
+paths to a common parent trait resolve to the same implementation.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;inheritance_and_reuse&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Unlike with a C++ parent class, the default method is not part of `BareLogger`,\neven when accessed statically via the trait.\n&quot;,&quot;id&quot;:&quot;2bc058d0-99e4-44e0-9abe-5497b713731e&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;a message\nan error\nanother message\nanother error\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;trait Logger {\n    fn log(&amp;self, message: &amp;str);\n\n    fn error(&amp;self, message: &amp;str) {\n        self.log(&amp;format!(\&quot;ERROR: {}\&quot;, message));\n    }\n}\n\nstruct BareLogger;\n\nimpl Logger for BareLogger {\n    fn log(&amp;self, message: &amp;str) {\n        println!(\&quot;{}\&quot;, message);\n    }\n\n    fn error(&amp;self, message: &amp;str) {\n        // Omits the ERROR: prefix\n        println!(\&quot;{}\&quot;, message)\n    }\n}\n\nfn main() {\n    let logger = BareLogger;\n    logger.log(\&quot;a message\&quot;);\n    logger.error(\&quot;an error\&quot;);\n    &lt;BareLogger as Logger&gt;::log(&amp;logger, \&quot;another message\&quot;);\n    &lt;BareLogger as Logger&gt;::error(&amp;logger, \&quot;another error\&quot;);\n}\n&quot;}},{&quot;context&quot;:&quot;A trait only defines an interface, with the ability to define default methods as\na convenience for when some methods on the trait can be defined in terms of\nothers.\n&quot;,&quot;id&quot;:&quot;78c03495-5d3d-4faf-8375-b9f338a377ff&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because in Rust traits cannot have fields.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile, because `health` isn't initialized when `Enemy` implements\n`Damageable`.\n&quot;,&quot;It does not compile, because `e.health` isn't initialized before using `e` in\n`main`.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile? If not, why not?\n\n```rust\ntrait Damageable {\n    health: u32;\n\n    fn take_damage(&amp;mut self, damage: u32) {\n        self.health = self.health.saturating_sub(damage);\n    }\n}\n\nimpl Damageable for Enemy {}\n\nfn main() {\n    let e = Enemy;\n    e.take_damage(10);\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="encapsulation"><a class="header" href="#encapsulation">Encapsulation</a></h1>
 <p>In C++ the encapsulation boundary is the class. In Rust the encapsulation
 boundary is the module, which may contain several types along with standalone
