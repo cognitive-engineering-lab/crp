@@ -183,7 +183,683 @@ send us a message!</p>
 <p>This book is incomplete and may include links to chapters that have not yet been
 published. If you encounter such a link and want us to prioritize that chapter,
 let us know using the feedback form.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="data-modeling"><a class="header" href="#data-modeling">Data modeling</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
+<p>In C++, constructors initialize objects.</p>
+<pre><code class="language-cpp">class Person {
+  int age;
+
+public:
+  Person(int a) : age(a) {}
+};
+
+int main() {
+  Person person(42);
+  // ...
+}
+</code></pre>
+<p>At the point when a constructor is executed, storage for the object has been
+allocated and the constructor is only performing initialization.</p>
+<pre><code class="language-cpp">class Person {
+  int age;
+  // non-owning pointer
+  Person *best_friend;
+
+public:
+  Person(int a) : age(a), best_friend(this) {}
+};
+
+int main() {
+  Person person(42);
+  // ...
+}
+</code></pre>
+<p>Rust does not have constructors in the same way as C++. In Rust, there is a
+single fundamental way to create an object, which is to initialize all of its
+members at once. The term "constructor" or "constructor method" in Rust refers
+to something more like a factory: a static method associated with a type (i.e.,
+a method that does not have a <code>self</code> parameter), which returns a value of the
+type.</p>
+<pre><pre class="playground"><code class="language-rust">struct Person {
+    age: i32
+}
+
+impl Person {
+    const fn with_age(a: i32) -&gt; Self {
+        Self { age: a }
+    }
+}
+
+fn main() {
+    let person = Person::with_age(42);
+    // ...
+}</code></pre></pre>
+<p>Typically the primary constructor for a type is named <code>new</code>, especially if it
+takes no arguments. See the chapter on <a href="idioms/constructors/default_constructors.html">default
+constructors</a>. Constructors based on
+some specific property of the value are usually named <code>with_details</code> (e.g.,
+<code>Person::with_name</code>). See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
+guidelines</a> for the
+conventions on how to name constructor methods in Rust.</p>
+<p>If the fields to be initialized are visible, there is a reasonable default
+value, and the value does not manage a resource, then it is also common to use
+record update syntax to initialize a value based on some default value.</p>
+<pre><pre class="playground"><code class="language-rust">struct Point {
+    x: i32,
+    y: i32,
+    z: i32,
+}
+
+impl Point {
+    const fn zero() -&gt; Self {
+        Self { x: 0, y: 0, z: 0 }
+    }
+}
+
+fn main() {
+    let x_unit = Point {
+        x: 1,
+        ..Point::zero()
+    };
+    // ...
+}</code></pre></pre>
+<p>Despite the name, "record update syntax" does not modify a record but instead
+creates a new value based on another one, taking ownership of it in order to do
+so.</p>
+<h2 id="storage-allocation-vs-initialization"><a class="header" href="#storage-allocation-vs-initialization">Storage allocation vs initialization</a></h2>
+<p>The actual construction of a structure or enum value in Rust occurs where the
+structure construction syntax <code>A { ... }</code> is, after the evaluation of the
+expressions for the fields.</p>
+<p>A significant implication of this difference is that storage is not allocated
+for a struct in Rust at the point where the constructor method (such as
+<code>Person::with_age</code>) is called, and in fact is not allocated until after the
+values of the fields of a struct have been computed (in terms of the semantics
+of the language — the optimizer may still avoid the copy). Therefore there is no
+easy way in Rust to write the C++ example above where the class stores a pointer to
+itself upon construction (this requires tools like <a href="https://doc.rust-lang.org/std/pin/struct.Pin.html"><code>Pin</code></a> and <a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a>).</p>
+<h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
+<p>In C++ the only way constructors can indicate failure is by throwing exceptions. In Rust, because constructors are normal static methods, fallible constructors
+can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code> (akin to
+<code>std::optional</code>).</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+
+class Person {
+  int age;
+
+public:
+  Person(int a) : age(a) {
+    if (age &lt; 0) {
+      throw std::domain_error("Bad argument");
+    }
+  }
+};
+
+int main() {
+  try {
+    Person person(-4);
+  } catch (const std::domain_error &amp;e) {
+    std::cout &lt;&lt; e.what() &lt;&lt; std::endl;
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">struct Person {
+    age: i32,
+}
+
+#[derive(Debug)]
+struct NegativeAgeError(i32);
+
+impl Person {
+    fn with_age(a: i32) -&gt; Result&lt;Self, NegativeAgeError&gt; {
+        if a &lt; 0 {
+            Err(NegativeAgeError(a))
+        } else {
+            Ok(Self { age: a })
+        }
+    }
+}
+
+fn main() {
+    match Person::with_age(-4) {
+        Err(err) =&gt; {
+            println!("{err:?}");
+        }
+        Ok(person) =&gt; {
+            // ...
+        }
+    }
+}</code></pre></pre>
+</div>
+<p>See <a href="idioms//idioms/exceptions.html">the chapter on exceptions</a> for more information on
+how C++ exceptions and exception handling translate to Rust.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
+<p>C++ has a special concept of default constructors to support several scenarios
+in which they are implicitly called.</p>
+<pre><code class="language-cpp">class Person {
+    int age;
+
+public:
+    // Default constructor
+    Person() : age(0) {}
+}
+</code></pre>
+<p>Rust does not have a notion of a default constructor in the same way as in C++.
+Some of the uses cases are achieved via a different mechanism or with different
+conventions, and others do not apply to Rust.</p>
+<p>If a structure has a useful default value (such as would be constructed by a
+default constructor in C++), then the type should provide
+<a href="https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits">both</a>
+a <code>new</code> method that takes no arguments and an implementation of the <a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code>
+trait</a>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Person {
+   age: i32,
+}
+
+impl Person {
+    pub const fn new() -&gt; Self {
+        Self { age: 0 }
+    }
+}
+
+impl Default for Person {
+    fn default() -&gt; Self {
+        Self::new()
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="implicit-initialization-of-class-members"><a class="header" href="#implicit-initialization-of-class-members">Implicit initialization of class members</a></h2>
+<p>In C++ if a member is not explicitly initialized by a constructor, then it is
+default-initialized. When the type of the member is a class, the
+default-initialization invokes the default constructor.</p>
+<p>In Rust, if all of the fields of a struct implement the <code>Default</code> trait, then an
+implementation for the structure can be provided by the compiler.</p>
+<div class="comparison">
+<pre><code class="language-cpp">class Person {
+  int age;
+
+public:
+  Person() : age(0) {}
+}
+
+class Student {
+  Person person;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+#[derive(Default)]
+struct Student {
+    person: Person,
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The use of the derive macros in Rust is equivalent to writing the following.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Person {
+    age: i32,
+}
+
+impl Default for Person {
+    fn default() -&gt; Self {
+        Self {
+            age: Default::default()
+        }
+    }
+}
+
+struct Student {
+    person: Person,
+}
+
+impl Default for Student {
+    fn default() -&gt; Self {
+        Self {
+            person: Default::default()
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Unlike C++ where the default initialization value for integers is indeterminate,
+in Rust the default value for the primitive integer and floating point types is
+zero.</p>
+<p>Deriving the <code>Default</code> trait has a similar effect on code concision as eliding
+initialization in C++. In situations where all of the types implement the
+<code>Default</code> trait, but only some of the fields should have their default values,
+one can use <a href="https://doc.rust-lang.org/book/ch05-01-defining-structs.html#creating-instances-from-other-instances-with-struct-update-syntax">struct update
+syntax</a>
+to define a constructor method without enumerating the values for all of the
+fields.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+#[derive(Default)]
+struct Student {
+    person: Person,
+    favorite_color: Option&lt;String&gt;,
+}
+
+impl Student {
+    pub fn with_favorite_color(color: String) -&gt; Self {
+        Student {
+            favorite_color: Some(color),
+            ..Default::default()
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="implicit-initialization-of-array-values"><a class="header" href="#implicit-initialization-of-array-values">Implicit initialization of array values</a></h2>
+<p>In C++, arrays without explicit initialization are default-initialized using the
+default constructors.</p>
+<p>In Rust, the value with which to initialize the array must be provided.</p>
+<div class="comparison">
+<pre><code class="language-cpp">class Person {
+  int age;
+
+public:
+  Person() : age(0) {}
+};
+
+int main() {
+  Person people[3];
+  // ...
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    // std::array::from_fn provides the index to the callback
+    let people: [Person; 3] = 
+        std::array::from_fn(|_| Default::default());
+    // ...
+}</code></pre></pre>
+</div>
+<p>If the type happens to be <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">trivially
+copyable</a>,
+then a shorthand can be used.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy, Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let people: [Person; 3] = [Default::default(); 3];
+    // ...
+}</code></pre></pre>
+<h2 id="container-element-initialization"><a class="header" href="#container-element-initialization">Container element initialization</a></h2>
+<p>In C++, the default constructor could be used to implicitly define collection
+types, such as <code>std::vector</code>. Before C++11 one value would be default
+constructed, and the elements would be copy constructed from that initial
+element. Since C++11, all elements are default constructed.</p>
+<p>As with array initialization, the values must be explicitly specified in Rust.
+The vector can be constructed from an array, enabling the same syntax as with
+arrays.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;vector&gt;
+
+class Person {
+  int age;
+
+public:
+  Person() : age(0) {}
+}
+
+int main() {
+  std::vector&lt;Person&gt; v(3);
+  // ...
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let people_arr: [Person; 3] = std::array::from_fn(|_| Default::default());
+    let people: Vec&lt;Person&gt; = Vec::from(people_arr);
+    // ...
+}</code></pre></pre>
+</div>
+<p>If the type implements the <code>Clone</code> trait, then the array can be constructed
+using the <code>vec!</code> macro. See the chapter on <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html">copy
+constructors</a> for more
+details on <code>Clone</code>.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let people: Vec&lt;Person&gt; = vec![Default::default(); 3];
+    // ...
+}</code></pre></pre>
+<h2 id="implicit-initialization-of-local-variables"><a class="header" href="#implicit-initialization-of-local-variables">Implicit initialization of local variables</a></h2>
+<p>In C++, the default constructor is used to perform default-initialization of
+local variables that are not explicitly initialized.</p>
+<p>In Rust, initialization of local variables is always explicit.</p>
+<div class="comparison">
+<pre><code class="language-cpp">class Person {
+  int age;
+
+public:
+  Person() : age(0) {}
+};
+
+int main() {
+  Person person;
+  // ...
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let person = Person::default();
+    // ...
+}</code></pre></pre>
+</div>
+<h2 id="implicit-initialization-of-the-base-class-object"><a class="header" href="#implicit-initialization-of-the-base-class-object">Implicit initialization of the base class object</a></h2>
+<p>In C++, the default constructor is used to initialize the base class object if
+it no other constructor is specified.</p>
+<pre><code class="language-cpp">class Base {
+  int x;
+
+public:
+  Base() : x(0) {}
+};
+
+class Derived : Base {
+public:
+  // Calls the default constructor for Base
+  Derived() {}
+};
+</code></pre>
+<p>Since Rust does not have inheritance, there is no equivalent to this case.
+See the chapter on <a href="idioms/constructors//idioms/data_modeling/inheritance_and_reuse.html">implementation
+reuse</a> or the section on <a href="https://doc.rust-lang.org/book/ch10-02-traits.html">traits
+in the Rust book</a> for
+alternatives.</p>
+<h2 id="stdunique_ptr"><a class="header" href="#stdunique_ptr"><code>std::unique_ptr</code></a></h2>
+<p>There are some additional cases where the <code>Default</code> trait is used in Rust, but
+default constructors are not used for initialization in C++.</p>
+<p>Rust's equivalent of smart pointers implement <code>Default</code> by delegating to the
+<code>Default</code> implementation of the contained type.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct Person {
+  age: i32,
+}
+
+fn main() {
+    let b: Box&lt;Person&gt; = Default::default();
+    // ...
+}</code></pre></pre>
+<p>This differs from the treatment of <code>std::unique_ptr</code> C++ because unlike <code>Box</code>,
+<code>std::unique_ptr</code> is nullable, and so the default constructor for
+<code>std:unique_ptr</code> produces a pointer that owns nothing. The equivalent type in
+Rust is <code>Option&lt;Box&lt;Person&gt;&gt;</code>, for which the <code>Default</code> implementation produces
+<code>None</code>.</p>
+<h2 id="other-uses-of-default"><a class="header" href="#other-uses-of-default">Other uses of <code>Default</code></a></h2>
+<p><a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_default"><code>Option::unwrap_or_default</code></a>
+makes use of <code>Default</code>, which makes getting a default value when the <code>Option</code>
+does not contain a value more convenient.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn go(x: Option&lt;i32&gt;) {
+    let a: i32 = x.unwrap_or_default();
+    // if x was None, then a is 0
+
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>In C++, <code>std::optional</code> does not have an equivalent method.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;default_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust does not have implicit default initialization like C++ does. Variables must\nbe explicitly initialized before use, or the program will fail to compile.\n&quot;,&quot;id&quot;:&quot;5019323d-1534-4c70-a8e7-b015f87be228&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `w` is not explicitly initialized before it is used.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Widget` does not implement the `Default` trait.\n&quot;,&quot;It does not compile because `Widget` does not implement a `new` method.\n&quot;,&quot;It does not compile because `Widget` does not implement both the `Default`\ntrait and a `new` method.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\nstruct Widget {\n    color: String,\n}\n\nfn main() {\n    let w: Widget;\n    println!(\&quot;{}\&quot;, w.color);\n}\n```\n&quot;}},{&quot;context&quot;:&quot;When there is a reasonable default value, it is most idiomatic in Rust to\nprovide [both a `new` method and an implementation of the `Default`\ntrait.](https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits)\n&quot;,&quot;id&quot;:&quot;a436177e-821d-45d1-8e46-4fafc3d78cd3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2() : x(0.0), y(0.0) {}\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="copy-and-move-constructors"><a class="header" href="#copy-and-move-constructors">Copy and move constructors</a></h1>
+<p>In both C++ and Rust, one rarely has to write copy or move constructors (or
+their Rust equivalents) by hand. In C++ this is because the implicit definitions
+are good enough for most purposes, especially when using smart pointers (i.e.,
+following <a href="https://en.cppreference.com/w/cpp/language/rule_of_three">the rule of
+zero</a>). In Rust this
+is because move semantics are the default, and the automatically derived
+implementations of the <code>Clone</code> and <code>Copy</code> traits are good enough for most
+purposes.</p>
+<p>For the following C++ classes, the implicitly defined copy and move constructors
+are sufficient. The equivalent in Rust uses a derive macro provided by the
+standard library to implement the corresponding traits.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;memory&gt;
+</span><span class="boring">#include &lt;string&gt;
+</span><span class="boring">
+</span>struct Age {
+  unsigned int years;
+
+  Age(unsigned int years) : years(years) {}
+
+  // copy and move constructors and destructor
+  // implicitly declared and defined
+};
+
+struct Person {
+  Age age;
+  std::string name;
+  std::shared_ptr&lt;Person&gt; best_friend;
+
+  Person(Age age,
+         std::string name,
+         std::shared_ptr&lt;Person&gt; best_friend)
+      : age(age), name(name),
+        best_friend(best_friend) {}
+
+  // copy and move constructors and destructor
+  // implicilty declared and defined
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::rc::Rc;
+
+#[derive(Clone, Copy)]
+struct Age {
+    years: u32,
+}
+
+#[derive(Clone)]
+struct Person {
+    age: Age,
+    name: String,
+    best_friend: Rc&lt;Person&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<h2 id="user-defined-constructors"><a class="header" href="#user-defined-constructors">User-defined constructors</a></h2>
+<p>On the other hand, the following example requires a user-defined copy and move
+constructor because it manages a resource (a pointer acquired from a C library).
+The equivalent in Rust requires a custom implementation of the <code>Clone</code> trait.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstdlib&gt;
+#include &lt;cstring&gt;
+
+// widget.h
+struct widget_t;
+widget_t *alloc_widget();
+void free_widget(widget_t *);
+void copy_widget(widget_t *dst, widget_t *src);
+
+// widget.cc
+class Widget {
+  widget_t *widget;
+
+public:
+  Widget() : widget(alloc_widget()) {}
+
+  Widget(const Widget &amp;other) : widget(alloc_widget()) {
+    copy_widget(widget, other.widget);
+  }
+
+  Widget(Widget &amp;&amp;other) : widget(other.widget) {
+    other.widget = nullptr;
+  }
+
+  ~Widget() {
+    free_widget(widget);
+  }
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">mod example {
+</span>mod widget_ffi {
+    // Models an opaque type.
+    // See https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs
+    #[repr(C)]
+    pub struct CWidget {
+        _data: [u8; 0],
+        _marker: core::marker::PhantomData&lt;(
+            *mut u8,
+            core::marker::PhantomPinned,
+        )&gt;,
+    }
+
+    extern "C" {
+        pub fn make_widget() -&gt; *mut CWidget;
+        pub fn copy_widget(
+            dst: *mut CWidget,
+            src: *mut CWidget,
+        );
+        pub fn free_widget(ptr: *mut CWidget);
+    }
+}
+
+use self::widget_ffi::*;
+
+struct Widget {
+    widget: *mut CWidget,
+}
+
+impl Widget {
+    fn new() -&gt; Self {
+        Widget {
+            widget: unsafe { make_widget() },
+        }
+    }
+}
+
+impl Clone for Widget {
+    fn clone(&amp;self) -&gt; Self {
+        let widget = unsafe { make_widget() };
+        unsafe {
+            copy_widget(widget, self.widget);
+        }
+        Widget { widget }
+    }
+}
+
+impl Drop for Widget {
+    fn drop(&amp;mut self) {
+        unsafe { free_widget(self.widget) };
+    }
+}
+<span class="boring">}
+</span><span class="boring">}</span></code></pre></pre>
+</div>
+<p>Just as with how in C++ it is uncommon to need user-defined implementations for
+copy and move constructors or user-defined implementations for destructors, in
+Rust it is rare to need to implement the <code>Clone</code> and <code>Drop</code> traits by hand for
+types that do not represent resources.</p>
+<p>There is one exception to this. If the type has type parameters, it might be
+desirable to implement <code>Clone</code> (and <code>Copy</code>) manually even if the clone should be
+done field-by-field. See the <a href="https://doc.rust-lang.org/std/clone/trait.Clone.html#how-can-i-implement-clone">standard library documentation of
+<code>Clone</code></a>
+and <a href="https://doc.rust-lang.org/std/marker/trait.Copy.html#how-can-i-implement-copy">of
+<code>Copy</code></a>
+for details.</p>
+<h2 id="trivially-copyable-types"><a class="header" href="#trivially-copyable-types">Trivially copyable types</a></h2>
+<p>In C++, a class type is trivially copyable when it has no non-trivial copy
+constructors, move constructors, copy assignment operators, move assignment
+operators and it has a trivial destructor. Values of a trivially copyable type
+are able to be copied by copying their bytes.</p>
+<p>In the first C++ example above, <code>Age</code> is trivially copyable, but <code>Person</code> is
+not. This is because despite using a default copy constructor, the constructor
+is not trivial because <code>std::string</code> and <code>std::shared_ptr</code> are not trivially
+copyable.</p>
+<p>Rust indicates whether types are trivially copyable with the <code>Copy</code> trait. Just
+as with trivially copyable types in C++, values of types that implement <code>Copy</code>
+in Rust can be copied by copying their bytes. Rust requires explicit calls to
+the <code>clone</code> method to make copies of values of types that do not implement
+<code>Copy</code>.</p>
+<p>In the first Rust example above, <code>Age</code> implements the <code>Copy</code> trait but <code>Person</code>
+does not. This is because neither <code>std::String</code> nor <code>Rc&lt;Person&gt;</code> implement
+<code>Copy</code>. They do not implement <code>Copy</code> because they own data that lives on the
+heap, and so are not trivially copyable.</p>
+<p>Rust prevents implementing <code>Copy</code> for a type if any of its fields are not
+<code>Copy</code>, but does not prevent implementing <code>Copy</code> for types that should not be
+copied bit-for-bit due to their intended meaning, which is usually indicated by
+a user-defined <code>Clone</code> implementation.</p>
+<p>Rust does not permit the implementation of both <code>Copy</code> and <code>Drop</code> for the same
+type. This aligns with the C++ standard's requirement that trivially copyable
+types not implement a user-defined destructor.</p>
+<h2 id="move-constructors"><a class="header" href="#move-constructors">Move constructors</a></h2>
+<p>In Rust, all types support move semantics by default, and custom move semantics
+cannot be (and do not need to be) defined. This is because what "move" means in
+Rust is not the same as it is in C++. In Rust, moving a value means changing
+what owns the value. In particular, there is no "old" object to be destructed
+after a move, because the compiler will prevent the use of a variable whose
+value has been moved.</p>
+<h2 id="assignment-operators"><a class="header" href="#assignment-operators">Assignment operators</a></h2>
+<p>Rust does not have a copy or move assignment operator. Instead, assignment
+either moves (by transferring ownership), explicitly clones and then moves, or
+implicitly copies and then moves.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x = Box::&lt;u32&gt;::new(5);
+    let y = x; // moves
+    let z = y.clone(); // explicitly clones and then moves the clone
+    let w = *y; // implicitly copies the content of the Box and then moves the copy
+}</code></pre></pre>
+<p>For situations where something like a user-defined copy assignment could avoid
+allocations, the <code>Clone</code> trait has an additional method called <code>clone_from</code>. The
+method is automatically defined, but can be overridden when implementing the
+<code>Clone</code> trait to provide an efficient implementation.</p>
+<p>The method is not used for normal assignments, but can be explicitly used in
+situations where the performance of the assignment is significant and would be
+improved by using the more efficient implementation, if one is defined. The
+implementation can be made more efficient because <code>clone_from</code> takes ownership
+of the object to which the values are being assigned, and so can do things like
+reuse memory to avoid allocations.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn go(x: &amp;Vec&lt;u32&gt;) {
+    let mut y = vec![0; x.len()];
+    // ...
+    y.clone_from(&amp;x);
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="performance-concerns-and-copy"><a class="header" href="#performance-concerns-and-copy">Performance concerns and <code>Copy</code></a></h2>
+<p>The decision to implement <code>Copy</code> should be based on the semantics of the type,
+not on performance. If the size of objects being copied is a concern, then one
+should instead use a reference (<code>&amp;T</code> or <code>&amp;mut T</code>) or put the value on the heap
+(<a href="https://doc.rust-lang.org/std/boxed/index.html"><code>Box&lt;T&gt;</code></a> or
+<a href="https://doc.rust-lang.org/std/rc/index.html"><code>Rc&lt;T&gt;</code></a>). These approaches
+correspond to passing by reference, or using a <code>std::unique_ptr</code> or
+<code>std::shared_ptr</code> in C++.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;copy_and_move_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;A type can only implement `Copy` if all of its fields implement `Copy`, just how\nin C++ a type is only trivially copyable if all of its members are. `Box` does\nnot implement `Copy`.\n&quot;,&quot;id&quot;:&quot;ec3c58d9-cb13-4f88-ac67-7c1d5baf46e2&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `Box` doesn't implement `Copy`, so `Copy` can't be\nimplemented for `BinaryTreeNode`.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Box` doesn't implement `Clone`, so `Clone` can't be\nderived for `BinaryTreeNode`.\n&quot;,&quot;It does not compile because only one of `Clone` or `Copy` can be implemented for\na type.\n&quot;,&quot;It does not compile because `Drop` is not implemented for `BinaryTreeNode`\neven though `Clone` is.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile?\n\n```rust\n#[derive(Clone, Copy)]\nstruct BinaryTreeNode {\n    value: i32,\n    left_child: Option&lt;Box&lt;BinaryTreeNode&gt;&gt;,\n    right_child: Option&lt;Box&lt;BinaryTreeNode&gt;&gt;,\n}\n```\n&quot;}},{&quot;context&quot;:&quot;While `Copy` requires `Clone`, it does not pose any constraints on the\nimplementation of clone. Even though the given implementation of `Clone` is most\ncertainly wrong, the program will still compile.\n&quot;,&quot;id&quot;:&quot;0a4bc647-44c9-4244-9dfc-3002d6abc069&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does compile, but implementing `Clone` in a way that doesn't match `Copy` is\na bad idea.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because only one of `Clone` or `Copy` can be implemented\nfor a type.\n&quot;,&quot;It does not compile because `Clone` must be derived in order to derive `Copy`.\n&quot;,&quot;It does not compile because `Drop` is not implemented for `Age` even though\n`Clone` is.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n#[derive(Copy)]\nstruct Age {\n    value: u32,\n}\n\nimpl Clone for Age {\n    fn clone(&amp;self) -&gt; Self {\n       Age {\n           value: 1 + self.value,\n       }\n    }\n}\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` implements a copy constructor which corresponds to the `Clone`\ntrait in Rust. It is also trivially copyable, which corresponds to implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;4636f71a-599b-46d3-a6e6-e0c35b344140&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n};\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` has a user-defined copy constructor which corresponds to the\n`Clone` trait in Rust. Despite being user-defined, it does exactly what the\ndefault trait would do. Because the implementation is user-defined, it prevents\nthe type from being trivially copyable, which corresponds to not implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;c8e3b4da-19a1-42e9-97d4-bbb61dcd5652&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2(Vec2&amp; other) : x(other.x), y(other.y) {};\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="data-modeling"><a class="header" href="#data-modeling">Data modeling</a></h1>
 <p>In C++ the mechanisms available for data modeling are classes, enums, and
 unions.</p>
 <p>Rust, on the other hand, uses records
@@ -1462,7 +2138,7 @@ help: ensure that all possible cases are being handled by adding a match arm wit
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="inheritance-and-implementation-reuse"><a class="header" href="#inheritance-and-implementation-reuse">Inheritance and implementation reuse</a></h1>
 <p>Rust does not have inheritance and so the primary means of reuse of
 implementations in Rust are composition, aggregation, and
-<a href="idioms/data_modeling/./idioms/data_modeling/templates.html">generics</a>.</p>
+<a href="idioms/data_modeling//idioms/data_modeling/templates.html">generics</a>.</p>
 <p>However, Rust traits do have support for default methods which resemble one
 simple case of using inheritance for reuse of implementations. For example, in
 the following example two virtual methods are used to support a method whose
@@ -1538,9 +2214,9 @@ impl Device for Printer {
 <p>In practice, the <code>resetDevice()</code> method in the <code>Device</code> class might be made
 non-virtual in C++ if it is not expected that it will be overridden. In order to
 make it align with the Rust example, we have made it virtual here, since Rust
-traits can be used either for <a href="idioms/data_modeling/./idioms/data_modeling/abstract_classes.html">dynamic
+traits can be used either for <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html">dynamic
 dispatch</a> or <a href="idioms/data_modeling//idioms/data_modeling/concepts.html">static
-dispatch</a> (with <a href="idioms/data_modeling/./idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
+dispatch</a> (with <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
 static dispatch
 case</a>).</p>
 <p>Rust traits differ from abstract classes in a additional few ways. For example,
@@ -1652,7 +2328,7 @@ the module themselves.</p>
 <h2 id="submodules-and-additional-visibility-features"><a class="header" href="#submodules-and-additional-visibility-features">Submodules and additional visibility features</a></h2>
 <p>Modules and visibility declarations are more powerful than shown in the above
 example. More details on how to use modules, <code>pub</code>, and <code>use</code> to achieve
-encapsulation goals are described in the chapter on <a href="idioms/encapsulation/./idioms/encapsulation/private_members.html">private members and
+encapsulation goals are described in the chapter on <a href="idioms/encapsulation//idioms/encapsulation/private_and_friends.html">private members and
 friends</a>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;headers&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Even if in C++ you wouldn't use namespaces to structure the program, in Rust\nsplitting programs into separate files also means splitting them into separate\nmodules.\n&quot;,&quot;id&quot;:&quot;4665b8ad-511f-4e0b-9dff-bf53e2a8f931&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n// square.rs\npub struct Square {\n    width: f64,\n}\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// square.rsi\npub struct Square {\n    width: f64;\n}\n\nimpl Square {\n    fn area(&amp;self) -&gt; f64;\n}\n\n// square.rs\nmod square;\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;,&quot;```rust\n// square.rs\nstruct Square {\n    width: f64,\n}\n\nimpl Square {\n    fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;,&quot;```rust\n// square.rs\nmod square {\n    struct Square {\n        width: f64,\n    }\n\n    impl Square {\n        fn area(&amp;self) -&gt; f64 {\n            self.width * self.width\n        }\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which Rust program is the idiomatic equivalent to the following C++ program?\n\n```cpp\n// square.h\nstruct Square {\n  double width;\n\n  double area() const;\n};\n\n// square.cc\n#include \&quot;square.h\&quot;\n\ndouble Square::area() const {\n  return this-&gt;width * this.width;\n}\n\n// main.cc\n#include \&quot;square.h\&quot;\n#include &lt;iostream&gt;\n\nint main() {\n  Square square(3.0);\n\n  std::cout &lt;&lt; square.area() &lt;&lt; std::endl;\n}\n```\n&quot;}},{&quot;id&quot;:&quot;e3948224-44d7-47d1-bf37-d5667fd8c9bb&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `mod` defines a module and `greeting.rs` is not a\nvalid module body.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile and prints `Hello!` to standard out.\n&quot;,&quot;It does not compile because the `main.rs` file must include an explicit `use\ngreetings;` statement.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n// greetings.rs\nprintln!(\&quot;Hello!\&quot;);\n```\n\n```rust\n// main.rs\nfn main() {\n    #[path = \&quot;greetings.rs\&quot;]\n    mod greetings;\n}\n```\n&quot;}},{&quot;context&quot;:&quot;In Rust, `mod` defines a module whose body happens to be given in another file.\nThe whole program is compiled from the root file (in this case `main.rs`) as a\ntree of modules.\n&quot;,&quot;id&quot;:&quot;68d431c0-8d39-4f4f-804c-bb6e7baa8d2b&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nmod greetings {\n    pub fn print_greeting() {\n        print_hello();\n        print_goodbye();\n    }\n\n    fn print_hello() {\n        println!(\&quot;Hello!\&quot;);\n    }\n\n    fn print_goodbye() {\n        println!(\&quot;Goodbye!\&quot;);\n    }\n}\n\nuse greetings::*;\n\nfn main() {\n    print_greeting();\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn print_greeting() {\n   print_hello();\n   print_goodbye();\n}\n\nfn print_hello() {\n    println!(\&quot;Hello!\&quot;);\n}\n\nfn print_goodbye() {\n    println!(\&quot;Goodbye!\&quot;);\n}\n\nfn main() {\n    print_hello();\n}\n```\n&quot;,&quot;```rust\nmod greetings {\n    pub fn print_greeting() {\n        print_hello();\n        print_goodbye();\n    }\n\n    fn print_hello() {\n        println!(\&quot;Hello!\&quot;);\n    }\n\n    fn print_goodbye() {\n        println!(\&quot;Goodbye!\&quot;);\n    }\n}\n\nmod main {\n    use greetings::*;\n\n    fn main() {\n        print_greeting();\n    }\n}\n```\n&quot;,&quot;```rust\nmod main {\n    mod greetings {\n        pub fn print_greeting() {\n            print_hello();\n            print_goodbye();\n        }\n\n        fn print_hello() {\n            println!(\&quot;Hello!\&quot;);\n        }\n\n        fn print_goodbye() {\n            println!(\&quot;Goodbye!\&quot;);\n        }\n    }\n\n    use greetings::*;\n\n    fn main() {\n        print_greeting();\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which single-file Rust program is equivalent to this program which is split\nacross multiple files?\n\n```rust\n// greetings.rs\npub fn print_greeting() {\n   print_hello();\n   print_goodbye();\n}\n\nfn print_hello() {\n    println!(\&quot;Hello!\&quot;);\n}\n\nfn print_goodbye() {\n    println!(\&quot;Goodbye!\&quot;);\n}\n\n// main.rs\nmod greetings;\n\nuse greetings::*;\n\nfn main() {\n    print_greeting();\n}\n```\n&quot;}},{&quot;context&quot;:&quot;Since neither `mod` nor `use` performs textual inclusion, it is possible to have\nrecurisve modules within a single crate.\n&quot;,&quot;id&quot;:&quot;b2d00b6a-8efa-40e5-98c7-f9c54f48d09a&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;The program does compile and prints `true`.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because the files have a cyclical dependency.\n&quot;,&quot;It does not compile because `even.rs` and `odd.rs` don't have `mod`\ndeclarations for each other.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n// even.rs\nuse crate::odd::*;\n\npub fn is_even(n: u64) -&gt; bool {\n    if n == 0 {\n        true\n    } else {\n        is_odd(n - 1)\n    }\n}\n\n// odd.rs\nuse crate::even::*;\n\npub fn is_odd(n: u64) -&gt; bool {\n    if n == 1 {\n        true\n    } else {\n        is_even(n - 1)\n    }\n}\n\n// main.rs\nmod even;\nmod odd;\n\nuse even::*;\n\nfn main() {\n    println!(\&quot;{}\&quot;, is_even(4));\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="anonymous-namespaces-and-static"><a class="header" href="#anonymous-namespaces-and-static">Anonymous namespaces and <code>static</code></a></h1>
@@ -1726,6 +2402,790 @@ C++ programs.</p>
 in order to produce functions that can be easily
 referred to from C or C++. This can also cause undefined behavior due to name collision.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;anonymous_namespaces&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;4ed5c1ed-81e3-448d-b20a-8f0eac301489&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n// colors.rs\npub fn red() {}\nfn blue() {}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// colors.rs\nmod colors {\n    pub fn red() {}\n    fn blue() {}\n}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;,&quot;```rust\n// colors.rs\nmod colors {\n    fn red() {}\n\n    mod {\n        fn blue() {}\n    }\n}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is an idiomatic translation of the following C++ program?\n\n```cpp\n// colors.h\nnamespace colors {\n  void red();\n}\n\n// colors.cc\n#include \&quot;colors.h\&quot;\n\nnamespace colors {\n  void red() {}\n\n  namespace {\n    void blue() {}\n  }\n}\n\n// main.cc\n#include \&quot;colors.h\&quot;\n\nusing namespace colors;\n\nint main() {}\n```\n&quot;}},{&quot;context&quot;:&quot;Even if in C++ you wouldn't use namespaces to structure the program, in Rust\nsplitting programs into separate files also means splitting them into separate\nmodules.\n&quot;,&quot;id&quot;:&quot;eb1bde49-9ca5-4e8d-b6f3-d49c95393dfb&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;red&quot;,&quot;a::red&quot;,&quot;violet&quot;,&quot;b::violet&quot;,&quot;other_colors::green&quot;,&quot;a::other_colors::green&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;orange&quot;,&quot;green&quot;,&quot;indigo&quot;,&quot;a::green&quot;],&quot;prompt&quot;:&quot;In the following Rust program, which items would be visible within the `main`\nfunction?\n\n```rust\n// a.rs\npub fn red() {}\nfn orange() {}\n\nmod other_colors {\n    pub fn green() {}\n    fn blue() {}\n}\n\n// b.rs\npub fn indigo() {};\npub fn violet() {};\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::violet;\n\nfn main() {\n   // What is visible here?\n}\n```\n&quot;}},{&quot;context&quot;:&quot;Lack of `pub` is like putting it in an anonymous namespace in terms of\nvisibility outside of the defining module.\n\n`mod` is not `#include`. `mod` defines a module, and using items from the module\nrequires either importing or qualification.\n\nResolving ambiguous items works the same as it does with C++ namespaces.\nAmbiguous use is the error, not having conflicting names in scope.\n&quot;,&quot;id&quot;:&quot;b3c2c70b-26b7-4396-8f8a-0e21541896cf&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    a::go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nfn main() {\n    a::go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\nfn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following Rust programs compile?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="private-members-and-friends"><a class="header" href="#private-members-and-friends">Private members and friends</a></h1>
+<h2 id="private-members"><a class="header" href="#private-members">Private members</a></h2>
+<p>In C++ the unit of encapsulation is the class. Access specifiers (<code>private</code>,
+<code>protected</code>, and <code>public</code>) that control access to members are enforced at the
+class boundary.</p>
+<p>In Rust the module is the unit of encapsulation. Item visibility (Rust's analog
+to access specifiers) controls access to items at the module boundary.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+class Person {
+  int age;
+
+public:
+  std::string name;
+
+  // Because age is private, a public constructor
+  // method is needed to create instances.
+  Person(std::string name, int age)
+      : name(name), age(age) {}
+
+  // Free functions cannot access private members,
+  // so this has to be a member function.
+  static void example() {
+    Person alice{"Alice", 42};
+    std::ctout &lt;&lt; alice.name &lt;&lt; cout::endl;
+    // The private field is visible here, within
+    // the class.
+    std::ctout &lt;&lt; alice.age &lt;&lt; cout::endl;
+  }
+};
+
+int main() {
+  Person alice("Alice", 42);
+  std::cout &lt;&lt; alice.name &lt;&lt; std::endl;
+  // compilation error
+  // std::cout &lt;&lt; alice.age &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">mod person {
+    pub struct Person {
+        pub name: String,
+        // this field is private
+        age: i32,
+    }
+
+    impl Person {
+        // Because age is private, a public
+        // constructor method is needed to create
+        // values outside of the person module.
+        pub fn new(
+            name: String,
+            age: i32,
+        ) -&gt; Person {
+            Person { name, age }
+        }
+    }
+
+    // Free functions in the same module can
+    // access private fields because the unit of
+    // encapsulation is the module, not the
+    // struct.
+    fn example() {
+        let alice =
+            Person::new("Alice".to_string(), 42);
+        println!("{}", alice.name);
+        // The private field is visible here,
+        // within the module.
+        println!("{}", alice.age);
+    }
+}
+
+use person::Person;
+
+fn main() {
+    let alice =
+        Person::new("Alice".to_string(), 42);
+    println!("{}", alice.name);
+    // compilation error
+    // println!("{}", alice.age);
+}</code></pre></pre>
+</div>
+<p>In the Rust example, the <a href="idioms/encapsulation//idioms/encapsulation/private_constructors.html">constructor for <code>Person</code> is
+private</a> because one of the
+fields is private.</p>
+<h2 id="friends"><a class="header" href="#friends">Friends</a></h2>
+<p>Because encapsulation is at the module level in Rust, associated methods for
+types can access internals of other types defined in the same module. This
+subsumes most uses of the C++ <code>friend</code> declaration.</p>
+<p>For example, defining a binary tree in C++ requires that the class representing
+the nodes of the tree declare the main binary tree class as a friend in order
+for it to access internal methods while keeping them private from other uses.
+This would be required even if the <code>TreeNode</code> class were defined as an inner
+class of <code>BinaryTree</code>.</p>
+<p>In Rust, however, both types can be defined in the same module, and so have
+access to each other's private fields and methods. The module as a whole
+provides a collection of types, methods, and functions that together define a
+encapsulated concept.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;memory&gt;
+
+class BinaryTree {
+  // This needs to be an inner class in order for
+  // it to be private.
+  class TreeNode {
+    friend class BinaryTree;
+
+    int value;
+    std::unique_ptr&lt;TreeNode&gt; left;
+    std::unique_ptr&lt;TreeNode&gt; right;
+
+  public:
+    TreeNode(int value)
+        : value(value), left(nullptr),
+          right(nullptr) {}
+
+  private:
+    static void
+    insert(std::unique_ptr&lt;TreeNode&gt; &amp;node,
+           int value) {
+      if (node) {
+        node-&gt;insert(value);
+      } else {
+        node = std::make_unique&lt;TreeNode&gt;(value);
+      }
+    }
+
+    void insert(int value) {
+      if (value &lt; this-&gt;value) {
+        insert(this-&gt;left, value);
+      } else {
+        insert(this-&gt;right, value);
+      }
+    }
+  };
+
+  std::unique_ptr&lt;TreeNode&gt; root;
+
+public:
+  BinaryTree() : root(nullptr) {}
+
+  void insert(int value) {
+    TreeNode::insert(root, value);
+  }
+};
+
+int main() {
+  BinaryTree b;
+  b.insert(42);
+
+  return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">mod binary_tree {
+    pub struct BinaryTree {
+        // This field is not visible outside of
+        // the module.
+        root: Option&lt;Box&lt;TreeNode&gt;&gt;,
+    }
+
+    impl BinaryTree {
+        pub fn new() -&gt; BinaryTree {
+            BinaryTree { root: None }
+        }
+
+        pub fn insert(&amp;mut self, value: i32) {
+            insert(&amp;mut self.root, value);
+        }
+    }
+
+    // This struct and all its fields are not
+    // visible outside of the module.
+    struct TreeNode {
+        value: i32,
+        left: Option&lt;Box&lt;TreeNode&gt;&gt;,
+        right: Option&lt;Box&lt;TreeNode&gt;&gt;,
+    }
+
+    impl TreeNode {
+        fn new(value: i32) -&gt; TreeNode {
+            TreeNode {
+                value,
+                left: None,
+                right: None,
+            }
+        }
+
+        fn insert(&amp;mut self, value: i32) {
+            if value &lt; self.value {
+                insert(&amp;mut self.left, value);
+            } else {
+                insert(&amp;mut self.right, value);
+            }
+        }
+    }
+
+    // This free function is not visible outside
+    // of the module.
+    fn insert(
+        node: &amp;mut Option&lt;Box&lt;TreeNode&gt;&gt;,
+        value: i32,
+    ) {
+        match node {
+            None =&gt; {
+                *node = Some(Box::new(
+                    TreeNode::new(value),
+                ));
+            }
+            Some(ref mut left) =&gt; {
+                left.insert(value);
+            }
+        }
+    }
+}
+
+// This brings the (public) type into scope.
+use binary_tree::BinaryTree;
+
+fn main() {
+    let mut b = BinaryTree::new();
+    b.insert(42);
+}</code></pre></pre>
+</div>
+<h2 id="passkey-idiom"><a class="header" href="#passkey-idiom">Passkey idiom</a></h2>
+<p>In the previous C++ example, the <code>TreeNode</code> constructor has to be public in
+order to be used with <code>make_unique</code>. Fortunately, the constructor is still
+inaccessible outside of the containing class, but it is not always the case that
+such helper classes can be inner classes.</p>
+<p>To make the constructor effectively private when it is not possible, one might
+need to use a programming pattern like <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/docs/patterns/passkey.md">the passkey
+idiom</a>.</p>
+<p>The passkey idiom is also sometimes used to provide finer-grained control over
+access to members than is possible with friend declarations. In either case, the
+effect is achieved by modeling a capability-like system.</p>
+<p>In Rust, it is possible to express the same idiom in order to achieve the same
+effect.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+
+class Person {
+  int age;
+
+  class Passkey {};
+
+public:
+  std::string name;
+
+  Person(Passkey, std::string name, int age)
+      : name(name), age(age) {}
+
+  static std::unique_ptr&lt;Person&gt;
+  createPerson(std::string name, int age) {
+    // Other uses of make_unique are not possible
+    // because the Passkey type cannot be
+    // constructed.
+    return std::make_unique&lt;Person&gt;(Passkey(),
+                                    name, age);
+  }
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">pub trait Maker&lt;K, B&gt; {
+    fn make(passkey: K, args: B) -&gt; Self;
+}
+
+// Generic helper that we want to be able to call
+// an otherwise private function or method.
+fn alloc_thing&lt;K, B, T: Maker&lt;K, B&gt;&gt;(
+    passkey: K,
+    args: B,
+) -&gt; Box&lt;T&gt; {
+    Box::new(Maker::&lt;K, B&gt;::make(passkey, args))
+}
+
+mod person {
+    use super::*;
+    use std::marker::PhantomData;
+
+    pub struct Person {
+        pub name: String,
+        age: u32,
+    }
+
+    // A zero-sized type to act as the passkey.
+    pub struct Passkey {
+        // This field is zero-sized. It is also
+        // private, which prevents construction
+        // of Passkey outside of the person
+        // module.
+        _phantom: PhantomData&lt;()&gt;,
+    }
+
+    impl Person {
+        // Private method that will be exposed
+        // with a passkey wrapper.
+        fn new(name: String, age: u32) -&gt; Person {
+            Person { name, age }
+        }
+
+        // Method that uses external helper that
+        // requires access to another
+        // otherwise-private method.
+        fn alloc(
+            name: String,
+            age: u32,
+        ) -&gt; Box&lt;Person&gt; {
+            alloc_thing(
+                Passkey {
+                    _phantom: PhantomData {},
+                },
+                MakePersonArgs { name, age },
+            )
+        }
+    }
+
+    // Helper structure needed to make the trait
+    // providing the interface generic.
+    pub struct MakePersonArgs {
+        pub name: String,
+        pub age: u32,
+    }
+
+    // Implementation of the trait that exposes
+    // the method requiring a passkey.
+    impl Maker&lt;Passkey, MakePersonArgs&gt; for Person {
+        fn make(
+            _passkey: Passkey,
+            args: MakePersonArgs,
+        ) -&gt; Person {
+            Person::new(args.name, args.age)
+        }
+    }
+}
+<span class="boring">
+</span><span class="boring">fn main() {}</span></code></pre></pre>
+</div>
+<p>However the Passkey idiom is unlikely to be used in Rust because</p>
+<ul>
+<li>coupled types are usually defined in the same module (or a <code>pub (in path)</code>
+declaration can be used), making it unnecessary, and</li>
+<li>it requires cooperation from the interface by which the calling function will
+use a type.</li>
+</ul>
+<p>The second point contrasts with the use above involving <code>std::make_unique</code> which
+is able to forward to the underlying constructor without knowing about it at the
+point of the definition of <code>std::make_unique</code>. While the example below is not
+useful (because <code>alloc_thing</code> is not a useful helper), it does demonstrate what
+would types have to be defined in order to achieve the same effect as when using
+the idiom in C++.</p>
+<h2 id="friends-and-testing"><a class="header" href="#friends-and-testing">Friends and testing</a></h2>
+<p>Another common use of friend declarations is to make the internals of a class
+available for unit testing. Though this practice is often discouraged in C++, it
+is sometimes necessary in order to test other-wise private helper inner classes
+or helper methods.</p>
+<p>In Rust, tests are usually defined in the same module as the code being tested.
+Because the content of modules is visible to submodules, this makes it so that
+all of the content of the module is available for testing.</p>
+<div class="comparison">
+<pre><code class="language-cpp">// Using Boost.Test
+// https://www.boost.org/doc/libs/1_84_0/libs/test/doc/html/index.html
+#include &lt;string&gt;
+
+class Person {
+public:
+  std::string name;
+
+private:
+  int age;
+
+  friend class PersonTest;
+
+public:
+  Person(std::string name, int age)
+      : name(name), age(age) {}
+
+  void have_birthday() {
+    this-&gt;age = this-&gt;age + 1;
+  }
+};
+
+#define BOOST_TEST_MODULE PersonTestModule
+#include &lt;boost/test/included/unit_test.hpp&gt;
+
+class PersonTest {
+public:
+  static void test_have_birthday() {
+    Person alice("Alice", 42);
+    BOOST_CHECK_EQUAL(alice.age, 42);
+
+    alice.have_birthday();
+    BOOST_CHECK_EQUAL(alice.age, 43);
+  }
+};
+
+BOOST_AUTO_TEST_CASE(have_birthday_test) {
+  PersonTest::test_have_birthday();
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct Person {
+    pub name: String,
+    age: u32,
+}
+
+impl Person {
+    pub fn new(name: String, age: u32) -&gt; Person {
+        Person { name, age }
+    }
+
+    pub fn have_birthday(&amp;mut self) {
+        self.age = self.age + 1;
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Person;
+
+    #[test]
+    fn test_have_birthday() {
+        let mut alice =
+            Person::new("alice".to_string(), 42);
+
+        assert_eq!(alice.age, 42);
+        alice.have_birthday();
+        assert_eq!(alice.age, 43);
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>Testing in Rust is described in more detail in the <a href="idioms/encapsulation/TODO">chapter on unit
+testing</a>.</p>
+<h2 id="visibility-of-methods-on-rust-traits"><a class="header" href="#visibility-of-methods-on-rust-traits">Visibility of methods on Rust traits</a></h2>
+<p>Because traits in Rust are intended for the definition of interfaces, the
+methods for some type that are declared by a trait are visible whenever both the
+trait and the type are visible. In other words, it is not possible to have
+private trait methods.</p>
+<p>The default visibility for trait methods differs from Rust structs where the
+default visibility is private to the defining module.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;private_and_friends&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Methods for trait implementations are visible wherever both the type and the\ntrait are visible.\n&quot;,&quot;id&quot;:&quot;0cf46fc5-2456-44b1-bb4e-f5adac2ffaf3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It does not compile because the triangle module is not visible from `main`.\n&quot;,&quot;It does not compile because the `area` method of the `Shape` implementation for\nTriangle isn't visible from `main`.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because the shapes module is not visible from the location\nof `use`.\n&quot;,&quot;It does not compile because the `area` method of the `Shapes` trait is not\nvisible from `main`.\n&quot;,&quot;It does not compile because the `area` method of the `Shape` trait is not\nvisible from the implementation of the `Shape` trait for `Triangle`.\n&quot;],&quot;prompt&quot;:&quot;Which of the following are reasons why this program does not compile?\n\n```rust\nmod shapes {\n    pub trait Shape {\n        fn area(&amp;self) -&gt; f64;\n    }\n\n    mod triangle {\n        use super::*;\n\n        pub struct Triangle {\n            pub base: f64,\n            pub height: f64,\n        }\n\n        impl Shape for Triangle {\n            fn area(&amp;self) -&gt; f64 {\n                0.5 * self.base * self.height\n            }\n        }\n    }\n}\n\nuse shapes::*;\n\nfn main() {\n    let t = triangle::Triangle {\n        base: 1.0,\n        height: 2.0,\n    };\n    println!(\&quot;{}\&quot;, t.area());\n}\n```\n&quot;}},{&quot;id&quot;:&quot;86a2afdc-85f8-4662-aa1b-b219cb99c457&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;Change `mod triangle` to `pub mod triangle`.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;Change `impl Shape for Triangle` to `pub impl Shape for Triangle`.\n&quot;,&quot;Change `fn area(&amp;self) -&gt; f64` to `pub fn area(&amp;self) -&gt; f64` in the\nimplementation of `Shape` for `Triangle`.\n&quot;,&quot;Change `fn area(&amp;self) -&gt; f64` to `pub fn area(&amp;self) -&gt; f64` in the\ndefinition of the `Shape` trait.\n&quot;],&quot;prompt&quot;:&quot;What changes are required to make this program compile?\n\n```rust\nmod shapes {\n    pub trait Shape {\n        fn area(&amp;self) -&gt; f64;\n    }\n\n    mod triangle {\n        use super::*;\n\n        pub struct Triangle {\n            pub base: f64,\n            pub height: f64,\n        }\n\n        impl Shape for Triangle {\n            fn area(&amp;self) -&gt; f64 {\n                0.5 * self.base * self.height\n            }\n        }\n    }\n}\n\nuse shapes::*;\n\nfn main() {\n    let t = triangle::Triangle {\n        base: 1.0,\n        height: 2.0,\n    };\n    println!(\&quot;{}\&quot;, t.area());\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="private-constructors"><a class="header" href="#private-constructors">Private constructors</a></h1>
+<p>In C++ constructors for classes can be made private by declaring them private,
+or by defining a class using <code>class</code> and using the default private visibility.</p>
+<p>In Rust, constructors (the actual constructors, not <a href="idioms/encapsulation//idioms/constructors.html">"constructor
+methods"</a>) for structs are visible from wherever the
+type and all fields are visible. To achieve similar visibility restrictions as
+in the C++ example, an additional private field needs to be added to the struct
+in Rust. Because Rust supports zero-sized types, the additional field can have
+no performance cost. The <a href="https://doc.rust-lang.org/std/primitive.unit.html">unit
+type</a> has zero size and can
+be used for this purpose.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;string&gt;
+
+struct Person {
+  std::string name;
+  int age;
+
+private:
+  Person() = default;
+};
+
+int main() {
+  // fails to compile, Person::Person() private
+  // Person nobody;
+
+  // fails to compile since C++20
+  // Person alice{"Alice", 42};
+  return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">mod person {
+    pub struct Person {
+        pub name: String,
+        pub age: i32,
+        _private: (),
+    }
+
+    impl Person {
+        pub fn new(
+            name: String,
+            age: i32,
+        ) -&gt; Person {
+            Person {
+                name,
+                age,
+                _private: (),
+            }
+        }
+    }
+}
+
+use person::*;
+
+fn main() {
+    // field `_private` of struct `person::Person`
+    // is private
+    // let alice = Person {
+    //     name: "Alice".to_string(),
+    //     age: 42,
+    //     _private: (),
+    // };
+
+    // cannot construct `person::Person` with
+    // struct literal syntax due to private fields
+    // let bob = Person {
+    //     name: "Bob".to_string(),
+    //     age: 55,
+    // };
+
+    let carol =
+        Person::new("Carol".to_string(), 20);
+    // Can match on the public fields, and then
+    // use .. to ignore the remaning ones.
+    let Person { name, age, .. } = carol;
+}</code></pre></pre>
+</div>
+<h2 id="enums-1"><a class="header" href="#enums-1">Enums</a></h2>
+<p>Unlike C++ unions, but like <code>std::variant</code>, Rust enums do not have direct
+control over the visibility of their variants or the fields of their variants.
+In the following example, the <code>circle</code> variant of the <code>Shape</code> union is not
+public, so it can only be accessed from within the definition of <code>Shape</code>, as it
+is by the <code>make_circle</code> static method.</p>
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+struct Triangle {
+  double base;
+  double height;
+};
+
+struct Circle {
+  double radius;
+};
+
+union Shape {
+  Triangle triangle;
+
+private:
+  Circle circle;
+
+public:
+  static Shape make_circle(double radius) {
+    Shape s;
+    s.circle = Circle(radius);
+    return s;
+  };
+};
+
+int main() {
+  Shape triangle;
+  triangle.triangle = Triangle{1.0, 2.0};
+  Shape circle = Shape::make_circle(1.0);
+
+  // fails to compile
+  // circle.circle = Circle{1.0};
+
+  // fails to compile
+  // std::cout &lt;&lt; shape.circle.radius;
+}
+</code></pre>
+<p>In Rust visibility modifiers cannot be applied to individual enum variants or
+their fields.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    pub enum Shape {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+}
+
+use shape::*;
+
+fn main() {
+    // Variant constructor is accesssible despite not being marked pub.
+    let triangle = Shape::Triangle {
+        base: 1.0,
+        height: 2.0,
+    };
+
+    let circle = Shape::Circle { radius: 1.0 };
+
+    // Fields accessbile despite not being marked pub.
+    match circle {
+        Shape::Triangle { base, height } =&gt; {
+            println!("Triangle: {}, {}", base, height);
+        }
+        Shape::Circle { radius } =&gt; {
+            println!("Circle {}", radius);
+        }
+    }
+}</code></pre></pre>
+<p>Instead, to control construction of and pattern matching on the enum
+implementation, one of two approaches can be taken. The first controls
+construction of and access to the fields, but not inspection of which variant is
+active.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    pub struct Triangle {
+        pub base: f64,
+        pub height: f64,
+        _private: (),
+    }
+    pub struct Circle {
+        pub radius: f64,
+        _private: (),
+    }
+
+    pub enum Shape {
+        Triangle(Triangle),
+        Circle(Circle),
+    }
+
+    impl Shape {
+        pub fn new_triangle(base: f64, height: f64) -&gt; Shape {
+            Shape::Triangle(Triangle {
+                base,
+                height,
+                _private: (),
+            })
+        }
+
+        pub fn new_circle(radius: f64) -&gt; Shape {
+            Shape::Circle(Circle {
+                radius,
+                _private: (),
+            })
+        }
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::new_triangle(1.0, 2.0);
+    let circle = Shape::new_circle(1.0);
+
+    match circle {
+        Shape::Triangle(Triangle { base, height, .. }) =&gt; {
+            println!("Triangle: {}, {}", base, height);
+        }
+        Shape::Circle(Circle { radius, .. }) =&gt; {
+            println!("Circle: {}", radius);
+        }
+    }
+}</code></pre></pre>
+<p>The second places the enum in a struct with a private field, preventing both
+construction and inspection from outside of the module.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    enum ShapeKind {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+
+    pub struct Shape(ShapeKind);
+
+    impl Shape {
+        pub fn new_circle(radius: f64) -&gt; Shape {
+            Shape(ShapeKind::Circle { radius })
+        }
+
+        pub fn new_triangle(base: f64, height: f64) -&gt; Shape {
+            Shape(ShapeKind::Triangle { base, height })
+        }
+
+        pub fn print(&amp;self) {
+            match self.0 {
+                ShapeKind::Triangle { base, height } =&gt; {
+                    println!("Triangle: {}, {}", base, height);
+                }
+                ShapeKind::Circle { radius } =&gt; {
+                    println!("Circle: {}", radius);
+                }
+            }
+        }
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::new_triangle(1.0, 2.0);
+    let circle = Shape::new_circle(1.0);
+
+    // Does not compile because Shape has private fields.
+    // match circle {
+    //   Shape(_) -&gt; {}
+    // }
+
+    circle.print();
+}</code></pre></pre>
+<p>If the purpose of making the variants private is to ensure that invariants are
+met, then it can be useful to expose the implementing enum (<code>ShapeKind</code>) but not
+the field of the wrapping struct (<code>Shape</code>), with the invariants only being
+guaranteed when the wrapping struct is used. In this case, it is necessary to
+make the field private and define a getter function, since otherwise the field
+would be modifiable, possibly violating the invariant that the wrapping struct
+represents.</p>
+<pre><pre class="playground"><code class="language-rust">mod shape {
+    pub enum ShapeKind {
+        Triangle { base: f64, height: f64 },
+        Circle { radius: f64 },
+    }
+
+    // The field of Shape is private.
+    pub struct Shape(ShapeKind);
+
+    impl Shape {
+        pub fn new(kind: ShapeKind) -&gt; Option&lt;Shape&gt; {
+            // ... check invariants ...
+            Some(Shape(kind))
+        }
+
+        pub fn get_kind(&amp;self) -&gt; &amp;ShapeKind {
+            &amp;self.0
+        }
+    }
+}
+
+use shape::*;
+
+fn main() {
+    let triangle = Shape::new(ShapeKind::Triangle {
+        base: 1.0,
+        height: 2.0,
+    });
+    let Some(circle) = Shape::new(ShapeKind::Circle { radius: 1.0 }) else {
+        return;
+    };
+
+    // Does not compile because Shape has private fields.
+    // match circle {
+    //   Shape(c) =&gt; {}
+    // };
+
+    match circle.get_kind() {
+        ShapeKind::Triangle { base, height } =&gt; {
+            println!("Triangle: {}, {}", base, height);
+        }
+        ShapeKind::Circle { radius } =&gt; {
+            println!("Circle: {}", radius);
+        }
+    }
+}</code></pre></pre>
+<p>The situation in Rust resembles the situation in C++ when using <code>std::variant</code>,
+for which it is not possible to make the variants themselves private. Instead
+either the constructors for the types that form the variants can be made private
+or the variant can be wrapped in a class with appropriate visibility controls.</p>
+<h2 id="rusts-non_exhaustive-annotation"><a class="header" href="#rusts-non_exhaustive-annotation">Rust's <code>#[non_exhaustive]</code> annotation</a></h2>
+<p>If a struct or enum is intended to be public within a
+<a href="https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html">crate</a>, but
+should not be constructed outside of the crate, then the <code>#[non_exhaustive]</code>
+attribute can be used to constrain construction. The attribute can be applied to
+both structs and to individual enum variants with the same effect as adding a
+private field.</p>
+<p>However, the attribute applies the constraint at the level of the crate, not at
+the level of a module.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[non_exhaustive]
+pub struct Person {
+    pub name: String,
+    pub age: i32,
+}
+
+pub enum Shape {
+    #[non_exhaustive]
+    Triangle { base: f64, height: f64 },
+    #[non_exhaustive]
+    Circle { radius: f64 },
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The attribute is more typically used to force clients of a library to include
+the wildcard when matching on the struct fields, making it so that adding
+additional fields to a struct is not breaking change (i.e., that it does not
+<a href="https://doc.rust-lang.org/cargo/reference/semver.html">require the increase of the major version component when using semantic
+versioning</a>).</p>
+<p>Applying the <code>#[non_exhasutive]</code> attribute to the enum itself makes it as if one
+of the variants were private, requiring a wildcard when matching on the variant
+itself. This has the same effect in terms of versioning as when used on a struct
+but is less advantageous. In most cases, code failing to compile when a new enum
+variant is added is desirable, since that indicates a new case that requires
+handling logic.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;private_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;62d1037a-740b-4f66-a195-741fa73f59fc&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;`Person` can be constructed in `test_method`.\n&quot;,&quot;`_private` can be accessed in `test_method`.\n&quot;,&quot;`name` can be accessed in `test_method`.\n&quot;,&quot;`name` can be accessed in `main`.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;`Person` can be constructed in `main`.\n&quot;,&quot;`_private` can be accessed in `main`.\n&quot;,&quot;Values of type `Person` are larger than values of type `Pet`.\n&quot;],&quot;prompt&quot;:&quot;Which statements are true about the following Rust program?\n\n```rust\nmod people {\n    pub struct Person {\n        pub name: String,\n        pub age: i32,\n        _private: (),\n    }\n\n    pub struct Pet {\n        pub name: String,\n        pub age: i32,\n    }\n\n    fn test_method() {\n      // ...\n    }\n}\n\nuse people::*;\n\nfn main() {\n    // ...\n}\n```\n&quot;}},{&quot;id&quot;:&quot;df42cbcd-d5c0-486d-9509-371d05bc2145&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nmod vec {\n    pub struct Vec2 {\n        x: f64,\n        y: f64,\n    }\n\n    impl Vec2 {\n        pub fn new() -&gt; Vec2 {\n            Vec2 { x: 0.0, y: 0.0 }\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    x: f64,\n    y: f64,\n}\n\nimpl Vec2 {\n    pub fn new() -&gt; Vec2 {\n        Vec2 { x: 0.0 , y: 0.0 }\n    }\n}\n```\n&quot;,&quot;```rust\nmod vec {\n    pub struct Vec2 {\n        x: f64,\n        y: f64,\n        _private: (),\n    }\n\n    impl Vec2 {\n        fn new() -&gt; Vec2 {\n            Vec2 { x: 0.0, y: 0.0 }\n        }\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nclass Vec2 {\n  double x;\n  double y;\n\npublic:\n  Vec2() : x(0.0), y(0.0) {}\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="type-equivalents"><a class="header" href="#type-equivalents">Type equivalents</a></h1>
 <p>The type equivalents listed in this document are equivalent for the purposes of
 programming in Rust as one would program in C++. They are not necessarily
@@ -1920,683 +3380,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <div class="quiz-placeholder" data-quiz-name="&quot;type_equivalents&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;4fb18334-8405-438d-8d3e-859a8823bccf&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It is guaranteed in safe Rust to represent a valid Unicode scalar value.\n&quot;,&quot;It is 32 bits wide.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It is equivalent to the C++ `wchar` type.\n&quot;,&quot;It is equivalent to the C++ `char` type.\n&quot;,&quot;It is equivalent to the C++ `char8_t` type.\n&quot;,&quot;It is equivalent to the C++ `int32_t` type.\n&quot;,&quot;It is 8 bits wide.\n&quot;],&quot;prompt&quot;:&quot;Which of the following are true about the Rust `char` type.\n&quot;}},{&quot;id&quot;:&quot;5586766c-b5ce-4bea-b995-da0b3c548b0d&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It provides thread-safe read access to a value of type `T`.\n&quot;,&quot;It represents shared ownership of a value of type `T`.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It provides thread-safe write access to a value of type `T`.\n&quot;,&quot;It can be empty (i.e., not own some value of type `T`).\n&quot;],&quot;prompt&quot;:&quot;Which of the following are true about `std::sync::Arc&lt;T&gt;`.\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
-<p>In C++, constructors initialize objects.</p>
-<pre><code class="language-cpp">class Person {
-  int age;
-
-public:
-  Person(int a) : age(a) {}
-};
-
-int main() {
-  Person person(42);
-  // ...
-}
-</code></pre>
-<p>At the point when a constructor is executed, storage for the object has been
-allocated and the constructor is only performing initialization.</p>
-<pre><code class="language-cpp">class Person {
-  int age;
-  // non-owning pointer
-  Person *best_friend;
-
-public:
-  Person(int a) : age(a), best_friend(this) {}
-};
-
-int main() {
-  Person person(42);
-  // ...
-}
-</code></pre>
-<p>Rust does not have constructors in the same way as C++. In Rust, there is a
-single fundamental way to create an object, which is to initialize all of its
-members at once. The term "constructor" or "constructor method" in Rust refers
-to something more like a factory: a static method associated with a type (i.e.,
-a method that does not have a <code>self</code> parameter), which returns a value of the
-type.</p>
-<pre><pre class="playground"><code class="language-rust">struct Person {
-    age: i32
-}
-
-impl Person {
-    const fn with_age(a: i32) -&gt; Self {
-        Self { age: a }
-    }
-}
-
-fn main() {
-    let person = Person::with_age(42);
-    // ...
-}</code></pre></pre>
-<p>Typically the primary constructor for a type is named <code>new</code>, especially if it
-takes no arguments. See the chapter on <a href="idioms/constructors/default_constructors.html">default
-constructors</a>. Constructors based on
-some specific property of the value are usually named <code>with_details</code> (e.g.,
-<code>Person::with_name</code>). See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
-guidelines</a> for the
-conventions on how to name constructor methods in Rust.</p>
-<p>If the fields to be initialized are visible, there is a reasonable default
-value, and the value does not manage a resource, then it is also common to use
-record update syntax to initialize a value based on some default value.</p>
-<pre><pre class="playground"><code class="language-rust">struct Point {
-    x: i32,
-    y: i32,
-    z: i32,
-}
-
-impl Point {
-    const fn zero() -&gt; Self {
-        Self { x: 0, y: 0, z: 0 }
-    }
-}
-
-fn main() {
-    let x_unit = Point {
-        x: 1,
-        ..Point::zero()
-    };
-    // ...
-}</code></pre></pre>
-<p>Despite the name, "record update syntax" does not modify a record but instead
-creates a new value based on another one, taking ownership of it in order to do
-so.</p>
-<h2 id="storage-allocation-vs-initialization"><a class="header" href="#storage-allocation-vs-initialization">Storage allocation vs initialization</a></h2>
-<p>The actual construction of a structure or enum value in Rust occurs where the
-structure construction syntax <code>A { ... }</code> is, after the evaluation of the
-expressions for the fields.</p>
-<p>A significant implication of this difference is that storage is not allocated
-for a struct in Rust at the point where the constructor method (such as
-<code>Person::with_age</code>) is called, and in fact is not allocated until after the
-values of the fields of a struct have been computed (in terms of the semantics
-of the language — the optimizer may still avoid the copy). Therefore there is no
-easy way in Rust to write the C++ example above where the class stores a pointer to
-itself upon construction (this requires tools like <a href="https://doc.rust-lang.org/std/pin/struct.Pin.html"><code>Pin</code></a> and <a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a>).</p>
-<h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
-<p>In C++ the only way constructors can indicate failure is by throwing exceptions. In Rust, because constructors are normal static methods, fallible constructors
-can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code> (akin to
-<code>std::optional</code>).</p>
-<div class="comparison">
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-#include &lt;stdexcept&gt;
-
-class Person {
-  int age;
-
-public:
-  Person(int a) : age(a) {
-    if (age &lt; 0) {
-      throw std::domain_error("Bad argument");
-    }
-  }
-};
-
-int main() {
-  try {
-    Person person(-4);
-  } catch (const std::domain_error &amp;e) {
-    std::cout &lt;&lt; e.what() &lt;&lt; std::endl;
-  }
-}
-</code></pre>
-<pre><pre class="playground"><code class="language-rust">struct Person {
-    age: i32,
-}
-
-#[derive(Debug)]
-struct NegativeAgeError(i32);
-
-impl Person {
-    fn with_age(a: i32) -&gt; Result&lt;Self, NegativeAgeError&gt; {
-        if a &lt; 0 {
-            Err(NegativeAgeError(a))
-        } else {
-            Ok(Self { age: a })
-        }
-    }
-}
-
-fn main() {
-    match Person::with_age(-4) {
-        Err(err) =&gt; {
-            println!("{err:?}");
-        }
-        Ok(person) =&gt; {
-            // ...
-        }
-    }
-}</code></pre></pre>
-</div>
-<p>See <a href="idioms//exceptions.html">the chapter on exceptions</a> for more information on how C++
-exceptions and exception handling translate to Rust.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
-<p>C++ has a special concept of default constructors to support several scenarios
-in which they are implicitly called.</p>
-<pre><code class="language-cpp">class Person {
-    int age;
-
-public:
-    // Default constructor
-    Person() : age(0) {}
-}
-</code></pre>
-<p>Rust does not have a notion of a default constructor in the same way as in C++.
-Some of the uses cases are achieved via a different mechanism or with different
-conventions, and others do not apply to Rust.</p>
-<p>If a structure has a useful default value (such as would be constructed by a
-default constructor in C++), then the type should provide
-<a href="https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits">both</a>
-a <code>new</code> method that takes no arguments and an implementation of the <a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code>
-trait</a>.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>struct Person {
-   age: i32,
-}
-
-impl Person {
-    pub const fn new() -&gt; Self {
-        Self { age: 0 }
-    }
-}
-
-impl Default for Person {
-    fn default() -&gt; Self {
-        Self::new()
-    }
-}
-<span class="boring">}</span></code></pre></pre>
-<h2 id="implicit-initialization-of-class-members"><a class="header" href="#implicit-initialization-of-class-members">Implicit initialization of class members</a></h2>
-<p>In C++ if a member is not explicitly initialized by a constructor, then it is
-default-initialized. When the type of the member is a class, the
-default-initialization invokes the default constructor.</p>
-<p>In Rust, if all of the fields of a struct implement the <code>Default</code> trait, then an
-implementation for the structure can be provided by the compiler.</p>
-<div class="comparison">
-<pre><code class="language-cpp">class Person {
-  int age;
-
-public:
-  Person() : age(0) {}
-}
-
-class Student {
-  Person person;
-}
-</code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[derive(Default)]
-struct Person {
-    age: i32,
-}
-
-#[derive(Default)]
-struct Student {
-    person: Person,
-}
-<span class="boring">}</span></code></pre></pre>
-</div>
-<p>The use of the derive macros in Rust is equivalent to writing the following.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>struct Person {
-    age: i32,
-}
-
-impl Default for Person {
-    fn default() -&gt; Self {
-        Self {
-            age: Default::default()
-        }
-    }
-}
-
-struct Student {
-    person: Person,
-}
-
-impl Default for Student {
-    fn default() -&gt; Self {
-        Self {
-            person: Default::default()
-        }
-    }
-}
-<span class="boring">}</span></code></pre></pre>
-<p>Unlike C++ where the default initialization value for integers is indeterminate,
-in Rust the default value for the primitive integer and floating point types is
-zero.</p>
-<p>Deriving the <code>Default</code> trait has a similar effect on code concision as eliding
-initialization in C++. In situations where all of the types implement the
-<code>Default</code> trait, but only some of the fields should have their default values,
-one can use <a href="https://doc.rust-lang.org/book/ch05-01-defining-structs.html#creating-instances-from-other-instances-with-struct-update-syntax">struct update
-syntax</a>
-to define a constructor method without enumerating the values for all of the
-fields.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[derive(Default)]
-struct Person {
-    age: i32,
-}
-
-#[derive(Default)]
-struct Student {
-    person: Person,
-    favorite_color: Option&lt;String&gt;,
-}
-
-impl Student {
-    pub fn with_favorite_color(color: String) -&gt; Self {
-        Student {
-            favorite_color: Some(color),
-            ..Default::default()
-        }
-    }
-}
-<span class="boring">}</span></code></pre></pre>
-<h2 id="implicit-initialization-of-array-values"><a class="header" href="#implicit-initialization-of-array-values">Implicit initialization of array values</a></h2>
-<p>In C++, arrays without explicit initialization are default-initialized using the
-default constructors.</p>
-<p>In Rust, the value with which to initialize the array must be provided.</p>
-<div class="comparison">
-<pre><code class="language-cpp">class Person {
-  int age;
-
-public:
-  Person() : age(0) {}
-};
-
-int main() {
-  Person people[3];
-  // ...
-}
-</code></pre>
-<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
-struct Person {
-    age: i32,
-}
-
-fn main() {
-    // std::array::from_fn provides the index to the callback
-    let people: [Person; 3] = 
-        std::array::from_fn(|_| Default::default());
-    // ...
-}</code></pre></pre>
-</div>
-<p>If the type happens to be <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">trivially
-copyable</a>,
-then a shorthand can be used.</p>
-<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy, Default)]
-struct Person {
-    age: i32,
-}
-
-fn main() {
-    let people: [Person; 3] = [Default::default(); 3];
-    // ...
-}</code></pre></pre>
-<h2 id="container-element-initialization"><a class="header" href="#container-element-initialization">Container element initialization</a></h2>
-<p>In C++, the default constructor could be used to implicitly define collection
-types, such as <code>std::vector</code>. Before C++11 one value would be default
-constructed, and the elements would be copy constructed from that initial
-element. Since C++11, all elements are default constructed.</p>
-<p>As with array initialization, the values must be explicitly specified in Rust.
-The vector can be constructed from an array, enabling the same syntax as with
-arrays.</p>
-<div class="comparison">
-<pre><code class="language-cpp">#include &lt;vector&gt;
-
-class Person {
-  int age;
-
-public:
-  Person() : age(0) {}
-}
-
-int main() {
-  std::vector&lt;Person&gt; v(3);
-  // ...
-}
-</code></pre>
-<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
-struct Person {
-    age: i32,
-}
-
-fn main() {
-    let people_arr: [Person; 3] = std::array::from_fn(|_| Default::default());
-    let people: Vec&lt;Person&gt; = Vec::from(people_arr);
-    // ...
-}</code></pre></pre>
-</div>
-<p>If the type implements the <code>Clone</code> trait, then the array can be constructed
-using the <code>vec!</code> macro. See the chapter on <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html">copy
-constructors</a> for more
-details on <code>Clone</code>.</p>
-<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
-struct Person {
-    age: i32,
-}
-
-fn main() {
-    let people: Vec&lt;Person&gt; = vec![Default::default(); 3];
-    // ...
-}</code></pre></pre>
-<h2 id="implicit-initialization-of-local-variables"><a class="header" href="#implicit-initialization-of-local-variables">Implicit initialization of local variables</a></h2>
-<p>In C++, the default constructor is used to perform default-initialization of
-local variables that are not explicitly initialized.</p>
-<p>In Rust, initialization of local variables is always explicit.</p>
-<div class="comparison">
-<pre><code class="language-cpp">class Person {
-  int age;
-
-public:
-  Person() : age(0) {}
-};
-
-int main() {
-  Person person;
-  // ...
-}
-</code></pre>
-<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
-struct Person {
-    age: i32,
-}
-
-fn main() {
-    let person = Person::default();
-    // ...
-}</code></pre></pre>
-</div>
-<h2 id="implicit-initialization-of-the-base-class-object"><a class="header" href="#implicit-initialization-of-the-base-class-object">Implicit initialization of the base class object</a></h2>
-<p>In C++, the default constructor is used to initialize the base class object if
-it no other constructor is specified.</p>
-<pre><code class="language-cpp">class Base {
-  int x;
-
-public:
-  Base() : x(0) {}
-};
-
-class Derived : Base {
-public:
-  // Calls the default constructor for Base
-  Derived() {}
-};
-</code></pre>
-<p>Since Rust does not have inheritance, there is no equivalent to this case.
-See the chapter on <a href="idioms/constructors//idioms/data_modeling/inheritance_and_reuse.html">implementation
-reuse</a> or the section on <a href="https://doc.rust-lang.org/book/ch10-02-traits.html">traits
-in the Rust book</a> for
-alternatives.</p>
-<h2 id="stdunique_ptr"><a class="header" href="#stdunique_ptr"><code>std::unique_ptr</code></a></h2>
-<p>There are some additional cases where the <code>Default</code> trait is used in Rust, but
-default constructors are not used for initialization in C++.</p>
-<p>Rust's equivalent of smart pointers implement <code>Default</code> by delegating to the
-<code>Default</code> implementation of the contained type.</p>
-<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
-struct Person {
-  age: i32,
-}
-
-fn main() {
-    let b: Box&lt;Person&gt; = Default::default();
-    // ...
-}</code></pre></pre>
-<p>This differs from the treatment of <code>std::unique_ptr</code> C++ because unlike <code>Box</code>,
-<code>std::unique_ptr</code> is nullable, and so the default constructor for
-<code>std:unique_ptr</code> produces a pointer that owns nothing. The equivalent type in
-Rust is <code>Option&lt;Box&lt;Person&gt;&gt;</code>, for which the <code>Default</code> implementation produces
-<code>None</code>.</p>
-<h2 id="other-uses-of-default"><a class="header" href="#other-uses-of-default">Other uses of <code>Default</code></a></h2>
-<p><a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_default"><code>Option::unwrap_or_default</code></a>
-makes use of <code>Default</code>, which makes getting a default value when the <code>Option</code>
-does not contain a value more convenient.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn go(x: Option&lt;i32&gt;) {
-    let a: i32 = x.unwrap_or_default();
-    // if x was None, then a is 0
-
-    // ...
-}
-<span class="boring">}</span></code></pre></pre>
-<p>In C++, <code>std::optional</code> does not have an equivalent method.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;default_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust does not have implicit default initialization like C++ does. Variables must\nbe explicitly initialized before use, or the program will fail to compile.\n&quot;,&quot;id&quot;:&quot;5019323d-1534-4c70-a8e7-b015f87be228&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `w` is not explicitly initialized before it is used.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Widget` does not implement the `Default` trait.\n&quot;,&quot;It does not compile because `Widget` does not implement a `new` method.\n&quot;,&quot;It does not compile because `Widget` does not implement both the `Default`\ntrait and a `new` method.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\nstruct Widget {\n    color: String,\n}\n\nfn main() {\n    let w: Widget;\n    println!(\&quot;{}\&quot;, w.color);\n}\n```\n&quot;}},{&quot;context&quot;:&quot;When there is a reasonable default value, it is most idiomatic in Rust to\nprovide [both a `new` method and an implementation of the `Default`\ntrait.](https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits)\n&quot;,&quot;id&quot;:&quot;a436177e-821d-45d1-8e46-4fafc3d78cd3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2() : x(0.0), y(0.0) {}\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="copy-and-move-constructors"><a class="header" href="#copy-and-move-constructors">Copy and move constructors</a></h1>
-<p>In both C++ and Rust, one rarely has to write copy or move constructors (or
-their Rust equivalents) by hand. In C++ this is because the implicit definitions
-are good enough for most purposes, especially when using smart pointers (i.e.,
-following <a href="https://en.cppreference.com/w/cpp/language/rule_of_three">the rule of
-zero</a>). In Rust this
-is because move semantics are the default, and the automatically derived
-implementations of the <code>Clone</code> and <code>Copy</code> traits are good enough for most
-purposes.</p>
-<p>For the following C++ classes, the implicitly defined copy and move constructors
-are sufficient. The equivalent in Rust uses a derive macro provided by the
-standard library to implement the corresponding traits.</p>
-<div class="comparison">
-<pre><code class="language-cpp"><span class="boring">#include &lt;memory&gt;
-</span><span class="boring">#include &lt;string&gt;
-</span><span class="boring">
-</span>struct Age {
-  unsigned int years;
-
-  Age(unsigned int years) : years(years) {}
-
-  // copy and move constructors and destructor
-  // implicitly declared and defined
-};
-
-struct Person {
-  Age age;
-  std::string name;
-  std::shared_ptr&lt;Person&gt; best_friend;
-
-  Person(Age age,
-         std::string name,
-         std::shared_ptr&lt;Person&gt; best_friend)
-      : age(age), name(name),
-        best_friend(best_friend) {}
-
-  // copy and move constructors and destructor
-  // implicilty declared and defined
-};
-</code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use std::rc::Rc;
-
-#[derive(Clone, Copy)]
-struct Age {
-    years: u32,
-}
-
-#[derive(Clone)]
-struct Person {
-    age: Age,
-    name: String,
-    best_friend: Rc&lt;Person&gt;,
-}
-<span class="boring">}</span></code></pre></pre>
-</div>
-<h2 id="user-defined-constructors"><a class="header" href="#user-defined-constructors">User-defined constructors</a></h2>
-<p>On the other hand, the following example requires a user-defined copy and move
-constructor because it manages a resource (a pointer acquired from a C library).
-The equivalent in Rust requires a custom implementation of the <code>Clone</code> trait.</p>
-<div class="comparison">
-<pre><code class="language-cpp">#include &lt;cstdlib&gt;
-#include &lt;cstring&gt;
-
-// widget.h
-struct widget_t;
-widget_t *alloc_widget();
-void free_widget(widget_t *);
-void copy_widget(widget_t *dst, widget_t *src);
-
-// widget.cc
-class Widget {
-  widget_t *widget;
-
-public:
-  Widget() : widget(alloc_widget()) {}
-
-  Widget(const Widget &amp;other) : widget(alloc_widget()) {
-    copy_widget(widget, other.widget);
-  }
-
-  Widget(Widget &amp;&amp;other) : widget(other.widget) {
-    other.widget = nullptr;
-  }
-
-  ~Widget() {
-    free_widget(widget);
-  }
-};
-</code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span><span class="boring">mod example {
-</span>mod widget_ffi {
-    // Models an opaque type.
-    // See https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs
-    #[repr(C)]
-    pub struct CWidget {
-        _data: [u8; 0],
-        _marker: core::marker::PhantomData&lt;(
-            *mut u8,
-            core::marker::PhantomPinned,
-        )&gt;,
-    }
-
-    extern "C" {
-        pub fn make_widget() -&gt; *mut CWidget;
-        pub fn copy_widget(
-            dst: *mut CWidget,
-            src: *mut CWidget,
-        );
-        pub fn free_widget(ptr: *mut CWidget);
-    }
-}
-
-use self::widget_ffi::*;
-
-struct Widget {
-    widget: *mut CWidget,
-}
-
-impl Widget {
-    fn new() -&gt; Self {
-        Widget {
-            widget: unsafe { make_widget() },
-        }
-    }
-}
-
-impl Clone for Widget {
-    fn clone(&amp;self) -&gt; Self {
-        let widget = unsafe { make_widget() };
-        unsafe {
-            copy_widget(widget, self.widget);
-        }
-        Widget { widget }
-    }
-}
-
-impl Drop for Widget {
-    fn drop(&amp;mut self) {
-        unsafe { free_widget(self.widget) };
-    }
-}
-<span class="boring">}
-</span><span class="boring">}</span></code></pre></pre>
-</div>
-<p>Just as with how in C++ it is uncommon to need user-defined implementations for
-copy and move constructors or user-defined implementations for destructors, in
-Rust it is rare to need to implement the <code>Clone</code> and <code>Drop</code> traits by hand for
-types that do not represent resources.</p>
-<p>There is one exception to this. If the type has type parameters, it might be
-desirable to implement <code>Clone</code> (and <code>Copy</code>) manually even if the clone should be
-done field-by-field. See the <a href="https://doc.rust-lang.org/std/clone/trait.Clone.html#how-can-i-implement-clone">standard library documentation of
-<code>Clone</code></a>
-and <a href="https://doc.rust-lang.org/std/marker/trait.Copy.html#how-can-i-implement-copy">of
-<code>Copy</code></a>
-for details.</p>
-<h2 id="trivially-copyable-types"><a class="header" href="#trivially-copyable-types">Trivially copyable types</a></h2>
-<p>In C++, a class type is trivially copyable when it has no non-trivial copy
-constructors, move constructors, copy assignment operators, move assignment
-operators and it has a trivial destructor. Values of a trivially copyable type
-are able to be copied by copying their bytes.</p>
-<p>In the first C++ example above, <code>Age</code> is trivially copyable, but <code>Person</code> is
-not. This is because despite using a default copy constructor, the constructor
-is not trivial because <code>std::string</code> and <code>std::shared_ptr</code> are not trivially
-copyable.</p>
-<p>Rust indicates whether types are trivially copyable with the <code>Copy</code> trait. Just
-as with trivially copyable types in C++, values of types that implement <code>Copy</code>
-in Rust can be copied by copying their bytes. Rust requires explicit calls to
-the <code>clone</code> method to make copies of values of types that do not implement
-<code>Copy</code>.</p>
-<p>In the first Rust example above, <code>Age</code> implements the <code>Copy</code> trait but <code>Person</code>
-does not. This is because neither <code>std::String</code> nor <code>Rc&lt;Person&gt;</code> implement
-<code>Copy</code>. They do not implement <code>Copy</code> because they own data that lives on the
-heap, and so are not trivially copyable.</p>
-<p>Rust prevents implementing <code>Copy</code> for a type if any of its fields are not
-<code>Copy</code>, but does not prevent implementing <code>Copy</code> for types that should not be
-copied bit-for-bit due to their intended meaning, which is usually indicated by
-a user-defined <code>Clone</code> implementation.</p>
-<p>Rust does not permit the implementation of both <code>Copy</code> and <code>Drop</code> for the same
-type. This aligns with the C++ standard's requirement that trivially copyable
-types not implement a user-defined destructor.</p>
-<h2 id="move-constructors"><a class="header" href="#move-constructors">Move constructors</a></h2>
-<p>In Rust, all types support move semantics by default, and custom move semantics
-cannot be (and do not need to be) defined. This is because what "move" means in
-Rust is not the same as it is in C++. In Rust, moving a value means changing
-what owns the value. In particular, there is no "old" object to be destructed
-after a move, because the compiler will prevent the use of a variable whose
-value has been moved.</p>
-<h2 id="assignment-operators"><a class="header" href="#assignment-operators">Assignment operators</a></h2>
-<p>Rust does not have a copy or move assignment operator. Instead, assignment
-either moves (by transferring ownership), explicitly clones and then moves, or
-implicitly copies and then moves.</p>
-<pre><pre class="playground"><code class="language-rust">fn main() {
-    let x = Box::&lt;u32&gt;::new(5);
-    let y = x; // moves
-    let z = y.clone(); // explicitly clones and then moves the clone
-    let w = *y; // implicitly copies the content of the Box and then moves the copy
-}</code></pre></pre>
-<p>For situations where something like a user-defined copy assignment could avoid
-allocations, the <code>Clone</code> trait has an additional method called <code>clone_from</code>. The
-method is automatically defined, but can be overridden when implementing the
-<code>Clone</code> trait to provide an efficient implementation.</p>
-<p>The method is not used for normal assignments, but can be explicitly used in
-situations where the performance of the assignment is significant and would be
-improved by using the more efficient implementation, if one is defined. The
-implementation can be made more efficient because <code>clone_from</code> takes ownership
-of the object to which the values are being assigned, and so can do things like
-reuse memory to avoid allocations.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn go(x: &amp;Vec&lt;u32&gt;) {
-    let mut y = vec![0; x.len()];
-    // ...
-    y.clone_from(&amp;x);
-    // ...
-}
-<span class="boring">}</span></code></pre></pre>
-<h2 id="performance-concerns-and-copy"><a class="header" href="#performance-concerns-and-copy">Performance concerns and <code>Copy</code></a></h2>
-<p>The decision to implement <code>Copy</code> should be based on the semantics of the type,
-not on performance. If the size of objects being copied is a concern, then one
-should instead use a reference (<code>&amp;T</code> or <code>&amp;mut T</code>) or put the value on the heap
-(<a href="https://doc.rust-lang.org/std/boxed/index.html"><code>Box&lt;T&gt;</code></a> or
-<a href="https://doc.rust-lang.org/std/rc/index.html"><code>Rc&lt;T&gt;</code></a>). These approaches
-correspond to passing by reference, or using a <code>std::unique_ptr</code> or
-<code>std::shared_ptr</code> in C++.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;copy_and_move_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;A type can only implement `Copy` if all of its fields implement `Copy`, just how\nin C++ a type is only trivially copyable if all of its members are. `Box` does\nnot implement `Copy`.\n&quot;,&quot;id&quot;:&quot;ec3c58d9-cb13-4f88-ac67-7c1d5baf46e2&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `Box` doesn't implement `Copy`, so `Copy` can't be\nimplemented for `BinaryTreeNode`.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Box` doesn't implement `Clone`, so `Clone` can't be\nderived for `BinaryTreeNode`.\n&quot;,&quot;It does not compile because only one of `Clone` or `Copy` can be implemented for\na type.\n&quot;,&quot;It does not compile because `Drop` is not implemented for `BinaryTreeNode`\neven though `Clone` is.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile?\n\n```rust\n#[derive(Clone, Copy)]\nstruct BinaryTreeNode {\n    value: i32,\n    left_child: Option&lt;Box&lt;BinaryTreeNode&gt;&gt;,\n    right_child: Option&lt;Box&lt;BinaryTreeNode&gt;&gt;,\n}\n```\n&quot;}},{&quot;context&quot;:&quot;While `Copy` requires `Clone`, it does not pose any constraints on the\nimplementation of clone. Even though the given implementation of `Clone` is most\ncertainly wrong, the program will still compile.\n&quot;,&quot;id&quot;:&quot;0a4bc647-44c9-4244-9dfc-3002d6abc069&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does compile, but implementing `Clone` in a way that doesn't match `Copy` is\na bad idea.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because only one of `Clone` or `Copy` can be implemented\nfor a type.\n&quot;,&quot;It does not compile because `Clone` must be derived in order to derive `Copy`.\n&quot;,&quot;It does not compile because `Drop` is not implemented for `Age` even though\n`Clone` is.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n#[derive(Copy)]\nstruct Age {\n    value: u32,\n}\n\nimpl Clone for Age {\n    fn clone(&amp;self) -&gt; Self {\n       Age {\n           value: 1 + self.value,\n       }\n    }\n}\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` implements a copy constructor which corresponds to the `Clone`\ntrait in Rust. It is also trivially copyable, which corresponds to implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;4636f71a-599b-46d3-a6e6-e0c35b344140&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n};\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` has a user-defined copy constructor which corresponds to the\n`Clone` trait in Rust. Despite being user-defined, it does exactly what the\ndefault trait would do. Because the implementation is user-defined, it prevents\nthe type from being trivially copyable, which corresponds to not implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;c8e3b4da-19a1-42e9-97d4-bbb61dcd5652&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2(Vec2&amp; other) : x(other.x), y(other.y) {};\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="out-parameters"><a class="header" href="#out-parameters">Out parameters</a></h1>
+<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="out-parameters"><a class="header" href="#out-parameters">Out parameters</a></h1>
 <p>There are several idioms in C++ that involve the use of out parameters: passing
 pointers or references to functions for the function to mutate to provide its
 results.</p>

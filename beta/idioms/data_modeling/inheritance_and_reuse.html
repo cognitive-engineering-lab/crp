@@ -159,7 +159,7 @@
                         <h1 id="inheritance-and-implementation-reuse"><a class="header" href="#inheritance-and-implementation-reuse">Inheritance and implementation reuse</a></h1>
 <p>Rust does not have inheritance and so the primary means of reuse of
 implementations in Rust are composition, aggregation, and
-<a href="./idioms/data_modeling/templates.html">generics</a>.</p>
+<a href="/idioms/data_modeling/templates.html">generics</a>.</p>
 <p>However, Rust traits do have support for default methods which resemble one
 simple case of using inheritance for reuse of implementations. For example, in
 the following example two virtual methods are used to support a method whose
@@ -235,9 +235,9 @@ impl Device for Printer {
 <p>In practice, the <code>resetDevice()</code> method in the <code>Device</code> class might be made
 non-virtual in C++ if it is not expected that it will be overridden. In order to
 make it align with the Rust example, we have made it virtual here, since Rust
-traits can be used either for <a href="./idioms/data_modeling/abstract_classes.html">dynamic
+traits can be used either for <a href="/idioms/data_modeling/abstract_classes.html">dynamic
 dispatch</a> or <a href="/idioms/data_modeling/concepts.html">static
-dispatch</a> (with <a href="./idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
+dispatch</a> (with <a href="/idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
 static dispatch
 case</a>).</p>
 <p>Rust traits differ from abstract classes in a additional few ways. For example,
