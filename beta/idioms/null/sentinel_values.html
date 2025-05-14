@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Inheritance and implementation reuse - C++ to Rust Phrasebook</title>
+        <title>Sentinel values - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -156,115 +156,165 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="inheritance-and-implementation-reuse"><a class="header" href="#inheritance-and-implementation-reuse">Inheritance and implementation reuse</a></h1>
-<p>Rust does not have inheritance and so the primary means of reuse of
-implementations in Rust are composition, aggregation, and
-<a href="/idioms/data_modeling/templates.html">generics</a>.</p>
-<p>However, Rust traits do have support for default methods which resemble one
-simple case of using inheritance for reuse of implementations. For example, in
-the following example two virtual methods are used to support a method whose
-implementation is provided by the abstract class.</p>
+                        <h1 id="sentinel-values"><a class="header" href="#sentinel-values">Sentinel values</a></h1>
+<p>Sentinel values are in-band value that indicates a special situation, such as
+having reached the end of valid data in an iterator.</p>
+<h2 id="nullptr"><a class="header" href="#nullptr"><code>nullptr</code></a></h2>
+<p>Many designs in C++ borrow the convention from C of using a null pointer as a
+sentinel value for a method that returns owned pointers. For example, a method
+that parses a large structure may produce <code>std::nullptr</code> in the case of failure.</p>
+<p>A similar situation in Rust would make use of the type
+<code>Option&lt;Box&lt;LargeStructure&gt;&gt;</code>.</p>
 <div class="comparison">
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-#include &lt;string&gt;
+<pre><code class="language-cpp">#include &lt;memory&gt;
 
-class Device {
-public:
-    virtual void powerOn() = 0;
-    virtual void powerOff() = 0;
-
-    virtual void resetDevice() {
-        std::cout &lt;&lt; "Resetting device..." &lt;&lt; std::endl;
-        powerOff();
-        powerOn();
-    }
-
-    virtual ~Device() {}
+class LargeStructure {
+  int field;
+  // many fields ...
 };
 
-class Printer : public Device {
-    bool powered = false;
-public:
-    void powerOn() override {
-        this.powered = true;
-        std::cout &lt;&lt; "Printer is powered on." &lt;&lt; std::endl;
-    }
+std::unique_ptr&lt;LargeStructure&gt;
+parse(char *data, size_t len) {
+  // ...
 
-    void powerOff() override {
-        this.powered = false;
-        std::cout &lt;&lt; "Printer is powered off." &lt;&lt; std::endl;
-    }
-};
-
-int main() {
-    Printer myPrinter;
-    myPrinter.resetDevice();
-    return 0;
+  // on failure
+  return nullptr;
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>trait Device {
-    fn power_on(&amp;mut self);
-    fn power_off(&amp;mut self);
-
-    fn reset_device(&amp;mut self) {
-        println!("Resetting device...");
-        self.power_on();
-        self.power_off();
-    }
+</span>struct LargeStructure {
+    field: i32,
+    // many fields ...
 }
 
-struct Printer {
-    powered: bool,
-}
+fn parse(
+    data: &amp;[u8],
+) -&gt; Option&lt;Box&lt;LargeStructure&gt;&gt; {
+    // ...
 
-impl Device for Printer {
-    fn power_on(&amp;mut self) {
-        self.powered = true;
-        println!("Printer is powered on");
-    }
-
-    fn power_off(&amp;mut self) {
-        self.powered = false;
-        println!("Printer is powered off");
-    }
+    // on failure
+    None
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>In practice, the <code>resetDevice()</code> method in the <code>Device</code> class might be made
-non-virtual in C++ if it is not expected that it will be overridden. In order to
-make it align with the Rust example, we have made it virtual here, since Rust
-traits can be used either for <a href="/idioms/data_modeling/abstract_classes.html">dynamic
-dispatch</a> or <a href="/idioms/data_modeling/concepts.html">static
-dispatch</a> (with <a href="/idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
-static dispatch
-case</a>).</p>
-<p>Rust traits differ from abstract classes in a additional few ways. For example,
-Rust traits cannot define data members and cannot define private or protected
-methods. This limits the effectiveness of using traits to implement the template
-method pattern.</p>
-<p>Rust traits also cannot be privately implemented. Anywhere that both a trait
-and a type that implements that trait are visible, the methods of the trait are
-visible as methods on the type.</p>
-<p>Traits can, however, inherit from each other, including multiple inheritance. As
-in modern C++, inheritance hierarchies in Rust tend to be shallow. In situations
-with complex multiple inheritance, however, the diamond problem cannot arise in
-Rust because traits cannot override other traits implementations. Therefore, all
-paths to a common parent trait resolve to the same implementation.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;inheritance_and_reuse&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Unlike with a C++ parent class, the default method is not part of `BareLogger`,\neven when accessed statically via the trait.\n&quot;,&quot;id&quot;:&quot;2bc058d0-99e4-44e0-9abe-5497b713731e&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;a message\nan error\nanother message\nanother error\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;trait Logger {\n    fn log(&amp;self, message: &amp;str);\n\n    fn error(&amp;self, message: &amp;str) {\n        self.log(&amp;format!(\&quot;ERROR: {}\&quot;, message));\n    }\n}\n\nstruct BareLogger;\n\nimpl Logger for BareLogger {\n    fn log(&amp;self, message: &amp;str) {\n        println!(\&quot;{}\&quot;, message);\n    }\n\n    fn error(&amp;self, message: &amp;str) {\n        // Omits the ERROR: prefix\n        println!(\&quot;{}\&quot;, message)\n    }\n}\n\nfn main() {\n    let logger = BareLogger;\n    logger.log(\&quot;a message\&quot;);\n    logger.error(\&quot;an error\&quot;);\n    &lt;BareLogger as Logger&gt;::log(&amp;logger, \&quot;another message\&quot;);\n    &lt;BareLogger as Logger&gt;::error(&amp;logger, \&quot;another error\&quot;);\n}\n&quot;}},{&quot;context&quot;:&quot;A trait only defines an interface, with the ability to define default methods as\na convenience for when some methods on the trait can be defined in terms of\nothers.\n&quot;,&quot;id&quot;:&quot;78c03495-5d3d-4faf-8375-b9f338a377ff&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because in Rust traits cannot have fields.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile, because `health` isn't initialized when `Enemy` implements\n`Damageable`.\n&quot;,&quot;It does not compile, because `e.health` isn't initialized before using `e` in\n`main`.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile? If not, why not?\n\n```rust\ntrait Damageable {\n    health: u32;\n\n    fn take_damage(&amp;mut self, damage: u32) {\n        self.health = self.health.saturating_sub(damage);\n    }\n}\n\nimpl Damageable for Enemy {}\n\nfn main() {\n    let e = Enemy;\n    e.take_damage(10);\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<p>The <code>Box&lt;T&gt;</code> type has the same meaning as <code>std::unique_ptr&lt;T&gt;</code> in terms of being
+an uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
+it cannot be null. Rust's <code>Option&lt;T&gt;</code> is like <code>std::optional&lt;T&gt;</code> in C++, except
+that it can be used with pointers and references. In <a href="/idioms/data_modeling/template_specialization.html#niche-optimization">those cases (and in some
+other
+cases)</a> the
+compiler optimizes the representation to be the same size as <code>Box&lt;T&gt;</code> by
+leveraging the fact that <code>Box</code> cannot be null.</p>
+<p>In Rust it is also common to pay the cost for the extra byte to use a return
+type of <code>Result&lt;T, E&gt;</code> (which is akin to <code>std::expected</code> in C++23) in order to
+make the reason for the failure available at runtime.</p>
+<h2 id="integer-sentinels"><a class="header" href="#integer-sentinels">Integer sentinels</a></h2>
+<p>When a possibly-failing function produces an integer, it is also common to use
+an otherwise unused or unlikely integer value as a sentinel value, such as <code>0</code>
+or <code>INT_MAX</code>.</p>
+<p>In Rust, the <code>Option</code> type is used for this purpose. In cases where the zero
+value really is not possible to produce, as with the gcd algorithm above, the
+type <code>NonZero&lt;T&gt;</code> can be used to indicate that fact. As with <code>Option&lt;Box&lt;T&gt;&gt;</code>,
+the compiler optimizes the representation to make use of the unused value (in
+this case <code>0</code>) to represent the <code>None</code> case to ensure that the representation of
+<code>Option&lt;NonZero&lt;T&gt;&gt;</code> is the same as the representation of <code>Option&lt;T&gt;</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;algorithm&gt;
+
+int gcd(int a, int b) {
+  if (b == 0 || a == 0) {
+    // returns 0 to indicate invalid input
+    return 0;
+  }
+
+  while (b != 0) {
+    int temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return std::abs(a);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">use std::num::NonZero;
+
+fn gcd(
+    mut a: i32,
+    mut b: i32,
+) -&gt; Option&lt;NonZero&lt;i32&gt;&gt; {
+    if a == 0 || b == 0 {
+        return None;
+    }
+
+    while b != 0 {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    // At this point, a is guaranteed to not be
+    // zero. The `Some` case from `NonZer::new`
+    // has a different meaning than the `Some`
+    // returned from this function, but here it
+    // happens to coincide.
+    NonZero::new(a.abs())
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    assert!(gcd(5, 0) == None);
+</span><span class="boring">    assert!(gcd(0, 5) == None);
+</span><span class="boring">    assert!(gcd(5, 1) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(1, 5) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(2 * 2 * 3 * 5 * 7, 2 * 2 * 7 * 11) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">    assert!(gcd(2 * 2 * 7 * 11, 2 * 2 * 3 * 5 * 7) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">}</span></code></pre></pre>
+</div>
+<p>As an aside, it is also possible to avoid the redundant check for zero at the end, and
+without using unsafe Rust, by preserving the non-zeroness property throughout
+the algorithm.</p>
+<pre><pre class="playground"><code class="language-rust">use std::num::NonZero;
+
+fn gcd(x: i32, mut b: i32) -&gt; Option&lt;NonZero&lt;i32&gt;&gt; {
+    if b == 0 {
+        return None;
+    }
+
+    // a is guaranteed to be non-zero, so we record the fact in the type of a.
+    let mut a = NonZero::new(x)?;
+
+    while let Some(temp) = NonZero::new(b) {
+        b = a.get() % b;
+        a = temp;
+    }
+    Some(a.abs())
+}
+<span class="boring">
+</span><span class="boring">fn main() {
+</span><span class="boring">    assert!(gcd(5, 0) == None);
+</span><span class="boring">    assert!(gcd(0, 5) == None);
+</span><span class="boring">    assert!(gcd(5, 1) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(1, 5) == NonZero::new(1));
+</span><span class="boring">    assert!(gcd(2 * 2 * 3 * 5 * 7, 2 * 2 * 7 * 11) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">    assert!(gcd(2 * 2 * 7 * 11, 2 * 2 * 3 * 5 * 7) == NonZero::new(2 * 2 * 7));
+</span><span class="boring">}</span></code></pre></pre>
+<h2 id="stdoptional"><a class="header" href="#stdoptional"><code>std::optional</code></a></h2>
+<p>In situations where <code>std::optional</code> would be used as a sentinel value in C++,
+<code>Option</code> can be used for the same purpose in Rust. The main difference between
+the two is that safe Rust requires either explicitly checking whether the value is
+<code>None</code>, while in C++ one can attempt to access the value without checking (at
+the risk of undefined behavior).</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;sentinel_values&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;The idiomatic Rust program to find the maximum value in a slice would just\ninvolve calling the `Iterator::max` method on the iterator for the slice.\n\n```rust\nfn find_max(arr: &amp;[i32]) -&gt; Option&lt;i32&gt; {\n    arr.into_iter().max().copied()\n}\n```\n&quot;,&quot;id&quot;:&quot;917b2f68-b4ea-486c-beab-5aa07101ea83&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nfn find_max(arr: &amp;[i32]) -&gt; Option&lt;i32&gt; {\n    if arr.is_empty() {\n        return None;\n    }\n\n    let mut max = arr[0];\n    for &amp;num in &amp;arr[1..] {\n        if num &gt; max {\n            max = num;\n        }\n    }\n    Some(max)\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn find_max(arr: &amp;[i32]) -&gt; i32 {\n    if arr.is_empty() {\n        return i32::MIN;\n    }\n\n    let mut max = arr[0];\n    for &amp;num in &amp;arr[1..] {\n        if num &gt; max {\n            max = num;\n        }\n    }\n    max\n}\n```\n&quot;,&quot;```rust\nuse std::num::NonZero;\n\nfn find_max(arr: &amp;[i32]) -&gt; Option&lt;NonZero&lt;i32&gt;&gt; {\n    if arr.is_empty() {\n        return None;\n    }\n\n    let mut max = arr[0];\n    for &amp;num in &amp;arr[1..] {\n        if num &gt; max {\n            max = num;\n        }\n    }\n    NonZero::new(max)\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\n#include &lt;limits&gt;\n\nint findMax(int arr[], int size) {\n  if (size &lt;= 0) {\n    return std::numeric_limits&lt;int&gt;::min();\n  }\n\n  int max = arr[0];\n  for (int i = 1; i &lt; size; ++i) {\n    if (arr[i] &gt; max) {\n      max = arr[i];\n    }\n  }\n  return max;\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 
-                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Inheritance and implementation reuse">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Sentinel values">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../idioms/data_modeling/tagged_unions.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../idioms/null.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/data_modeling/templates.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/null/moved_members.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -274,11 +324,11 @@ paths to a common parent trait resolve to the same implementation.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../idioms/data_modeling/tagged_unions.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../idioms/null.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/data_modeling/templates.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/null/moved_members.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Inheritance and implementation reuse - C++ to Rust Phrasebook</title>
+        <title>Moved members - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -156,115 +156,54 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="inheritance-and-implementation-reuse"><a class="header" href="#inheritance-and-implementation-reuse">Inheritance and implementation reuse</a></h1>
-<p>Rust does not have inheritance and so the primary means of reuse of
-implementations in Rust are composition, aggregation, and
-<a href="/idioms/data_modeling/templates.html">generics</a>.</p>
-<p>However, Rust traits do have support for default methods which resemble one
-simple case of using inheritance for reuse of implementations. For example, in
-the following example two virtual methods are used to support a method whose
-implementation is provided by the abstract class.</p>
-<div class="comparison">
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-#include &lt;string&gt;
+                        <h1 id="moved-members"><a class="header" href="#moved-members">Moved members</a></h1>
+<p>One common use of null pointers in modern C++ is as values for the members of
+moved objects so that the destructor can still safely be called. E.g.,</p>
+<pre><code class="language-cpp"><span class="boring">#include &lt;cstdlib&gt;
+</span><span class="boring">#include &lt;cstring&gt;
+</span><span class="boring">
+</span>// widget.h
+struct widget_t;
+widget_t *alloc_widget();
+void free_widget(widget_t*);
+void copy_widget(widget_t* dst, widget_t* src);
 
-class Device {
+// widget.cc
+class Widget {
+    widget_t* widget;
 public:
-    virtual void powerOn() = 0;
-    virtual void powerOff() = 0;
-
-    virtual void resetDevice() {
-        std::cout &lt;&lt; "Resetting device..." &lt;&lt; std::endl;
-        powerOff();
-        powerOn();
+<span class="boring">    Widget() : widget(alloc_widget()) {}
+</span><span class="boring">
+</span><span class="boring">    Widget(const Widget &amp;other) : widget(alloc_widget()) {
+</span><span class="boring">        copy_widget(widget, other.widget);
+</span><span class="boring">    }
+</span><span class="boring">
+</span>    Widget(Widget &amp;&amp;other) : widget(other.widget) {
+        other.widget = nullptr;
     }
 
-    virtual ~Device() {}
-};
-
-class Printer : public Device {
-    bool powered = false;
-public:
-    void powerOn() override {
-        this.powered = true;
-        std::cout &lt;&lt; "Printer is powered on." &lt;&lt; std::endl;
-    }
-
-    void powerOff() override {
-        this.powered = false;
-        std::cout &lt;&lt; "Printer is powered off." &lt;&lt; std::endl;
+    ~Widget() {
+        free_widget(widget);
     }
 };
-
-int main() {
-    Printer myPrinter;
-    myPrinter.resetDevice();
-    return 0;
-}
 </code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>trait Device {
-    fn power_on(&amp;mut self);
-    fn power_off(&amp;mut self);
+<p>Rust's notion of moving objects does not involve leaving behind an object on
+which a destructor will be called, and so this use of null does not have a
+corresponding idiom. See the chapter on <a href="/idioms/constructors/copy_and_move_constructors.html">copy and move
+constructors</a> for more
+details.</p>
 
-    fn reset_device(&amp;mut self) {
-        println!("Resetting device...");
-        self.power_on();
-        self.power_off();
-    }
-}
 
-struct Printer {
-    powered: bool,
-}
-
-impl Device for Printer {
-    fn power_on(&amp;mut self) {
-        self.powered = true;
-        println!("Printer is powered on");
-    }
-
-    fn power_off(&amp;mut self) {
-        self.powered = false;
-        println!("Printer is powered off");
-    }
-}
-<span class="boring">}</span></code></pre></pre>
-</div>
-<p>In practice, the <code>resetDevice()</code> method in the <code>Device</code> class might be made
-non-virtual in C++ if it is not expected that it will be overridden. In order to
-make it align with the Rust example, we have made it virtual here, since Rust
-traits can be used either for <a href="/idioms/data_modeling/abstract_classes.html">dynamic
-dispatch</a> or <a href="/idioms/data_modeling/concepts.html">static
-dispatch</a> (with <a href="/idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
-static dispatch
-case</a>).</p>
-<p>Rust traits differ from abstract classes in a additional few ways. For example,
-Rust traits cannot define data members and cannot define private or protected
-methods. This limits the effectiveness of using traits to implement the template
-method pattern.</p>
-<p>Rust traits also cannot be privately implemented. Anywhere that both a trait
-and a type that implements that trait are visible, the methods of the trait are
-visible as methods on the type.</p>
-<p>Traits can, however, inherit from each other, including multiple inheritance. As
-in modern C++, inheritance hierarchies in Rust tend to be shallow. In situations
-with complex multiple inheritance, however, the diamond problem cannot arise in
-Rust because traits cannot override other traits implementations. Therefore, all
-paths to a common parent trait resolve to the same implementation.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;inheritance_and_reuse&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Unlike with a C++ parent class, the default method is not part of `BareLogger`,\neven when accessed statically via the trait.\n&quot;,&quot;id&quot;:&quot;2bc058d0-99e4-44e0-9abe-5497b713731e&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;a message\nan error\nanother message\nanother error\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;trait Logger {\n    fn log(&amp;self, message: &amp;str);\n\n    fn error(&amp;self, message: &amp;str) {\n        self.log(&amp;format!(\&quot;ERROR: {}\&quot;, message));\n    }\n}\n\nstruct BareLogger;\n\nimpl Logger for BareLogger {\n    fn log(&amp;self, message: &amp;str) {\n        println!(\&quot;{}\&quot;, message);\n    }\n\n    fn error(&amp;self, message: &amp;str) {\n        // Omits the ERROR: prefix\n        println!(\&quot;{}\&quot;, message)\n    }\n}\n\nfn main() {\n    let logger = BareLogger;\n    logger.log(\&quot;a message\&quot;);\n    logger.error(\&quot;an error\&quot;);\n    &lt;BareLogger as Logger&gt;::log(&amp;logger, \&quot;another message\&quot;);\n    &lt;BareLogger as Logger&gt;::error(&amp;logger, \&quot;another error\&quot;);\n}\n&quot;}},{&quot;context&quot;:&quot;A trait only defines an interface, with the ability to define default methods as\na convenience for when some methods on the trait can be defined in terms of\nothers.\n&quot;,&quot;id&quot;:&quot;78c03495-5d3d-4faf-8375-b9f338a377ff&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because in Rust traits cannot have fields.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile, because `health` isn't initialized when `Enemy` implements\n`Damageable`.\n&quot;,&quot;It does not compile, because `e.health` isn't initialized before using `e` in\n`main`.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile? If not, why not?\n\n```rust\ntrait Damageable {\n    health: u32;\n\n    fn take_damage(&amp;mut self, damage: u32) {\n        self.health = self.health.saturating_sub(damage);\n    }\n}\n\nimpl Damageable for Enemy {}\n\nfn main() {\n    let e = Enemy;\n    e.take_damage(10);\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
-
-                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Inheritance and implementation reuse">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Moved members">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../idioms/data_modeling/tagged_unions.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../idioms/null/sentinel_values.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/data_modeling/templates.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/encapsulation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -274,11 +213,11 @@ paths to a common parent trait resolve to the same implementation.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../idioms/data_modeling/tagged_unions.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../idioms/null/sentinel_values.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/data_modeling/templates.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/encapsulation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Encapsulation - C++ to Rust Phrasebook</title>
+        <title>Null (nullptr) - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -156,28 +156,32 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="encapsulation"><a class="header" href="#encapsulation">Encapsulation</a></h1>
-<p>In C++ the encapsulation boundary is the class. In Rust the encapsulation
-boundary is the module, which may contain several types along with standalone
-functions. In larger projects, the crate may also act as an encapsulation
-boundary.</p>
-<p>This difference means that in Rust one is more likely to have multiple, tightly
-coupled types that work together which are defined in one module and
-encapsulated as a whole.</p>
-<p>This section provides ways to translate between C++ and Rust's notions of
-encapsulation both mechanically and conceptually.</p>
+                        <h1 id="null-nullptr"><a class="header" href="#null-nullptr">Null (nullptr)</a></h1>
+<p>This section covers idiomatic uses of <code>nullptr</code> in C++ and how to achieve the
+same results in Rust.</p>
+<p>Some uses of <code>nullptr</code> in C++ don't arise in the first place in Rust because of
+other language differences. For example, <a href="/idioms/null/moved_members.html">moved objects don't leave anything
+behind that needs to be destroyed</a>. Therefore
+there is no to use <code>nullptr</code> as a as placeholder for a moved pointer that can
+have <code>delete</code> or <code>free</code> called on it.</p>
+<p>Other uses are replaced by <code>Option</code>, which in safe Rust requires checking for
+the empty case before accessing the contained value. This use is common enough
+that <a href="https://doc.rust-lang.org/std/option/index.html#representation">Rust has an
+optimization</a>
+for when <code>Option</code> is used with a reference (<code>&amp;</code> or <code>&amp;mut ref</code>), <code>Box</code>
+(equivalent of <code>unique_ptr</code>), and <code>NonNull</code> (a non-null raw pointer).</p>
 
 
-                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Encapsulation">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Null (nullptr)">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../idioms/null/moved_members.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../idioms/data_modeling/template_specialization.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../idioms/encapsulation/headers.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../idioms/null/sentinel_values.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -187,11 +191,11 @@ encapsulation both mechanically and conceptually.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../idioms/null/moved_members.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../idioms/data_modeling/template_specialization.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../idioms/encapsulation/headers.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../idioms/null/sentinel_values.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

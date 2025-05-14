@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Inheritance and implementation reuse - C++ to Rust Phrasebook</title>
+        <title>Template specialization - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -156,115 +156,90 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="inheritance-and-implementation-reuse"><a class="header" href="#inheritance-and-implementation-reuse">Inheritance and implementation reuse</a></h1>
-<p>Rust does not have inheritance and so the primary means of reuse of
-implementations in Rust are composition, aggregation, and
-<a href="/idioms/data_modeling/templates.html">generics</a>.</p>
-<p>However, Rust traits do have support for default methods which resemble one
-simple case of using inheritance for reuse of implementations. For example, in
-the following example two virtual methods are used to support a method whose
-implementation is provided by the abstract class.</p>
+                        <h1 id="template-specialization"><a class="header" href="#template-specialization">Template specialization</a></h1>
+<p>Template specialization in C++ makes it possible for a template entity to have
+different implementations for different parameters. Most STL implementations
+make use of this to, for example, provide a <a href="https://en.cppreference.com/w/cpp/container/vector_bool">space-efficient representation of
+<code>std::vector&lt;bool&gt;</code></a>.</p>
+<p>In Rust it is not possible to specialize a generic implementation in this way.
+This is because unlike C++ templates, Rust's generics are not a mechanism for
+metaprogramming.</p>
+<p>Instead it is more common in Rust to define traits for interfaces and to
+implement generic functions over those interfaces, enabling clients to select
+their choice of representation by using a different concrete type. This is more
+practical to do in Rust than in C++ because generics not being a metaprogramming
+facility means that generic entities can be type checked locally, making them
+easier to define.</p>
+<p>Additionally, because generic functions can only interact with generic values in
+ways defined by the trait bounds, it is easier to test generic implementations.
+In particular, code testing a generic implementation only has to consider the
+possible behaviors of the given trait.</p>
+<p>For a comparison, consider the following programs.</p>
 <div class="comparison">
-<pre><code class="language-cpp">#include &lt;iostream&gt;
-#include &lt;string&gt;
+<pre><code class="language-cpp">template &lt;totally_ordered T&gt;
+T max(const T &amp;x, const T &amp;y) {
+  return (x &gt; y) ? x : y;
+}
 
-class Device {
-public:
-    virtual void powerOn() = 0;
-    virtual void powerOff() = 0;
-
-    virtual void resetDevice() {
-        std::cout &lt;&lt; "Resetting device..." &lt;&lt; std::endl;
-        powerOff();
-        powerOn();
-    }
-
-    virtual ~Device() {}
-};
-
-class Printer : public Device {
-    bool powered = false;
-public:
-    void powerOn() override {
-        this.powered = true;
-        std::cout &lt;&lt; "Printer is powered on." &lt;&lt; std::endl;
-    }
-
-    void powerOff() override {
-        this.powered = false;
-        std::cout &lt;&lt; "Printer is powered off." &lt;&lt; std::endl;
-    }
-};
-
-int main() {
-    Printer myPrinter;
-    myPrinter.resetDevice();
-    return 0;
+template &lt;&gt;
+int max(const int &amp;x, const int &amp;y) {
+  return (x &gt; y) ? x + 1 : y + 1;
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>trait Device {
-    fn power_on(&amp;mut self);
-    fn power_off(&amp;mut self);
-
-    fn reset_device(&amp;mut self) {
-        println!("Resetting device...");
-        self.power_on();
-        self.power_off();
-    }
-}
-
-struct Printer {
-    powered: bool,
-}
-
-impl Device for Printer {
-    fn power_on(&amp;mut self) {
-        self.powered = true;
-        println!("Printer is powered on");
-    }
-
-    fn power_off(&amp;mut self) {
-        self.powered = false;
-        println!("Printer is powered off");
+</span>fn max&lt;'a, T: Ord&gt;(x: &amp;'a T, y: &amp;'a T) -&gt; &amp;'a T {
+    if x &gt; y {
+        x
+    } else {
+        y
     }
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>In practice, the <code>resetDevice()</code> method in the <code>Device</code> class might be made
-non-virtual in C++ if it is not expected that it will be overridden. In order to
-make it align with the Rust example, we have made it virtual here, since Rust
-traits can be used either for <a href="/idioms/data_modeling/abstract_classes.html">dynamic
-dispatch</a> or <a href="/idioms/data_modeling/concepts.html">static
-dispatch</a> (with <a href="/idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
-static dispatch
-case</a>).</p>
-<p>Rust traits differ from abstract classes in a additional few ways. For example,
-Rust traits cannot define data members and cannot define private or protected
-methods. This limits the effectiveness of using traits to implement the template
-method pattern.</p>
-<p>Rust traits also cannot be privately implemented. Anywhere that both a trait
-and a type that implements that trait are visible, the methods of the trait are
-visible as methods on the type.</p>
-<p>Traits can, however, inherit from each other, including multiple inheritance. As
-in modern C++, inheritance hierarchies in Rust tend to be shallow. In situations
-with complex multiple inheritance, however, the diamond problem cannot arise in
-Rust because traits cannot override other traits implementations. Therefore, all
-paths to a common parent trait resolve to the same implementation.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;inheritance_and_reuse&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Unlike with a C++ parent class, the default method is not part of `BareLogger`,\neven when accessed statically via the trait.\n&quot;,&quot;id&quot;:&quot;2bc058d0-99e4-44e0-9abe-5497b713731e&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;a message\nan error\nanother message\nanother error\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;trait Logger {\n    fn log(&amp;self, message: &amp;str);\n\n    fn error(&amp;self, message: &amp;str) {\n        self.log(&amp;format!(\&quot;ERROR: {}\&quot;, message));\n    }\n}\n\nstruct BareLogger;\n\nimpl Logger for BareLogger {\n    fn log(&amp;self, message: &amp;str) {\n        println!(\&quot;{}\&quot;, message);\n    }\n\n    fn error(&amp;self, message: &amp;str) {\n        // Omits the ERROR: prefix\n        println!(\&quot;{}\&quot;, message)\n    }\n}\n\nfn main() {\n    let logger = BareLogger;\n    logger.log(\&quot;a message\&quot;);\n    logger.error(\&quot;an error\&quot;);\n    &lt;BareLogger as Logger&gt;::log(&amp;logger, \&quot;another message\&quot;);\n    &lt;BareLogger as Logger&gt;::error(&amp;logger, \&quot;another error\&quot;);\n}\n&quot;}},{&quot;context&quot;:&quot;A trait only defines an interface, with the ability to define default methods as\na convenience for when some methods on the trait can be defined in terms of\nothers.\n&quot;,&quot;id&quot;:&quot;78c03495-5d3d-4faf-8375-b9f338a377ff&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because in Rust traits cannot have fields.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile, because `health` isn't initialized when `Enemy` implements\n`Damageable`.\n&quot;,&quot;It does not compile, because `e.health` isn't initialized before using `e` in\n`main`.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile? If not, why not?\n\n```rust\ntrait Damageable {\n    health: u32;\n\n    fn take_damage(&amp;mut self, damage: u32) {\n        self.health = self.health.saturating_sub(damage);\n    }\n}\n\nimpl Damageable for Enemy {}\n\nfn main() {\n    let e = Enemy;\n    e.take_damage(10);\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<p>In the Rust program, <em>parametricity</em> means that (assuming safe Rust) from the
+type alone one can tell that if the function returns, it must return exactly one
+of <code>x</code> or <code>y</code>. This is because the trait bound <code>Ord</code> doesn't give any way to
+construct new values of type <code>T</code>, and the use of references doesn't give any way
+for the function to store one of <code>x</code> or <code>y</code> from an earlier call to return in a
+later call.</p>
+<p>In the C++ program, a call to <code>max</code> with <code>int</code> as the template parameter will
+give a distinctly different result than with any other parameter because of the
+template specialization enabling the behavior of the function to vary based on
+the type.</p>
+<p>The trade-off is that in Rust specialized implementations are harder to use
+because they must have different names, but that they are easier to write
+because it is easier to write generic code while being confident about its
+correctness.</p>
+<h2 id="niche-optimization"><a class="header" href="#niche-optimization">Niche optimization</a></h2>
+<p>There are several cases where the Rust compiler will perform optimizations to
+achieve more efficient representations. Those situations are all ones where the
+efficiency gains do not otherwise change the observable behavior of the code.</p>
+<p><a href="https://doc.rust-lang.org/std/option/index.html#representation">The most common case is with the <code>Option</code>
+type</a>. When
+<code>Option</code> is used with a type where the compiler can tell that there are unused
+values, one f those unused values will be used to represent the <code>None</code> case, so
+that <code>Option&lt;T&gt;</code> will not require an extra word of memory to indicate the
+discriminant of the enum.</p>
+<p>This optimization is applied to reference types (<code>&amp;</code> and <code>&amp;mut</code>), since
+references cannot be null. It is also applied to <code>NonNull&lt;T&gt;</code>, which represents
+a non-null pointer to a value of type <code>T</code>, and to <code>NonZeroU8</code> and other non-zero
+integral types. The optimization for the reference case is what makes
+<code>Option&lt;&amp;T&gt;</code> and <code>Option&lt;&amp;mut T&gt;</code> safer equivalents to using non-owning
+observation pointers in C++.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;template_specialization&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;&gt; Both will display \&quot;Unknown type\&quot; for everything other than `int` or `i32`.\n\nIn both cases what will be displayed for other types will depend on\nimplementations/specializations elsewhere in the program.\n\n&gt; Both `displayWithType` and `display_with_type` can be called with ANY\n&gt; arguments whose types overload `&lt;&lt;` or implement `Display`.\n\nThe default function implementation `type_display_name` in the `DisplayWithType`\ntrait does not make it possible to call `display_with_type` on any type. Types\nstill need to explicitly declare that they implement the trait.\n&quot;,&quot;id&quot;:&quot;6ac15484-9038-45b7-9b47-f08918551d3a&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;Both `displayWithType` and `display_with_type` can ONLY be called with arguments\nwhose types overload `&lt;&lt;` or implement `Display`.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;Both `displayWithType` and `display_with_type` will display \&quot;Unknown type\&quot; for\neverything other than `int` or `i32`.\n&quot;,&quot;Both `displayWithType` and `display_with_type` can be called with ANY arguments\nwhose types overload `&lt;&lt;` or implement `Display`.\n&quot;],&quot;prompt&quot;:&quot;The following Rust program is an approximate translation of the C++ program.\nWhich statements are true about them?\n\nC++:\n\n```cpp\n#include &lt;iostream&gt;\n\ntemplate &lt;typename T&gt;\nvoid displayWithType(T t) {\n  std::cout &lt;&lt; \&quot;Unknown: \&quot; &lt;&lt; t &lt;&lt; std::endl;\n}\n\ntemplate &lt;&gt;\nvoid displayWithType&lt;int&gt;(int t) {\n  std::cout &lt;&lt; \&quot;int: \&quot; &lt;&lt; t &lt;&lt; std::endl;\n}\n```\n\nRust:\n\n```rust\ntrait TypeDisplayName {\n    fn type_display_name() -&gt; &amp;'static str {\n        \&quot;Unknown\&quot;\n    }\n}\n\nimpl TypeDisplayName for i32 {\n    fn type_display_name() -&gt; &amp;'static str {\n        \&quot;i32\&quot;\n    }\n}\n\nuse std::fmt::Display;\n\nfn display_with_type&lt;T: TypeDisplayName + Display&gt;(x: T) {\n    println!(\&quot;{}: {}\&quot;, T::type_display_name(), x);\n}\n```\n&quot;}},{&quot;context&quot;:&quot;`Option&lt;NonZero&lt;u32&gt;&gt;` makes use of the niche optimization.\n&quot;,&quot;id&quot;:&quot;5523ba5a-2772-4700-946e-2028471ead73&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;They are all the same size.&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nOption&lt;NonZero&lt;u32&gt;&gt;\n```\n&quot;,&quot;```rust\nNonZero&lt;u32&gt;\n```\n&quot;,&quot;```rust\nu32\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following types is the largest?\n&quot;}},{&quot;id&quot;:&quot;2f5fbeda-ab4a-48cc-92be-509d8191da0a&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nOption&lt;u32&gt;\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nNonZero&lt;u32&gt;\n```\n&quot;,&quot;```rust\nu32\n```\n&quot;,&quot;They are all the same size.&quot;],&quot;prompt&quot;:&quot;Which of the following types is the largest?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 
-                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Inheritance and implementation reuse">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Template specialization">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../idioms/data_modeling/tagged_unions.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../idioms/data_modeling/templates.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../idioms/data_modeling/templates.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../idioms/null.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -274,11 +249,11 @@ paths to a common parent trait resolve to the same implementation.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../idioms/data_modeling/tagged_unions.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../idioms/data_modeling/templates.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../idioms/data_modeling/templates.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../idioms/null.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
