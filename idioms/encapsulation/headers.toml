@@ -149,24 +149,38 @@ modules.
 id = "4665b8ad-511f-4e0b-9dff-bf53e2a8f931"
 
 [[questions]]
-type = "Tracing"
-prompt.program = """
+type = "MultipleChoice"
+prompt.prompt = """
+Does this program compile? If not, why not?
+
+```rust
 // greetings.rs
 println!("Hello!");
+```
 
+```rust
 // main.rs
 fn main() {
+    #[path = "greetings.rs"]
     mod greetings;
 }
+```
 """
-answer.doesCompile = false
-context = """
-The `mod` construct defines a module whose body is given in another file. It
-does not perform textual inclusion the way that `#include` does in C++.
-
-Since the content of `greetings.rs` is not a valid module, the program does not
-compile.
+answer.answer = """
+It does not compile because `mod` defines a module and `greeting.rs` is not a
+valid module body.
 """
+prompt.distractors = [
+## Thinking that mod works like C++ #include.
+"""
+It does compile and prints `Hello!` to standard out.
+""",
+## Thinking that some combination of mod and using works like C++ #include.
+"""
+It does not compile because the `main.rs` file must include an explicit `use
+greetings;` statement.
+"""
+]
 id = "e3948224-44d7-47d1-bf37-d5667fd8c9bb"
 
 [[questions]]
@@ -314,7 +328,7 @@ id = "68d431c0-8d39-4f4f-804c-bb6e7baa8d2b"
 [[questions]]
 type = "MultipleChoice"
 prompt.prompt = """
-Does the following Rust program compile?
+Does this program compile? If not, why not?
 
 ```rust
 // even.rs
@@ -350,8 +364,21 @@ fn main() {
 }
 ```
 """
-answer.answer = "true"
-prompt.distractors = ["false"]
+answer.answer = """
+The program does compile and prints `true`.
+"""
+prompt.distractors = [
+# Thinking mod/using work like #include, or thinking like individual modules are
+# translation units.
+"""
+It does not compile because the files have a cyclical dependency.
+""",
+# Not remembering that a program is a single tree of modules.
+"""
+It does not compile because `even.rs` and `odd.rs` don't have `mod`
+declarations for each other.
+"""
+]
 context = """
 Since neither `mod` nor `use` performs textual inclusion, it is possible to have
 recurisve modules within a single crate.

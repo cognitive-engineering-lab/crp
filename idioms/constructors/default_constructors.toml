@@ -1,6 +1,9 @@
 [[questions]]
-type = "Tracing"
-prompt.program = """
+type = "MultipleChoice"
+prompt.prompt = """
+Does this program compile? If not, why not?
+
+```rust
 struct Widget {
     color: String,
 }
@@ -9,8 +12,35 @@ fn main() {
     let w: Widget;
     println!("{}", w.color);
 }
+```
 """
-answer.doesCompile = false
+answer.answer = """
+It does not compile because `w` is not explicitly initialized before it is used.
+"""
+prompt.distractors = [
+# Thinking Rust has implicit initialization with an implicit default
+# constructor, like C++.
+"""
+It does compile.
+""",
+# Thinking Rust has implicit default initialization, but needs an explicit
+# default constructor defined by Default.
+"""
+It does not compile because `Widget` does not implement the `Default` trait.
+""",
+# Thinking Rust has implicit default initialization, but needs an explicit
+# default constructor defined by new.
+"""
+It does not compile because `Widget` does not implement a `new` method.
+""",
+# Thinking Rust has implicit default initialization, but needs an explicit
+# default constructor defined by both Default and new (since the text talks
+# about how one should implement both).
+"""
+It does not compile because `Widget` does not implement both the `Default`
+trait and a `new` method.
+"""
+]
 context = """
 Rust does not have implicit default initialization like C++ does. Variables must
 be explicitly initialized before use, or the program will fail to compile.
