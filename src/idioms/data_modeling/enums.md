@@ -1,7 +1,7 @@
 # Enums
 
-In C++, enums are often used to model fixed set alternatives, especially when
-each of those enumerators maps to a specific integer value, such as is needed
+In C++, enums are often used to model a fixed set of alternatives, especially when
+each of those enumerators corresponds to a specific integer value, such as is needed
 when working with hardware, system calls, or protocol implementations.
 
 For example, the various modes for a GPIO pin could be modeled as an enum, which
@@ -28,10 +28,10 @@ enum Mode : uint8_t {
   // ...
 };
 
-void lowLevelSetPin(uint8_t pin, uint8_t mode);
+void low_level_set_pin(uint8_t pin, uint8_t mode);
 
-void setPinMode(Pin pin, Mode mode) {
-  lowLevelSetPin(pin, mode);
+void set_pin_mode(Pin pin, Mode mode) {
+  low_level_set_pin(pin, mode);
 }
 ```
 

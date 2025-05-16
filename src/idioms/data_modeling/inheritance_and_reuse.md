@@ -90,7 +90,7 @@ dispatch](/idioms/data_modeling/concepts.md) (with [no vtable overhead in the
 static dispatch
 case](/idioms/data_modeling/abstract_classes.md#vtables-and-rust-trait-object-types)).
 
-Rust traits differ from abstract classes in a additional few ways. For example,
+Rust traits differ from abstract classes in few more ways. For example,
 Rust traits cannot define data members and cannot define private or protected
 methods. This limits the effectiveness of using traits to implement the template
 method pattern.

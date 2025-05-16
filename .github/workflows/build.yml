@@ -17,6 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Depot
+        uses: cognitive-engineering-lab/depot/actions/install@main
+
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
         with:
@@ -28,7 +31,11 @@ jobs:
           crate: mdbook-quiz
           version: '^0.3.10'
 
-      - name: Build
+      - name: Build telemetry
+        run: depot build --release
+        working-directory: telemetry
+
+      - name: Build book
         run: mdbook build
         env:
           MDBOOK_OUTPUT__HTML__SITE_URL: "${{ inputs.site_url }}"

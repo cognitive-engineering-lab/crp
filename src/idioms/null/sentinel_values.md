@@ -112,7 +112,7 @@ fn gcd(
         a = temp;
     }
     // At this point, a is guaranteed to not be
-    // zero. The `Some` case from `NonZer::new`
+    // zero. The `Some` case from `NonZero::new`
     // has a different meaning than the `Some`
     // returned from this function, but here it
     // happens to coincide.

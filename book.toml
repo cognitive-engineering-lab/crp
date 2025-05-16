@@ -7,6 +7,7 @@ title = "C++ to Rust Phrasebook"
 
 [output.html]
 additional-css = ["custom.css"]
+additional-js = ["telemetry/dist/telemetry.iife.js"]
 code.hidelines = {cpp = "$"}
 
 [preprocessor.quiz]
