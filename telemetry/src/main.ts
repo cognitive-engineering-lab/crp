@@ -42,10 +42,13 @@ export class Telemetry {
       payload
     };
 
-    let fullUrl = `${this.url}/crp-${endpoint}`;
+    let fullUrl = `${this.url}/crp_${endpoint}`;
     console.debug(`Logging to ${fullUrl}:`, log);
     fetch(fullUrl, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(log)
     });
   }
