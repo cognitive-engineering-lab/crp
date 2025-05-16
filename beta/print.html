@@ -1508,8 +1508,8 @@ fn store&lt;'s, S: Shape + 's&gt;(x: S, data: &amp;mut Box&lt;dyn Shape + 's&gt;
 <span class="boring">}</span></code></pre></pre>
 <div class="quiz-placeholder" data-quiz-name="&quot;concepts&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust needs to know that the type of `Scaled::shape` supports the `area` method,\nso a trait bound on the type parameter is necessary. Trait implementations are\nall or nothing, so the requirement applies to the whole implementation, not the\nindividual method.\n&quot;,&quot;id&quot;:&quot;3cb5759b-5fe0-491e-ac87-4ba455b26e8f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T: Shape&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64\n    where\n        T: Shape,\n    {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T: Shape&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Consider the following C++ program.\n\n```cpp\ntemplate&lt;typename T&gt;\nstruct Scaled {\n\tdouble scale;\n\tT shape;\n\n\tdouble area() const {\n\t\treturn scale * shape.area();\n\t}\n};\n\ntemplate &lt;typename T&gt;\nvoid printArea(T &amp;shape) {\n\tstd::cout &lt;&lt; shape.area() &lt;&lt; std::endl;\n}\n```\n\nWhich of the following snippets represents the most idiomatic translation of the\n`Scaled` template class into Rust?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="enums"><a class="header" href="#enums">Enums</a></h1>
-<p>In C++, enums are often used to model fixed set alternatives, especially when
-each of those enumerators maps to a specific integer value, such as is needed
+<p>In C++, enums are often used to model a fixed set of alternatives, especially when
+each of those enumerators corresponds to a specific integer value, such as is needed
 when working with hardware, system calls, or protocol implementations.</p>
 <p>For example, the various modes for a GPIO pin could be modeled as an enum, which
 would restrict methods using the mode to valid values.</p>
@@ -1531,10 +1531,10 @@ enum Mode : uint8_t {
   // ...
 };
 
-void lowLevelSetPin(uint8_t pin, uint8_t mode);
+void low_level_set_pin(uint8_t pin, uint8_t mode);
 
-void setPinMode(Pin pin, Mode mode) {
-  lowLevelSetPin(pin, mode);
+void set_pin_mode(Pin pin, Mode mode) {
+  low_level_set_pin(pin, mode);
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -2219,7 +2219,7 @@ dispatch</a> or <a href="idioms/data_modeling//idioms/data_modeling/concepts.htm
 dispatch</a> (with <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
 static dispatch
 case</a>).</p>
-<p>Rust traits differ from abstract classes in a additional few ways. For example,
+<p>Rust traits differ from abstract classes in few more ways. For example,
 Rust traits cannot define data members and cannot define private or protected
 methods. This limits the effectiveness of using traits to implement the template
 method pattern.</p>
@@ -2303,7 +2303,7 @@ impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
     ) -&gt; Result&lt;(), &amp;str&gt; {
         let num_nodes = self.num_nodes();
         if from &gt; num_nodes || to &gt; num_nodes {
-            Err("Node not in graph.")
+            Err("Node index out of range.")
         } else {
             self.adjacencies[from].push(to);
             Ok(())
@@ -2786,7 +2786,7 @@ fn gcd(
         a = temp;
     }
     // At this point, a is guaranteed to not be
-    // zero. The `Some` case from `NonZer::new`
+    // zero. The `Some` case from `NonZero::new`
     // has a different meaning than the `Some`
     // returned from this function, but here it
     // happens to coincide.
@@ -4397,6 +4397,7 @@ fn main() {
         <script src="book.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="telemetry/dist/telemetry.iife.js"></script>
 
         <script>
         window.addEventListener('load', function() {

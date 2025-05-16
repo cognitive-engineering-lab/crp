@@ -227,7 +227,7 @@ impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
     ) -&gt; Result&lt;(), &amp;str&gt; {
         let num_nodes = self.num_nodes();
         if from &gt; num_nodes || to &gt; num_nodes {
-            Err("Node not in graph.")
+            Err("Node index out of range.")
         } else {
             self.adjacencies[from].push(to);
             Ok(())
@@ -577,6 +577,7 @@ specialization</a> from Rust.</p>
         <script src="../../book.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="../../telemetry/dist/telemetry.iife.js"></script>
 
 
     </div>
