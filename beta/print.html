@@ -431,10 +431,10 @@ impl Default for Student {
 <p>Unlike C++ where the default initialization value for integers is indeterminate,
 in Rust the default value for the primitive integer and floating point types is
 zero.</p>
-<p>Deriving the <code>Default</code> trait has a similar effect on code concision as eliding
-initialization in C++. In situations where all of the types implement the
-<code>Default</code> trait, but only some of the fields should have their default values,
-one can use <a href="https://doc.rust-lang.org/book/ch05-01-defining-structs.html#creating-instances-from-other-instances-with-struct-update-syntax">struct update
+<p><a name="struct-update"></a> Deriving the <code>Default</code> trait has a similar effect
+on code concision as eliding initialization in C++. In situations where all of
+the types implement the <code>Default</code> trait, but only some of the fields should have
+their default values, one can use <a href="https://doc.rust-lang.org/book/ch05-01-defining-structs.html#creating-instances-from-other-instances-with-struct-update-syntax">struct update
 syntax</a>
 to define a constructor method without enumerating the values for all of the
 fields.</p>
@@ -895,7 +895,142 @@ accomplish the same goal, one instead must define a new type with a user-defined
 move
 constructors</a>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;rule_of_three_five_zero&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;cddc736a-b6c3-4f3f-a3a7-b42eb362d650&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;`Clone`&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;`Move`&quot;,&quot;`Copy`&quot;],&quot;prompt&quot;:&quot;If the `Drop` trait is implemented for a type in Rust, which other traits should\nprobably be implemented?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="data-modeling"><a class="header" href="#data-modeling">Data modeling</a></h1>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="destructors-and-resource-cleanup"><a class="header" href="#destructors-and-resource-cleanup">Destructors and resource cleanup</a></h1>
+<p>In C++, a destructor for a class <code>T</code> is defined by providing a special member
+function <code>~T()</code>. To achieve the equivalent in Rust, the <a href="https://doc.rust-lang.org/std/ops/trait.Drop.html"><code>Drop</code>
+trait</a> is implemented for a
+type.</p>
+<p>For an example, see <a href="idioms//idioms/constructors/copy_and_move_constructors.html#user-defined-constructors">the chapter on copy and move
+constructors</a>.</p>
+<p><code>Drop</code> implementations play the same role as destructors in C++ for types that
+manage resources. That is, they enable cleanup of resources owned by the value
+at the end of the value's lifetime.</p>
+<p>In Rust the <code>Drop::drop</code> method of a value is called automatically by a
+destructor when the variable that owns the value goes out of scope. Unlike in
+C++, the drop method cannot be called manually. Instead the automatic "drop
+glue" implicitly calls the destructors of fields.</p>
+<h2 id="lifetimes-and-destructors"><a class="header" href="#lifetimes-and-destructors">Lifetimes and destructors</a></h2>
+<p>C++ destructors are called in reverse order of construction when variables go
+out of scope, or for dynamically allocated objects, when they are deleted. This
+includes destructors of moved-from objects.</p>
+<p>In Rust, the drop order is similar to that of C++ (reverse order of
+declaration). If additional specific details about the drop order are needed
+(e.g., for writing unsafe code), the full rules for the drop order are described
+in <a href="https://doc.rust-lang.org/reference/destructors.html">the language
+reference</a>. However,
+moving an object in Rust does not leave a moved-from object on which a
+destructor will be called.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;utility&gt;
+
+struct A {
+  int id;
+
+  A(int id) : id(id) {}
+
+  // copy constructor
+  A(A &amp;other) : id(other.id) {}
+
+  // move constructor
+  A(A &amp;&amp;other) : id(other.id) {
+    other.id = 0;
+  }
+
+  // deconstructor
+  ~A() {
+    std::cout &lt;&lt; id &lt;&lt; std::endl;
+  }
+};
+
+int accept(A x) {
+  return x.id;
+} // the destructor of x is called after the
+  // return expression is evaluated
+
+// Prints:
+// 2
+// 3
+// 0
+// 1
+int main() {
+  A x(1);
+  A y(2);
+
+  accept(std::move(y));
+
+  A z(3);
+
+  return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">struct A {
+    id: i32,
+}
+
+impl Drop for A {
+    fn drop(&amp;mut self) {
+        println!("{}", self.id)
+    }
+}
+
+fn accept(x: A) -&gt; i32 {
+    return x.id;
+}
+
+// Prints:
+// 2
+// 3
+// 1
+fn main() {
+    let x = A { id: 1 };
+    let y = A { id: 2 };
+
+    accept(y);
+
+    let z = A { id: 3 };
+}</code></pre></pre>
+</div>
+<p>In Rust, after ownership of <code>y</code> is moved into the function <code>acccept</code>, there is
+no additional object remaining, and so there is no additional <code>Drop::drop</code> call
+(which in the C++ example prints <code>0</code>).</p>
+<p>Rust's drop methods do run when leaving scope due to a panic, though not if the
+panic occurs in a destructor that was called in response to an initial panic.</p>
+<h2 id="early-cleanup-and-explicitly-destroying-values"><a class="header" href="#early-cleanup-and-explicitly-destroying-values">Early cleanup and explicitly destroying values</a></h2>
+<p>In C++ you can explicitly destroy an object. This is mainly useful for
+situations where placement new has been used to allocate the object at a
+specific memory location, and so the destructor will not be implicitly called.</p>
+<p>However, once the destructor has been explicitly called, <a href="https://eel.is/c++draft/class.dtor#note-8">it may not be called
+again, even implicitly</a>. Thus the
+destructor can't be used for early cleanup. Instead, either the class must be
+designed with a separate cleanup method that releases the resources but leaves
+the object in a state where the destructor can be called or the function using
+the object must be structured so that the variable goes out of scope at the
+desired time.</p>
+<p>In Rust, values can be dropped early for early cleanup by using
+<a href="https://doc.rust-lang.org/std/mem/fn.drop.html"><code>std::mem::drop</code></a>. This works
+because (<a href="idioms//idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">for non-<code>Copy</code>
+types</a>)
+ownership of the object is actually transferred to <code>std::mem::drop</code> function,
+and so <code>Drop::drop</code> is called at the end of <code>std::mem::drop</code> when the lifetime
+of the parameter ends.</p>
+<p>Thus, <code>std::mem::drop</code> can be used for early cleanup of resources without having
+to restructure a function to force variables out of scope early.</p>
+<p>For example, the following allocates a large vector on the heap, but explicitly
+drops it before allocating a second large vector on the heap, reducing the
+overall memory usage.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let v = vec![0u32; 100000];
+    // ... use v
+
+    std::mem::drop(v);
+    // can no longer use v here
+
+    let v2 = vec![0u32; 100000];
+    // ... use v2
+}</code></pre></pre>
+<div class="quiz-placeholder" data-quiz-name="&quot;destructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;The call to `passthrough` moves ownership of the value in `w` into the\nfunction's parameter, and then moves ownership back out again when it returns,\nso that `w2` ends up owning the value. None of those steps cause `drop` to be\ncalled because no initialized variable goes out of scope. When the ownership of\nthe value is moved from the `w` into the parameter, or from the `a` in the\n`passthrough` function to `w2`, `w` and `a` are left uninitialized.\n\nAt the end of `main`, `w2` is dropped first, since it is declared last. Then its\nmembers are dropped in order of declaration in the struct definition. Each field\nis completely destructed before the next field is, thus when the `Box` in field\n`boxed_sub` is dropped, it drops the value it owns before the value in `sub` is\ndropped. Finally `s3`, is dropped.\n\n`w`, `s2`, and `s1` are not dropepd because they are not initialized.\n&quot;,&quot;id&quot;:&quot;9132e738-cc0b-4ba5-a323-9200b99bcbc4&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;3\n1\n2\n4\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;struct SubWidget {\n    id: i32,\n}\n\nimpl Drop for SubWidget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nstruct Widget {\n    id: i32,\n    boxed_sub: Box&lt;SubWidget&gt;,\n    sub: SubWidget,\n}\n\nimpl Drop for Widget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nfn passthrough(a: Widget) -&gt; Widget {\n    a\n}\n\nfn accept(a: Widget) {}\n\nfn main() {\n    let s1 = Box::new(SubWidget { id: 1 });\n    let s2 = SubWidget { id: 2 };\n    let w = Widget {\n        id: 3,\n        sub: s2,\n        boxed_sub: s1,\n    };\n    let s3 = SubWidget { id: 4 };\n\n    let w2 = passthrough(w);\n}\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="data-modeling"><a class="header" href="#data-modeling">Data modeling</a></h1>
 <p>In C++ the mechanisms available for data modeling are classes, enums, and
 unions.</p>
 <p>Rust, on the other hand, uses records
@@ -4418,6 +4553,345 @@ fn main() {
 }</code></pre></pre>
 </div>
 <div class="quiz-placeholder" data-quiz-name="&quot;type_equivalents&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;4fb18334-8405-438d-8d3e-859a8823bccf&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It is guaranteed in safe Rust to represent a valid Unicode scalar value.\n&quot;,&quot;It is 32 bits wide.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It is equivalent to the C++ `wchar` type.\n&quot;,&quot;It is equivalent to the C++ `char` type.\n&quot;,&quot;It is equivalent to the C++ `char8_t` type.\n&quot;,&quot;It is equivalent to the C++ `int32_t` type.\n&quot;,&quot;It is 8 bits wide.\n&quot;],&quot;prompt&quot;:&quot;Which of the following are true about the Rust `char` type.\n&quot;}},{&quot;id&quot;:&quot;5586766c-b5ce-4bea-b995-da0b3c548b0d&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It provides thread-safe read access to a value of type `T`.\n&quot;,&quot;It represents shared ownership of a value of type `T`.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It provides thread-safe write access to a value of type `T`.\n&quot;,&quot;It can be empty (i.e., not own some value of type `T`).\n&quot;],&quot;prompt&quot;:&quot;Which of the following are true about `std::sync::Arc&lt;T&gt;`.\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="overloading"><a class="header" href="#overloading">Overloading</a></h1>
+<p>C++ supports overloading of functions, so long as the invocations of the
+functions can be distinguished by the number or types of their arguments.</p>
+<p>Rust does not support this kind of function overloading. Instead, Rust has a few
+different mechanisms (some of which C++ also has) for achieving the effects of
+overloading in a way that interacts better with type inference. The mechanisms
+usually involve making the commonalities between the overloaded functions
+apparent in the code.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;string&gt;
+
+double twice(double x) {
+  return x + x;
+}
+
+int twice(int x) {
+  return x + x;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn twice(x: f64) -&gt; f64 {
+    x + x
+}
+
+// error[E0428]: the name `twice` is defined multiple times
+// fn twice(x: i32) -&gt; i32 {
+//     x + x
+// }
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>In practice, an example like the above would also likely be implemented in a
+more structured way even in C++, using templates.</p>
+<p>When phrased this way, the example can be translated to Rust, with the notable
+addition of <a href="idioms//idioms/data_modeling/concepts.html">requiring a trait bound on the
+type</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">template &lt;typename T&gt;
+T twice(T x) {
+  return x + x;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn twice&lt;T&gt;(x: T) -&gt; T::Output
+where
+    T: std::ops::Add&lt;T&gt;,
+    T: Copy,
+{
+    x + x
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<h2 id="overloaded-methods"><a class="header" href="#overloaded-methods">Overloaded methods</a></h2>
+<p>In C++ it is possible to have methods with the same name but different
+signatures on the same type. In Rust there can be at most one method with the
+same name for each trait implementation and at most one inherent method with the
+same name for a type.</p>
+<p>In cases where there are multiple methods with the same names because the method
+is defined for multiple traits, the desired method must be distinguished at the
+call site by specifying the trait.</p>
+<pre><pre class="playground"><code class="language-rust">trait TraitA {
+    fn go(&amp;self) -&gt; String;
+}
+
+trait TraitB {
+    fn go(&amp;self) -&gt; String;
+}
+
+struct MyStruct;
+
+impl MyStruct {
+    fn go(&amp;self) -&gt; String {
+        "Called inherent method".to_string()
+    }
+}
+
+impl TraitA for MyStruct {
+    fn go(&amp;self) -&gt; String {
+        "Called Trait A method".to_string()
+    }
+}
+
+impl TraitB for MyStruct {
+    fn go(&amp;self) -&gt; String {
+        "Called Trait B method".to_string()
+    }
+}
+
+fn main() {
+    let my_struct = MyStruct;
+
+    // Calling the inherent method
+    println!("{}", my_struct.go());
+
+    // Calling the method from TraitA
+    println!("{}", TraitA::go(&amp;my_struct));
+
+    // Calling the method from TraitB
+    println!("{}", TraitB::go(&amp;my_struct));
+}</code></pre></pre>
+<p>One exception to this is when the methods are all from the same generic trait
+with with different type parameters for the implementations. In that case, if
+the signature is sufficient to determine which implementation to use, the trait
+does not need to be specified to resolve the method. This is common when using
+the <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code> trait</a>.</p>
+<pre><pre class="playground"><code class="language-rust">struct Widget;
+
+impl From&lt;i32&gt; for Widget {
+    fn from(x: i32) -&gt; Widget {
+        Widget
+    }
+}
+
+impl From&lt;f32&gt; for Widget {
+    fn from(x: f32) -&gt; Widget {
+        Widget
+    }
+}
+
+fn main() {
+    // Calls &lt;Widget as From&lt;i32&gt;&gt;::from
+    let w1 = Widget::from(5);
+    // Calls &lt;Widget as From&lt;f32&gt;&gt;::from
+    let w2 = Widget::from(1.0);
+}</code></pre></pre>
+<h2 id="overloaded-operators"><a class="header" href="#overloaded-operators">Overloaded operators</a></h2>
+<p>In C++ most operators can either be overloaded either with a free-standing
+function or by providing a method defining the operator on a class.</p>
+<p>Rust provides operator via implementation of specific traits. Implementing a
+method of the same name as required by the trait will not make a type usable
+with the operator if the trait is not implemented.</p>
+<div class="comparison">
+<pre><code class="language-cpp">struct Vec2 {
+  double x;
+  double y;
+
+  Vec2 operator+(const Vec2 &amp;other) const {
+    return Vec2{x + other.x, y + other.y};
+  }
+};
+
+int main() {
+  Vec2 a{1.0, 2.0};
+  Vec2 b{3.0, 4.0};
+  Vec2 c = a + b;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy)]
+struct Vec2 {
+    x: f64,
+    y: f64,
+}
+
+impl std::ops::Add for &amp;Vec2 {
+    type Output = Vec2;
+
+    // Note that the type of self here is &amp;Vec2.
+    fn add(self, other: Self) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+fn main() {
+    let a = Vec2 { x: 1.0, y: 2.0 };
+    let b = Vec2 { x: 3.0, y: 4.0 };
+    let c = &amp;a + &amp;b;
+}</code></pre></pre>
+</div>
+<p>Additionally, sometimes it is best to provide trait implementations for various
+combinations of reference types, especially for types that implement the <a href="idioms//idioms/constructors/copy_and_move_constructors.html"><code>Copy trait</code></a>, since they are
+likely to want to be used either with or without taking a reference. For the
+example above, that involve defining four implementations.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy)]
+struct Vec2 {
+    x: f64,
+    y: f64,
+}
+
+impl std::ops::Add&lt;&amp;Vec2&gt; for &amp;Vec2 {
+    type Output = Vec2;
+
+    fn add(self, other: &amp;Vec2) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+// If Vec2 weren't so small, it might be desireable to re-use space in the below
+// implementations, since they take ownership.
+
+impl std::ops::Add&lt;Vec2&gt; for &amp;Vec2 {
+    type Output = Vec2;
+
+    fn add(self, other: Vec2) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+impl std::ops::Add&lt;&amp;Vec2&gt; for Vec2 {
+    type Output = Vec2;
+
+    fn add(self, other: &amp;Vec2) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+impl std::ops::Add&lt;Vec2&gt; for Vec2 {
+    type Output = Vec2;
+
+    fn add(self, other: Vec2) -&gt; Vec2 {
+        Vec2 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
+fn main() {
+    let a = Vec2 { x: 1.0, y: 2.0 };
+    let b = Vec2 { x: 3.0, y: 4.0 };
+    let c = a + b;
+}</code></pre></pre>
+<p>The repetition can be addressed by defining a macro.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy)]
+struct Vec2 {
+    x: f64,
+    y: f64,
+}
+
+macro_rules! impl_add_vec2 {
+    ($lhs:ty, $rhs:ty) =&gt; {
+        impl std::ops::Add&lt;$rhs&gt; for $lhs {
+            type Output = Vec2;
+
+            fn add(self, other: $rhs) -&gt; Vec2 {
+                Vec2 {
+                    x: self.x + other.x,
+                    y: self.y + other.y,
+                }
+            }
+        }
+    };
+}
+
+impl_add_vec2!(&amp;Vec2, &amp;Vec2);
+impl_add_vec2!(&amp;Vec2, Vec2);
+impl_add_vec2!(Vec2, &amp;Vec2);
+impl_add_vec2!(Vec2, Vec2);
+
+fn main() {
+    let a = Vec2 { x: 1.0, y: 2.0 };
+    let b = Vec2 { x: 3.0, y: 4.0 };
+    let c = a + b;
+}</code></pre></pre>
+<h2 id="default-arguments"><a class="header" href="#default-arguments">Default arguments</a></h2>
+<p>Default arguments in C++ are sometimes implemented in terms of function
+overloading.</p>
+<p>Rust does not have default arguments. Instead, arguments with <code>Option</code> type can
+be used to provide a similar effect.</p>
+<div class="comparison">
+<pre><code class="language-cpp">unsigned int shift(unsigned int x,
+                   unsigned int shiftAmount) {
+  return x &lt;&lt; shiftAmount;
+}
+
+unsigned int shift(unsigned int x) {
+  return shift(x, 2);
+}
+
+int main() {
+  unsigned int a = shift(7); // shifts by 2
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">use std::ops::Shl;
+
+fn shift(
+    x: u32,
+    shift_amount: Option&lt;u32&gt;,
+) -&gt; u32 {
+    let a = shift_amount.unwrap_or(2);
+    x.shl(a)
+}
+
+fn main() {
+    let res = shift(7, None); // shifts by 2
+}</code></pre></pre>
+</div>
+<h2 id="unrelated-overloads"><a class="header" href="#unrelated-overloads">Unrelated overloads</a></h2>
+<p>The lack of completely ad hoc overloading in Rust encourages the definition of
+traits that capture essential commonalities between types, so that functions can
+be implemented in terms of those interfaces and used generally. However, it also
+sometime encourages the anti-pattern of defining of traits that only capture
+incidental commonalities (such as having methods of the same name).</p>
+<p>It is better programming practice in those cases to simply define separate
+functions, rather than to shoehorn in a trait where no real commonality exists.</p>
+<p>This is commonly seen in Rust in the naming conventions for constructor static
+methods. Instead of them all being named <code>new</code> with different arguments, they
+are <a href="https://rust-lang.github.io/api-guidelines/naming.html">usually given names of the form
+<code>from_something</code></a>, where
+the <code>something</code> varies based on from what the value is being constructed, or a
+more specific name if appropriate.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Vec3 {
+    x: f64,
+    y: f64,
+    z: f64,
+}
+
+impl Vec3 {
+    fn from_x(x: f64) -&gt; Vec3 {
+        Vec3 { x, y: 0.0, z: 0.0 }
+    }
+
+    fn from_y(y: f64) -&gt; Vec3 {
+        Vec3 { x: 0.0, y, z: 0.0 }
+    }
+
+    fn diagonal(d: f64) -&gt; Vec3 {
+        Vec3 { x: d, y: d, z: d }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This differs from the conversion methods supported by the <code>From</code> and <code>Into</code>
+traits, which have the additional purpose of supporting trait bounds on generic
+functions which should take any type convertible to a specific type.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;overloading&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;8cebf373-6026-43ed-9364-9fda8ca7fdcd&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It compiles.&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because `Pigeon` cannot have both an inherent method called\n`height` and implement a trait with a method called `height`.\n&quot;,&quot;It does not compile because `Pigeon` cannot implement two traits that both have\na method called `height`.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\ntrait Jump {\n    // Height above ground in meters\n    fn height(&amp;self) -&gt; f64;\n}\n\ntrait Fly {\n    // Height above ground in meters\n    fn height(&amp;self) -&gt; f64;\n}\n\nstruct Pigeon {}\n\nimpl Pigeon {\n    // Head to tail in meters\n    fn height(&amp;self) -&gt; f64 {\n        0.3\n    }\n}\n\nimpl Jump for Pigeon {\n    fn height(&amp;self) -&gt; f64 {\n        0.0\n    }\n}\n\nimpl Fly for Pigeon {\n    fn height(&amp;self) -&gt; f64 {\n        5.0\n    }\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="out-parameters"><a class="header" href="#out-parameters">Out parameters</a></h1>
 <p>There are several idioms in C++ that involve the use of out parameters: passing
 pointers or references to functions for the function to mutate to provide its
