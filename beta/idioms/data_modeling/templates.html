@@ -436,9 +436,7 @@ example.</p>
 <span class="boring">}</span></code></pre></pre>
 <p>An even more idiomatic implementation would make use of the <a href="https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.position_min">itertools
 crate</a>.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use itertools::*;
+<pre><code class="language-rust ignore">use itertools::*;
 
 <span class="boring">pub struct DirectedGraph&lt;Label&gt; {
 </span><span class="boring">    adjacencies: Vec&lt;Vec&lt;usize&gt;&gt;,
@@ -487,8 +485,7 @@ crate</a>.</p>
     {
         self.node_labels.iter().position_min()
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h2 id="constexpr-template-parameters"><a class="header" href="#constexpr-template-parameters"><code>constexpr</code> template parameters</a></h2>
 <p>Rust also supports the equivalent of constexpr template parameters. For example,
 one can define a generic function that returns an array consecutive integers
@@ -584,9 +581,7 @@ BOOST_AUTO_TEST_CASE(test_add_node_float) {
   BOOST_CHECK_CLOSE(label, g.getNode(n1), 0.0001);
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub struct DirectedGraph&lt;Label&gt; {
+<pre><code class="language-rust ignore">pub struct DirectedGraph&lt;Label&gt; {
     // The mistake is here: size_t should be Label
     adjacencies: Vec&lt;Vec&lt;usize&gt;&gt;,
     node_labels: Vec&lt;usize&gt;,
@@ -619,8 +614,7 @@ impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
     pub fn num_nodes(&amp;self) -&gt; usize {
         self.node_labels.len()
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 </div>
 <p>Despite the error, the C++ example compiles and passes the tests.</p>
 <pre><code class="language-text">Running 2 test cases...

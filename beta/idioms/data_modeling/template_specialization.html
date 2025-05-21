@@ -209,7 +209,7 @@ int main() {
   push_if_even(2, bv, false);
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust">// The Extend trait is for types that support
+<pre><code class="language-rust ignore">// The Extend trait is for types that support
 // appending values to the collection.
 fn push_if_even&lt;T, I: Extend&lt;T&gt;&gt;(
     n: u32,
@@ -232,7 +232,7 @@ fn main() {
     // Operate on BitVec
     let mut bv = bitvec![0, 1];
     push_if_even(2, &amp;mut bv, 0);
-}</code></pre></pre>
+}</code></pre>
 </div>
 <h2 id="trade-offs-between-generics-and-templates"><a class="header" href="#trade-offs-between-generics-and-templates">Trade-offs between generics and templates</a></h2>
 <p>Because generic functions can only interact with generic values in ways defined

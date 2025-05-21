@@ -2751,9 +2751,7 @@ example.</p>
 <span class="boring">}</span></code></pre></pre>
 <p>An even more idiomatic implementation would make use of the <a href="https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.position_min">itertools
 crate</a>.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use itertools::*;
+<pre><code class="language-rust ignore">use itertools::*;
 
 <span class="boring">pub struct DirectedGraph&lt;Label&gt; {
 </span><span class="boring">    adjacencies: Vec&lt;Vec&lt;usize&gt;&gt;,
@@ -2802,8 +2800,7 @@ crate</a>.</p>
     {
         self.node_labels.iter().position_min()
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h2 id="constexpr-template-parameters"><a class="header" href="#constexpr-template-parameters"><code>constexpr</code> template parameters</a></h2>
 <p>Rust also supports the equivalent of constexpr template parameters. For example,
 one can define a generic function that returns an array consecutive integers
@@ -2899,9 +2896,7 @@ BOOST_AUTO_TEST_CASE(test_add_node_float) {
   BOOST_CHECK_CLOSE(label, g.getNode(n1), 0.0001);
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub struct DirectedGraph&lt;Label&gt; {
+<pre><code class="language-rust ignore">pub struct DirectedGraph&lt;Label&gt; {
     // The mistake is here: size_t should be Label
     adjacencies: Vec&lt;Vec&lt;usize&gt;&gt;,
     node_labels: Vec&lt;usize&gt;,
@@ -2934,8 +2929,7 @@ impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
     pub fn num_nodes(&amp;self) -&gt; usize {
         self.node_labels.len()
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 </div>
 <p>Despite the error, the C++ example compiles and passes the tests.</p>
 <pre><code class="language-text">Running 2 test cases...
@@ -3030,7 +3024,7 @@ int main() {
   push_if_even(2, bv, false);
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust">// The Extend trait is for types that support
+<pre><code class="language-rust ignore">// The Extend trait is for types that support
 // appending values to the collection.
 fn push_if_even&lt;T, I: Extend&lt;T&gt;&gt;(
     n: u32,
@@ -3053,7 +3047,7 @@ fn main() {
     // Operate on BitVec
     let mut bv = bitvec![0, 1];
     push_if_even(2, &amp;mut bv, 0);
-}</code></pre></pre>
+}</code></pre>
 </div>
 <h2 id="trade-offs-between-generics-and-templates"><a class="header" href="#trade-offs-between-generics-and-templates">Trade-offs between generics and templates</a></h2>
 <p>Because generic functions can only interact with generic values in ways defined
@@ -4553,6 +4547,683 @@ fn main() {
 }</code></pre></pre>
 </div>
 <div class="quiz-placeholder" data-quiz-name="&quot;type_equivalents&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;4fb18334-8405-438d-8d3e-859a8823bccf&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It is guaranteed in safe Rust to represent a valid Unicode scalar value.\n&quot;,&quot;It is 32 bits wide.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It is equivalent to the C++ `wchar` type.\n&quot;,&quot;It is equivalent to the C++ `char` type.\n&quot;,&quot;It is equivalent to the C++ `char8_t` type.\n&quot;,&quot;It is equivalent to the C++ `int32_t` type.\n&quot;,&quot;It is 8 bits wide.\n&quot;],&quot;prompt&quot;:&quot;Which of the following are true about the Rust `char` type.\n&quot;}},{&quot;id&quot;:&quot;5586766c-b5ce-4bea-b995-da0b3c548b0d&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It provides thread-safe read access to a value of type `T`.\n&quot;,&quot;It represents shared ownership of a value of type `T`.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It provides thread-safe write access to a value of type `T`.\n&quot;,&quot;It can be empty (i.e., not own some value of type `T`).\n&quot;],&quot;prompt&quot;:&quot;Which of the following are true about `std::sync::Arc&lt;T&gt;`.\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="type-promotions-and-conversions"><a class="header" href="#type-promotions-and-conversions">Type promotions and conversions</a></h1>
+<h2 id="lvalue-to-rvalue"><a class="header" href="#lvalue-to-rvalue">lvalue to rvalue</a></h2>
+<p>In C++ lvalues are automatically converted to rvalues when needed.</p>
+<p>In Rust the equivalent of lvalues are "place expressions" (expressions that
+represent memory locations) and the equivalent of rvalues are "value
+expressions". Place expressions are automatically converted to value expressions
+when needed.</p>
+<div class="comparison">
+<pre><code class="language-cpp">int main() {
+  // Local variables are lvalues,
+  int x(0);
+  // and therefore may be assigned to.
+  x = 42;
+
+  // x is converted to an lvalue when needed.
+  int y = x + 1;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    // Local variables are place expressions,
+    let mut x = 0;
+    // and therefore may be assigned to.
+    x = 42;
+
+    // x is converted to a value expression when
+    // needed.
+    let y = x + 1;
+}</code></pre></pre>
+</div>
+<h2 id="array-to-pointer"><a class="header" href="#array-to-pointer">Array to pointer</a></h2>
+<p>In C++, arrays are automatically converted to pointers as required.</p>
+<p>The equivalent to this in Rust is the automatic conversion of vector and array
+references to slice references.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstring&gt;
+
+int main() {
+  char example[6] = "hello";
+  char other[6];
+
+  // strncpy takes arguments of type char*
+  strncpy(other, example, 6);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn third(ts: &amp;[char]) -&gt; Option&lt;&amp;char&gt; {
+    ts.get(2)
+}
+
+fn main() {
+    let vec: Vec&lt;char&gt; = vec!['a', 'b', 'c'];
+    let arr: [char; 3] = ['a', 'b', 'c'];
+
+    third(&amp;vec);
+    third(&amp;arr);
+}</code></pre></pre>
+</div>
+<p>Because slice references can be easily used in a memory-safe way, it is
+generally recommended in Rust to define functions in terms of slice references
+instead of in terms of references to vectors or arrays, unless vector-specific
+or array-specific functionality is needed.</p>
+<p>Unlike in C++ where the conversion from arrays to pointers is built into the
+language, this is actually a general mechanism provided by the <a href="https://doc.rust-lang.org/std/ops/trait.Deref.html"><code>Deref</code>
+trait</a>, which provides one
+kind of <a href="idioms//idioms/user-defined_conversions.html">user-defined conversion</a>.</p>
+<h2 id="function-to-pointer"><a class="header" href="#function-to-pointer">Function to pointer</a></h2>
+<p>In C++ functions and static member functions are automatically converted to
+function pointers.</p>
+<p>Rust performs the same conversion. In addition to functions and members that do
+not take <code>self</code> as an argument, constructors (proper constructors) also have
+function type and can be converted to function pointers. Non-capturing closures
+do not have function type, but can also be converted to function pointers.</p>
+<div class="comparison">
+<pre><code class="language-cpp">int twice(int n) {
+  return n * n;
+}
+
+struct MyPair {
+  int x;
+  int y;
+
+  MyPair(int x, int y) : x(x), y(y) {}
+
+  static MyPair make() {
+    return MyPair{0, 0};
+  }
+};
+
+int main() {
+  // convert a function to a function pointer
+  int (*twicePtr)(int) = twice;
+  int result = twicePtr(5);
+
+  // Per C++23 11.4.5.1.6, can't take the address
+  // of a constructor.
+  // MyPair (*ctor)(int, int) = MyPair::MyPair;
+  // MyPair pair = ctor(10, 20);
+
+  // convert a static method to a function
+  // pointer
+  MyPair (*methodPtr)() = MyPair::make;
+  MyPair pair2 = methodPtr();
+
+  // convert a non-capturing closure to a
+  // function pointer
+  int (*closure)(int) = [](int x) -&gt; int {
+    return x * 5;
+  };
+  int closureRes = closure(2);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn twice(x: i32) -&gt; i32 {
+    x * x
+}
+
+struct MyPair(i32, i32);
+
+impl MyPair {
+    fn new() -&gt; MyPair {
+        MyPair(0, 0)
+    }
+}
+
+fn main() {
+    // convert a function to a function pointer
+    let twicePtr: fn(i32) -&gt; i32 = twice;
+    let res = twicePtr(5);
+
+    // convert a constructor to a function pointer
+    let ctorPtr: fn(i32, i32) -&gt; MyPair = MyPair;
+    let pair = ctorPtr(10, 20);
+
+    // convert a static method to a function
+    // pointer
+    let methodPtr: fn() -&gt; MyPair = MyPair::new;
+    let pair2 = methodPtr();
+
+    // convert a non-capturing closure to a
+    // function pointer
+    let closure: fn(i32) -&gt; i32 = |x: i32| x * 5;
+    let closureRes = closure(2);
+}</code></pre></pre>
+</div>
+<h2 id="numeric-promotion-and-numeric-conversion"><a class="header" href="#numeric-promotion-and-numeric-conversion">Numeric promotion and numeric conversion</a></h2>
+<p>In C++ there are several kinds of implicit conversions that occur between
+numeric types. The most commonly encountered are numeric promotions, which
+convert numeric types to larger types.</p>
+<p>These lossless conversions are not implicit in Rust. Instead, they must be
+performed explicitly using the <code>Into::into()</code> method. These conversions are
+provided by implementations of the
+<a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a> and
+<a href="https://doc.rust-lang.org/std/convert/trait.Into.html"><code>Into</code></a> traits. The list
+of conversions provided by the Rust standard library is <a href="https://doc.rust-lang.org/std/convert/trait.From.html#implementors">listed on the
+documentation
+page</a> for
+the trait.</p>
+<div class="comparison">
+<pre><code class="language-cpp">int main() {
+  int x(42);
+  long y = x;
+
+  float a(1.0);
+  double b = a;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x: i32 = 42;
+    let y: i64 = x.into();
+
+    let a: f32 = 1.0;
+    let b: f64 = a.into();
+}</code></pre></pre>
+</div>
+<p>There are several implicit conversions that occur in C++ that are not lossless.
+For example, integers can be implicitly converted to unsigned integers in C++.</p>
+<p>In Rust, these conversions are also required to be explicit and are provided by
+the <a href="https://doc.rust-lang.org/std/convert/trait.TryFrom.html"><code>TryFrom</code></a> and
+<a href="https://doc.rust-lang.org/std/convert/trait.TryInto.html"><code>TryInto</code></a> traits
+which require handling the cases where the value does not map to the other type.</p>
+<div class="comparison">
+<pre><code class="language-cpp">int main() {
+  int x(42);
+  unsigned int y(x);
+
+  float a(1.0);
+  double b(a);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">use std::convert::TryInto;
+
+fn main() {
+    let x: i32 = 42;
+    let y: u32 = match x.try_into() {
+        Ok(x) =&gt; x,
+        Err(err) =&gt; {
+            panic!("Can't convert! {:?}", err);
+        }
+    };
+}</code></pre></pre>
+</div>
+<p>Some conversions that occur in C++ are supported by neither <code>From</code> nor <code>TryFrom</code>
+because there is not a clear choice of conversion or because they are not
+value-preserving. For example, in C++ <code>int32_t</code> can implicitly be converted to
+<code>float</code> despite <code>float</code> not being able to represent all 32 bit integers
+precisely, but in Rust there is no <code>TryFrom&lt;i32&gt;</code> implementation for <code>f32</code>.</p>
+<p>In Rust the only way to convert from an <code>i32</code> to an <code>f32</code> is with the <a href="https://doc.rust-lang.org/stable/reference/expressions/operator-expr.html#r-expr.as.coercions"><code>as</code>
+operator</a>.
+The operator can actually be used to convert between other primitive types as
+well and does not panic or produce undefined behavior, but may not convert in
+the desired way (e.g., it may use a different rounding mode than desired or it
+may truncate rather than saturate as desired).</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
+
+int main() {
+  int32_t x(42);
+  float a = x;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x: i32 = 42;
+    let a: f32 = x as f32;
+}</code></pre></pre>
+</div>
+<h3 id="isize-and-usize"><a class="header" href="#isize-and-usize"><code>isize</code> and <code>usize</code></a></h3>
+<p>In the Rust standard library the <code>isize</code> and <code>usize</code> types are used for values
+intended to used be indices (much like <code>size_t</code> in C++). However, their use for
+other purposes is usually discouraged in favor of using explicitly sized types
+such as <code>u32</code>. This results a situation where values of type <code>u32</code> have to be
+converted to <code>usize</code> for use in indexing, but <code>Into&lt;usize&gt;</code> is not implemented
+for <code>u32</code>.</p>
+<p>In these cases, best practice is to use <code>TryInto</code>, and if further error handling
+of the failure cause is not desired, to call <code>unwrap</code>, creating a panic at the
+point of conversion.</p>
+<p>This is preferred because it prevents the possibility of moving forward with an
+incorrect value. E.g., consider converting a <code>u64</code> to a <code>usize</code> that has a
+32-bit representation with <code>as</code>, which truncates the result. A value that is one
+greater than the <code>u32::MAX</code> will truncate to <code>0</code>, which would probably result in
+successfully retrieving the wrong value from a data structure, thus masking a
+bug and producing unexpected behavior.</p>
+<h3 id="enums-2"><a class="header" href="#enums-2">Enums</a></h3>
+<p>In C++ enums can be implicitly converted to integer types.</p>
+<p>In Rust the conversion requires the use of the <code>as</code> operator, and providing
+<code>From</code> and <code>TryFrom</code> implementations to move back and forth between the enum and
+its representation type is recommended. Examples and additional details are
+given in the <a href="idioms//idioms/data_modeling/enums.html">chapter on enums</a>.</p>
+<h2 id="qualification-conversion"><a class="header" href="#qualification-conversion">Qualification conversion</a></h2>
+<p>In C++ qualification conversions enable the use of const (or volatile) values
+where the const (or volatile) qualifier is not expected.</p>
+<p>In Rust the equivalent enables the use of <code>mut</code> variables and <code>mut</code> references
+to be used where non-<code>mut</code> variables or references are expected.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+void display(const std::string &amp;msg) {
+  std::cout &lt;&lt; "Displaying: " &lt;&lt; msg &lt;&lt; std::endl;
+}
+
+int main() {
+  // no const qualifier
+  std::string message("hello world");
+
+  // used where const expected
+  display(message);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn display(msg: &amp;str) {
+    println!("{}", msg);
+}
+
+fn main() {
+    let mut s: String = "hello world".to_string();
+    let message: &amp;mut str = s.as_mut();
+    display(message);
+}</code></pre></pre>
+</div>
+<h2 id="integer-literals"><a class="header" href="#integer-literals">Integer literals</a></h2>
+<p>In C++ integer literals with no suffix indicating type have the smallest type in
+which they can fit from <code>int</code>, <code>long int</code>, or <code>long long int</code>. When the literal
+is then assigned to a variable of a different type, an implicit conversion is
+performed.</p>
+<p>In Rust, integer literals have their type inferred depending on context. When
+there is insufficient information to infer a type either <code>i32</code> is assumed or may
+require some type annotation to be given.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstdint&gt;
+#include &lt;iostream&gt;
+
+int main() {
+  // Compiles without error (but with a warning).
+  uint32_t x = 4294967296;
+
+  // assumes int
+  auto y = 1;
+
+  // literal is given a larger type, so it prints
+  // correctly
+  std::cout &lt;&lt; 4294967296 &lt;&lt; std::endl;
+
+  // these work as expected
+  std::cout &lt;&lt; INT64_C(4294967296) &lt;&lt; std::endl;
+
+  uint64_t z = INT64_C(4294967296);
+  std::cout &lt;&lt; z &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    // error: literal out of range for `u32`
+    // let x: u32 = 4294967296;
+
+    // assumes i32
+    let y = 1;
+
+    // fails to compile because it is inferred as i32
+    // print!("{}", 4294967296);
+
+    // These work, though.
+    println!("{}", 4294967296u64);
+
+    let z: u64 = 4294967296;
+    println!("{}", z);
+}</code></pre></pre>
+</div>
+<h2 id="safe-bools"><a class="header" href="#safe-bools">Safe bools</a></h2>
+<p>The safe bool idiom exists to make it possible to use types as conditions. Since
+C++11 this idiom is straightforward to implement.</p>
+<p>In Rust instead of converting the value to a boolean, the normal idiom matches
+on the value instead. Depending on the situation, the mechanism used for
+matching might be <code>match</code>, <code>if let</code>, or <code>let else</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">struct Wire {
+  bool ready;
+  unsigned int value;
+
+  explicit operator bool() const { return ready; }
+};
+
+int main() {
+  Wire w{false, 0};
+  // ...
+
+  if (w) {
+    // use w.value
+  } else {
+    // do something else
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">enum Wire {
+    Ready(u32),
+    NotReady,
+}
+
+fn main() {
+    let wire = Wire::NotReady;
+    // ...
+
+    // match
+    match wire {
+        Wire::Ready(v) =&gt; {
+            // use value v
+        }
+        Wire::NotReady =&gt; {
+            // do something else
+        }
+    }
+
+    // if let
+    if let Wire::Ready(v) = wire {
+        // use value v
+    }
+
+    // let else
+    let Wire::Ready(v) = wire else {
+        // do something that doesn't continue,
+        // like early return
+        return;
+    };
+}</code></pre></pre>
+</div>
+<h2 id="user-defined-conversions"><a class="header" href="#user-defined-conversions">User-defined conversions</a></h2>
+<p>User-defined conversions are covered in a <a href="idioms//idioms/user-defined_conversions.html">separate
+chapter</a>.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;promotions_and_conversions&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;98badbec-d894-490a-929b-327021cda0c3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nuse std::convert::TryInto;\n\nfn main() {\n    let x = 4294967296i64;\n\n    match TryInto::&lt;i32&gt;::try_into(x) {\n        Ok(y) =&gt; {\n            // ...\n        }\n        Err(err) =&gt; {\n            // ...\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn main() {\n    let x = 4294967296i64;\n    if Into::&lt;i64&gt;::into(i32::MIN) &lt; x\n        &amp;&amp; x &lt; Into::&lt;i64&gt;::into(i32::MAX)\n    {\n        let y = x as i32;\n        // ...\n    } else {\n        // ...\n    }\n}\n```\n&quot;,&quot;```rust\nfn main() {\n    let x = 4294967296i64;\n    let y = x as i32;\n    if y as i64 == x {\n        // ...\n    } else {\n        // ...\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which Rust program is the most idiomatic translation of the following C++\nprogram?\n\n```cpp\n#include &lt;cstdint&gt;\n#include &lt;limits&gt;\n\nint main() {\n  int64_t x(4294967296);\n\n  if (std::numeric_limits&lt;int32_t&gt;::min() &lt; x &amp;&amp;\n      x &lt; std::numeric_limits&lt;int32_t&gt;::max()) {\n    int32_t y(x);\n    // ...\n  } else {\n    // ...\n  }\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="user-defined-conversions-1"><a class="header" href="#user-defined-conversions-1">User-defined conversions</a></h1>
+<p>In C++ user-defined conversions are created using <a href="https://en.cppreference.com/w/cpp/language/converting_constructor">converting
+constructors</a>
+or <a href="https://en.cppreference.com/w/cpp/language/cast_operator">conversion
+functions</a>. Because
+converting constructors are opt-out (via the <code>explicit</code> specifier), implicit
+conversions occur with regularity in C++ code. In the following example both the
+assignments and the function calls make use of implicit conversions as provided
+by a converting constructor.</p>
+<p>Rust makes significantly less use of implicit conversions. Instead most
+conversions are explicit. The
+<a href="https://doc.rust-lang.org/std/convert/index.html"><code>std::convert</code></a> module
+provides several traits for working with user-defined conversions. In Rust, the
+below example makes use of explicit conversions by implementing the <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code>
+trait</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">struct Widget {
+  Widget(int) {}
+  Widget(int, int) {}
+};
+
+void process(Widget w) {}
+
+int main() {
+  Widget w1 = 1;
+  Widget w2 = {4, 5};
+  process(1);
+  process({4, 5});
+
+  return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">struct Widget;
+
+impl From&lt;i32&gt; for Widget {
+    fn from(_x: i32) -&gt; Widget {
+        Widget
+    }
+}
+
+impl From&lt;(i32, i32)&gt; for Widget {
+    fn from(_x: (i32, i32)) -&gt; Widget {
+        Widget
+    }
+}
+
+fn process(w: Widget) {}
+
+fn main() {
+    let w1: Widget = 1.into();
+    // For construction this is more idiomatic:
+    let w1b = Widget::from(1);
+
+    let w2: Widget = (4, 5).into();
+    // For construction this is more idiomatic:
+    let w2b = Widget::from((4, 5));
+
+    process(1.into());
+    process((4, 5).into());
+}</code></pre></pre>
+</div>
+<p>The <code>into</code> method used above is provided via a <a href="https://doc.rust-lang.org/book/ch10-02-traits.html#using-trait-bounds-to-conditionally-implement-methods">blanket
+implementations</a>
+for the <a href="https://doc.rust-lang.org/std/convert/trait.Into.html"><code>Into trait</code></a>
+for types that implement the <code>From</code> trait. Because of the existence of the
+<a href="https://doc.rust-lang.org/std/convert/trait.Into.html#impl-Into%3CU%3E-for-T">blanket
+implementation</a>,
+it is generally preferred to implement the <code>From</code> trait instead of the <code>Into</code>
+trait, and let the <code>Into</code> trait be provided by that blanket implementation.</p>
+<h2 id="conversion-functions"><a class="header" href="#conversion-functions">Conversion functions</a></h2>
+<p>C++ conversion functions enable conversions in the other direction, from the
+defined class to another type.</p>
+<p>To achieve the same in Rust, the <code>From</code> trait can be implemented in the other
+direction. At least one of the source type or the target type must be defined in
+the same crate as the trait implementation.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;utility&gt;
+
+struct Point {
+  int x;
+  int y;
+
+  operator std::pair&lt;int, int&gt;() const {
+    return std::pair(x, y);
+  }
+};
+
+void process(std::pair&lt;int, int&gt;) {}
+
+int main() {
+  Point p1{1, 2};
+  Point p2{3, 4};
+
+  std::pair&lt;int, int&gt; xy = p1;
+  process(p2);
+
+  return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl From&lt;Point&gt; for (i32, i32) {
+    fn from(p: Point) -&gt; (i32, i32) {
+        (p.x, p.y)
+    }
+}
+
+fn process(x: (i32, i32)) {}
+
+fn main() {
+    let p1 = Point { x: 1, y: 2 };
+    let p2 = Point { x: 3, y: 4 };
+
+    let xy: (i32, i32) = p1.into();
+    process(p2.into());
+}</code></pre></pre>
+</div>
+<p>Conversion functions are is often used to implement the safe bool pattern in
+C++, <a href="idioms//idioms/promotions_and_conversions.html#safe-bools">which is addressed in a different way in
+Rust</a>.</p>
+<h2 id="borrowing-conversions"><a class="header" href="#borrowing-conversions">Borrowing conversions</a></h2>
+<p>The methods in the <code>From</code> and <code>Into</code> traits take ownership of the values to be
+converted. When this is not desired in C++, the conversion function can just
+take and return references.</p>
+<p>To achieve the same in Rust the <a href="https://doc.rust-lang.org/std/convert/trait.AsRef.html"><code>AsRef</code>
+trait</a> or <a href="https://doc.rust-lang.org/std/convert/trait.AsMut.html"><code>AsMut</code>
+trait</a> are used.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+struct Person {
+  std::string name;
+
+  operator std::string &amp;() {
+    return this-&gt;name;
+  }
+};
+
+void process(const std::string &amp;name) {
+  std::cout &lt;&lt; name &lt;&lt; std::endl;
+}
+
+int main() {
+  Person alice{"Alice"};
+
+  process(alice);
+
+  return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">struct Person {
+    name: String,
+}
+
+impl AsRef&lt;str&gt; for Person {
+    fn as_ref(&amp;self) -&gt; &amp;str {
+        &amp;self.name
+    }
+}
+
+fn process(name: &amp;str) {
+    println!("{}", name);
+}
+
+fn main() {
+    let alice = Person {
+        name: "Alice".to_string(),
+    };
+
+    process(alice.as_ref());
+}</code></pre></pre>
+</div>
+<p>It is common to use <code>AsRef</code> or <code>AsMut</code> as a trait bound in function definitions.
+Using generics with an <code>AsRef</code> or <code>AsMut</code> bound allows clients to call the
+functions with anything that can be cheaply viewed as the type that the function
+wants to work with. Using this technique, the above definition of <code>process</code>
+would be defined as in the following example.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">struct Person {
+</span><span class="boring">    name: String,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">impl AsRef&lt;str&gt; for Person {
+</span><span class="boring">    fn as_ref(&amp;self) -&gt; &amp;str {
+</span><span class="boring">        &amp;self.name
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn process&lt;T: AsRef&lt;str&gt;&gt;(name: T) {
+    println!("{}", name.as_ref());
+}
+
+fn main() {
+    let alice = Person {
+        name: "Alice".to_string(),
+    };
+
+    process(alice);
+}</code></pre></pre>
+<p>This technique is often used with functions that take file system paths, so that
+literal strings can more easily be used as paths.</p>
+<h2 id="fallible-conversions"><a class="header" href="#fallible-conversions">Fallible conversions</a></h2>
+<p>In C++ when conversions might fail it is possible (though usually discouraged)
+to throw an exception from the converting constructor or converting function.</p>
+<p>Error handling in Rust <a href="idioms//idioms/exceptions.html">does not use exceptions</a>. Instead
+the <a href="https://doc.rust-lang.org/std/convert/trait.TryFrom.html"><code>TryFrom</code> trait</a>
+and <a href="https://doc.rust-lang.org/std/convert/trait.TryInto.html"><code>TryInto</code> trait</a>
+are used for fallible conversions. These traits differ from <code>From</code> and <code>Into</code> in
+that they return a <code>Result</code>, which may indicate a failing case. When a
+conversion may fail one should implement <code>TryFrom</code> and rely on the client to
+call <code>unwrap</code> on the result, rather than panic in a <code>From</code> implementation.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
+#include &lt;string&gt;
+
+class NonEmpty {
+  std::string s;
+
+public:
+  NonEmpty(std::string s) : s(s) {
+    if (this-&gt;s.empty()) {
+      throw std::domain_error("empty string");
+    }
+  }
+};
+
+int main() {
+  std::string s("");
+  NonEmpty x = s; // throws
+
+  return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">use std::convert::TryFrom;
+use std::convert::TryInto;
+
+struct NonEmpty {
+    s: String,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct NonEmptyStringError;
+
+impl TryFrom&lt;String&gt; for NonEmpty {
+    type Error = NonEmptyStringError;
+
+    fn try_from(
+        s: String,
+    ) -&gt; Result&lt;NonEmpty, NonEmptyStringError&gt;
+    {
+        if s.is_empty() {
+            Err(NonEmptyStringError)
+        } else {
+            Ok(NonEmpty { s })
+        }
+    }
+}
+
+fn main() {
+    let res: Result&lt;
+        NonEmpty,
+        NonEmptyStringError,
+    &gt; = "".to_string().try_into();
+    match res {
+        Ok(ne) =&gt; {
+            println!("Converted!");
+        }
+        Err(err) =&gt; {
+            println!("Couldn't convert");
+        }
+    }
+}</code></pre></pre>
+</div>
+<p>Just like with <code>From</code> and <code>Into</code>, there is a <a href="https://doc.rust-lang.org/std/convert/trait.TryInto.html#impl-TryInto%3CU%3E-for-T">blanket
+implementation</a>
+for <code>TryInto</code> for everything that implements <code>TryFrom</code>.</p>
+<h2 id="implicit-conversions"><a class="header" href="#implicit-conversions">Implicit conversions</a></h2>
+<p>Rust does have one kind of user-defined implicit conversion, called <a href="https://doc.rust-lang.org/std/ops/trait.Deref.html#deref-coercion">deref
+coercions</a>,
+provided by the <a href="https://doc.rust-lang.org/std/ops/trait.Deref.html"><code>Deref</code>
+trait</a> and
+<a href="https://doc.rust-lang.org/std/ops/trait.DerefMut.html"><code>DerefMut</code>trait</a>. These
+coercions exist for making pointer-like types more ergonomic to use.</p>
+<p>An <a href="https://doc.rust-lang.org/book/ch15-02-deref.html">example</a> of implementing
+the traits for a custom pointer-like type is given in the Rust book.</p>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>A summary of when to use which kind of conversion interface is given in the
+documentation for the <a href="https://doc.rust-lang.org/std/convert/index.html"><code>std::convert</code>
+module</a>.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;user-defined_conversions&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;There is a blanket implementation for `TryInto` for every type that implements\n`TryFrom`, so it is better to implement `TryFrom` and rely on the blanket\nimplementation for `TryInto`.\n&quot;,&quot;id&quot;:&quot;d6790d33-5130-47ba-ba96-c6718978131f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nuse std::convert::TryFrom;\n\npub struct NotNaN {\n    value: f64,\n}\n\nimpl NotNaN {\n    pub fn value(&amp;self) -&gt; f64 {\n        self.value\n    }\n}\n\n#[derive(Clone, Copy, Debug)]\npub struct IsNaN;\n\nimpl TryFrom&lt;f64&gt; for NotNaN {\n    type Error = IsNaN;\n    fn try_from(\n        x: f64,\n    ) -&gt; Result&lt;Self, Self::Error&gt; {\n        if x.is_nan() {\n            Err(IsNaN)\n        } else {\n            Ok(Self { value: x })\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct NotNaN {\n    value: f64,\n}\n\nimpl NotNaN {\n    pub fn value(&amp;self) -&gt; f64 {\n        self.value\n    }\n}\n\nimpl From&lt;f64&gt; for NotNaN {\n    fn from(x: f64) -&gt; Self {\n        if x.is_nan() {\n            panic!(\&quot;Is NaN!\&quot;);\n        }\n        Self { value: x }\n    }\n}\n```\n&quot;,&quot;```rust\nuse std::convert::TryInto;\n\npub struct NotNaN {\n    value: f64,\n}\n\nimpl NotNaN {\n    pub fn value(&amp;self) -&gt; f64 {\n        self.value\n    }\n}\n\n#[derive(Clone, Copy, Debug)]\npub struct IsNaN;\n\nimpl TryInto&lt;NotNaN&gt; for f64 {\n    type Error = IsNaN;\n\n    fn try_into(\n        self,\n    ) -&gt; Result&lt;NotNaN, Self::Error&gt; {\n        if self.is_nan() {\n            Err(IsNaN)\n        } else {\n            Ok(NotNaN { value: self })\n        }\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which Rust program is the most idiomatic translation of the following C++\nprogram?\n\n```cpp\n#include &lt;cmath&gt;\n#include &lt;stdexcept&gt;\n\nclass NotNaN {\n  double value;\n\npublic:\n  NotNaN(double x) : value(x) {\n    if (std::isnan(value)) {\n      throw std::domain_error(\&quot;NaN\&quot;);\n    }\n  }\n\n  double getValue() {\n    return value;\n  }\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="overloading"><a class="header" href="#overloading">Overloading</a></h1>
 <p>C++ supports overloading of functions, so long as the invocations of the
 functions can be distinguished by the number or types of their arguments.</p>
