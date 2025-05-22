@@ -4460,6 +4460,60 @@ encoding
 makes <a href="https://doc.rust-lang.org/reference/types/boolean.html">guarantees about the size, alignment, and bit pattern used to represent
 values of the <code>bool</code>
 type</a>.</p>
+<h3 id="void"><a class="header" href="#void"><code>void</code></a></h3>
+<p>In C++ <code>void</code> indicates that a function does not return a value. Because Rust is
+expression-oriented, all functions return values. In the place of <code>void</code>, Rust
+uses the unit type <code>()</code>. When a function does not have a return type declared,
+<code>()</code> is the return type.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+void process() {
+    std::cout
+        &lt;&lt; "Does something, but returns nothing."
+        &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn process() {
+    println!("Does something but returns nothing.");
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>Since the unit type has only one value (also written <code>()</code>), values of the type
+provide no information. This also means that the return value can be left
+implicit, as in the above example. The following example makes the unit type
+usage explicit.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn process() -&gt; () {
+    let () = println!("Does something but returns nothing.");
+    ()
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The syntax of the unit type and syntax of the unit value resemble that of an
+empty tuple. Essentially, that is what the type is. The following example shows
+some equivalent types, though without the special syntax or language
+integration.</p>
+<pre><pre class="playground"><code class="language-rust">struct Pair&lt;T1, T2&gt;(T1, T2); // the same as (T1, T2)
+struct Single&lt;T&gt;(T); // a tuple with just one value (T1)
+struct Unit; // the same as ()
+// can also be written as
+// struct Unit();
+
+fn main() {
+    let pair = Pair(1,2.0);
+    let single = Single(1);
+    let unit = Unit;
+    // can also be written as
+    // let unit = Unit();
+}</code></pre></pre>
+<p>Using a unit type instead of <code>void</code> enables expressions with unit type (such as
+function calls that would return <code>void</code> in C++) to be used in contexts that
+expect a value. This is especially helpful with defining and using generic
+functions, instead of needing something like <code>std::is_void</code> to special-case the
+handling when a type is <code>void</code>.</p>
 <h2 id="pointers"><a class="header" href="#pointers">Pointers</a></h2>
 <p>The following table maps the ownership-managing classes from C++ to equivalents
 types in Rust.</p>
@@ -4481,6 +4535,14 @@ in this table (e.g., some uses may require <code>std::atomic</code>). However, i
 the compiler will prevent the incorrect use of the shared owner types.</p>
 <p>Unlike with C++ references, Rust can have references-to-references. Rust
 references are more like observer pointers than they are like C++ references.</p>
+<h3 id="void-1"><a class="header" href="#void-1"><code>void*</code></a></h3>
+<p>Rust does not have anything directly analogous to <code>void*</code> in C++. The <a href="idioms/TODO">chapter
+on <code>RTTI</code></a> covers some use cases where the goal is dynamic typing. The
+<a href="idioms/TODO">chapter on Rust's foreign function interface (FFI)</a> and the <a href="https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs">FFI chapter
+of the
+Rustinomicon</a>
+cover some use cases where the goal is interoperability with C programs that use
+<code>void*</code>.</p>
 <h2 id="containers"><a class="header" href="#containers">Containers</a></h2>
 <p>Both C++ and Rust containers own their elements. However, in both the element
 type may be a non-owning type, such as a pointer in C++ or a reference in Rust.</p>
