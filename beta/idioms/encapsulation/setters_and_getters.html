@@ -1,0 +1,350 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Setter and getter methods - C++ to Rust Phrasebook</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="setter-and-getter-methods"><a class="header" href="#setter-and-getter-methods">Setter and getter methods</a></h1>
+<p>Setters and getters work similarly in C++ and Rust, but are used less frequently
+in Rust.</p>
+<p>It would <a href="https://docs.rs/bevy/0.16.0/bevy/math/struct.Vec2.html">not be
+unusual</a> to see the
+following representation of a two-dimensional vector in C++, which hides its
+implementation and provides setters and getters to access the fields. This
+choice would typically be made in case a representation change (such as using
+polar instead of rectangular coordinates) needed to be made later without
+breaking clients.</p>
+<p>On the other hand, in Rust such a type would almost always be defined with
+public fields.</p>
+<div class="comparison">
+<pre><code class="language-cpp">class Vec2 {
+  double x;
+  double y;
+
+public:
+  Vec2(double x, double y) : x(x), y(y) {}
+  double getX() { return x; }
+  double getY() { return y; }
+
+  // ... vector operations ...
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct Vec2 {
+    // public fields instead of getters
+    pub x: f64,
+    pub y: f64,
+}
+
+impl Vec2 {
+    // ... vector operations ...
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>One major reason for the difference is a limitation of the borrow checker. With
+a getter function the entire structure is borrowed, preventing mutable use of
+other fields of the structure.</p>
+<p>The following program will not compile because <code>get_name()</code> borrows all of
+<code>alice</code>.</p>
+<pre><code class="language-rust ignore">struct Person {
+    name: String,
+    age: u32,
+}
+
+impl Person {
+    fn get_name(&amp;self) -&gt; &amp;String {
+        &amp;self.name
+    }
+}
+
+fn main() {
+    let mut alice = Person { name: "Alice".to_string(), age: 42 };
+    let name = alice.get_name();
+
+    alice.age = 43;
+
+    println!("{}", name);
+}</code></pre>
+<pre><code class="language-text">error[E0506]: cannot assign to `alice.age` because it is borrowed
+  --&gt; example.rs:16:5
+   |
+14 |     let name = alice.get_name();
+   |                ----- `alice.age` is borrowed here
+15 |
+16 |     alice.age = 43;
+   |     ^^^^^^^^^^^^^^ `alice.age` is assigned to here but it was already borrowed
+17 |
+18 |     println!("{}", name);
+   |                    ---- borrow later used here
+
+error: aborting due to 1 previous error
+</code></pre>
+<p>Some additional reasons for the difference in approach are:</p>
+<ul>
+<li>Ergonomics: Public members make it possible to use pattern matching.</li>
+<li>Transparency of performance: A change in representation would dramatically
+change the costs involved with the getters. Exposing the representation makes
+the cost change visible.</li>
+<li>Control over mutability: Static lifetime checking of mutable references
+removes concerns of unintended mutation of the value through Rust's equivalent
+of observation pointers.</li>
+</ul>
+<h2 id="types-with-invariants-and-newtypes"><a class="header" href="#types-with-invariants-and-newtypes">Types with invariants and newtypes</a></h2>
+<p>When types need to preserve invariants but the benefits of exposing fields are
+desired, a newtype pattern can be used. A wrapping "newtype" struct that
+represents the data with an invariant is defined and access to the fields of the
+underlying struct is provided by via a non-<code>mut</code> reference.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
+}
+
+/// Represents a 2-vector that has magnitude 1.
+pub struct Normalized(Vec2); // note the private field
+
+fn sqrt_approx_zero(x: f64) -&gt; bool {
+    x &lt; 0.001
+}
+
+impl Normalized {
+    pub fn from_vec2(v: Vec2) -&gt; Option&lt;Self&gt; {
+        if sqrt_approx_zero(v.x * v.x + v.y * v.x - 1.0) {
+            Some(Self(v))
+        } else {
+            None
+        }
+    }
+
+    // The getter provides a reference to the underlying Vec2 value
+    // without permitting mutation.
+    pub fn get(&amp;self) -&gt; &amp;Vec2 {
+        &amp;self.0
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="borrowing-from-indexed-structures"><a class="header" href="#borrowing-from-indexed-structures">Borrowing from indexed structures</a></h2>
+<p>A significant limitation that arises from the way that getter methods interact
+with the borrow checker is that it isn't possible to mutably borrow multiple
+elements from an indexed structure like a vector using a methods like
+<code>Vec::get_mut</code>.</p>
+<p>The built-in indexed types have several methods for creating split views onto a
+structure. These can be used to create helper functions that match the
+requirements of a specific application.</p>
+<p>The Rustonomicon has <a href="https://doc.rust-lang.org/nomicon/borrow-splitting.html">examples of implementing this
+pattern</a>, using both
+safe and unsafe Rust.</p>
+<h2 id="setter-methods"><a class="header" href="#setter-methods">Setter methods</a></h2>
+<p>Setter methods also borrow the entire value, which causes the same problems as
+getters that return mutable references. As with getter methods, setter methods
+are mainly used when needed to preserve invariants.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;setters_and_getters&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Making the fields public does not accomplish the goal of hiding the\nimplementation.\n\nCombining the `sensor` and `calibration` modules and passing the whole `Sensor`\nto `calibrate` couples calibration to the specific `Sensor` type.\n&quot;,&quot;id&quot;:&quot;3040ed69-72e3-4c56-a5f6-be1269dfdabc&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;Define a view type with public fields exposing only the relevant parts of `Sensor`.\n\n&lt;details&gt;\n&lt;summary&gt;View diff&lt;/summary&gt;\n\n```diff\n@@ -7,6 +7,11 @@ mod calibration {\n\n     pub struct Calibration;\n\n+    pub struct CalibrationView&lt;'a&gt; {\n+        pub calibration: &amp;'a mut Calibration,\n+        pub data: &amp;'a Data,\n+    }\n+\n     pub fn calibrate(\n         calibration: &amp;mut Calibration,\n         data: &amp;Data,\n@@ -39,8 +44,11 @@ mod sensors {\n             &amp;self.data\n         }\n\n-        pub fn calibration(&amp;mut self) -&gt; &amp;mut Calibration {\n-            &amp;mut self.calibration\n+        pub fn calibration(&amp;mut self) -&gt; CalibrationView {\n+            CalibrationView {\n+                calibration: &amp;mut self.calibration,\n+                data: &amp;self.data,\n+            }\n         }\n     }\n }\n@@ -51,5 +59,10 @@ use sensors::*;\n fn main() {\n     let mut sensor = Sensor::new();\n     let reference_sensor = Sensor::new();\n-    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n+    let calibration = sensor.calibration();\n+    calibrate(\n+        calibration.calibration,\n+        calibration.data,\n+        reference_sensor.data(),\n+    );\n }\n```\n&lt;/details&gt;\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;Make the needed fields of `Sensor` public.\n\n&lt;details&gt;\n&lt;summary&gt;View diff&lt;/summary&gt;\n\n```diff\n@@ -21,8 +21,8 @@ mod sensors {\n     use data::*;\n\n     pub struct Sensor {\n-        data: Data,\n-        calibration: Calibration,\n+        pub data: Data,\n+        pub calibration: Calibration,\n         // ... other fields ...\n     }\n\n@@ -34,14 +34,6 @@ mod sensors {\n                 // ... other fields ...\n             }\n         }\n-\n-        pub fn data(&amp;self) -&gt; &amp;Data {\n-            &amp;self.data\n-        }\n-\n-        pub fn calibration(&amp;mut self) -&gt; &amp;mut Calibration {\n-            &amp;mut self.calibration\n-        }\n     }\n }\n\n@@ -51,5 +43,9 @@ use sensors::*;\n fn main() {\n     let mut sensor = Sensor::new();\n     let reference_sensor = Sensor::new();\n-    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n+    calibrate(\n+        &amp;mut sensor.calibration,\n+        &amp;sensor.data,\n+        &amp;reference_sensor.data,\n+    );\n }\n```\n&lt;/details&gt;\n&quot;,&quot;Combine the sensors and calibration modules and pass the whole `Sensor` to\n`calibrate`.\n\n&lt;details&gt;\n&lt;summary&gt;View diff&lt;/summary&gt;\n\n```diff\n@@ -2,23 +2,14 @@ mod data {\n     pub struct Data;\n }\n\n-mod calibration {\n+mod sensors {\n     use data::*;\n\n     pub struct Calibration;\n\n-    pub fn calibrate(\n-        calibration: &amp;mut Calibration,\n-        data: &amp;Data,\n-        reference_data: &amp;Data,\n-    ) {\n+    pub fn calibrate(sensor: &amp;mut Sensor, reference_data: &amp;Data) {\n         // ... update the calibration ...\n     }\n-}\n-\n-mod sensors {\n-    use calibration::*;\n-    use data::*;\n\n     pub struct Sensor {\n         data: Data,\n@@ -38,18 +29,13 @@ mod sensors {\n         pub fn data(&amp;self) -&gt; &amp;Data {\n             &amp;self.data\n         }\n-\n-        pub fn calibration(&amp;mut self) -&gt; &amp;mut Calibration {\n-            &amp;mut self.calibration\n-        }\n     }\n }\n\n-use calibration::*;\n use sensors::*;\n\n fn main() {\n     let mut sensor = Sensor::new();\n     let reference_sensor = Sensor::new();\n-    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n+    calibrate(&amp;mut sensor, reference_sensor.data());\n }\n```\n&lt;/details&gt;\n&quot;],&quot;prompt&quot;:&quot;The following Rust program attempts to use getter functions in the style of a\nC++ program in order to hide the representation of `Sensor`.\n\n```rust\nmod data {\n    pub struct Data;\n}\n\nmod calibration {\n    use data::*;\n\n    pub struct Calibration;\n\n    pub fn calibrate(\n        calibration: &amp;mut Calibration,\n        data: &amp;Data,\n        reference_data: &amp;Data,\n    ) {\n        // ... update the calibration ...\n    }\n}\n\nmod sensors {\n    use calibration::*;\n    use data::*;\n\n    pub struct Sensor {\n        data: Data,\n        calibration: Calibration,\n        // ... other fields ...\n    }\n\n    impl Sensor {\n        pub fn new() -&gt; Sensor {\n            Sensor {\n                data: Data,\n                calibration: Calibration,\n                // ... other fields ...\n            }\n        }\n\n        pub fn data(&amp;self) -&gt; &amp;Data {\n            &amp;self.data\n        }\n\n        pub fn calibration(&amp;mut self) -&gt; &amp;mut Calibration {\n            &amp;mut self.calibration\n        }\n    }\n}\n\nuse calibration::*;\nuse sensors::*;\n\nfn main() {\n    let mut sensor = Sensor::new();\n    let reference_sensor = Sensor::new();\n    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n}\n```\n\nHowever, it fails to compile with the following error message.\n\n```text\nerror[E0502]: cannot borrow `sensor` as immutable because it is also borrowed as mutable\n  --&gt; example.rs:42:37\n   |\n42 |     calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n   |     --------- ------                ^^^^^^ immutable borrow occurs here\n   |     |         |\n   |     |         mutable borrow occurs here\n   |     mutable borrow later used by call\n```\n\nWhich is the most idiom change to make the program work while still hiding the\nimplementation of `Sensor`?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
+
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Setter and getter methods">Click here to leave us feedback about this page.</a>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../idioms/encapsulation/private_constructors.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../idioms/type_equivalents.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../idioms/encapsulation/private_constructors.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../idioms/type_equivalents.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../telemetry/dist/telemetry.iife.js"></script>
+
+
+    </div>
+    </body>
+</html>

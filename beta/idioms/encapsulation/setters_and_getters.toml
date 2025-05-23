@@ -1,0 +1,242 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+The following Rust program attempts to use getter functions in the style of a
+C++ program in order to hide the representation of `Sensor`.
+
+```rust
+mod data {
+    pub struct Data;
+}
+
+mod calibration {
+    use data::*;
+
+    pub struct Calibration;
+
+    pub fn calibrate(
+        calibration: &mut Calibration,
+        data: &Data,
+        reference_data: &Data,
+    ) {
+        // ... update the calibration ...
+    }
+}
+
+mod sensors {
+    use calibration::*;
+    use data::*;
+
+    pub struct Sensor {
+        data: Data,
+        calibration: Calibration,
+        // ... other fields ...
+    }
+
+    impl Sensor {
+        pub fn new() -> Sensor {
+            Sensor {
+                data: Data,
+                calibration: Calibration,
+                // ... other fields ...
+            }
+        }
+
+        pub fn data(&self) -> &Data {
+            &self.data
+        }
+
+        pub fn calibration(&mut self) -> &mut Calibration {
+            &mut self.calibration
+        }
+    }
+}
+
+use calibration::*;
+use sensors::*;
+
+fn main() {
+    let mut sensor = Sensor::new();
+    let reference_sensor = Sensor::new();
+    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());
+}
+```
+
+However, it fails to compile with the following error message.
+
+```text
+error[E0502]: cannot borrow `sensor` as immutable because it is also borrowed as mutable
+  --> example.rs:42:37
+   |
+42 |     calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());
+   |     --------- ------                ^^^^^^ immutable borrow occurs here
+   |     |         |
+   |     |         mutable borrow occurs here
+   |     mutable borrow later used by call
+```
+
+Which is the most idiom change to make the program work while still hiding the
+implementation of `Sensor`?
+"""
+prompt.distractors = [
+"""
+Make the needed fields of `Sensor` public.
+
+<details>
+<summary>View diff</summary>
+
+```diff
+@@ -21,8 +21,8 @@ mod sensors {
+     use data::*;
+
+     pub struct Sensor {
+-        data: Data,
+-        calibration: Calibration,
++        pub data: Data,
++        pub calibration: Calibration,
+         // ... other fields ...
+     }
+
+@@ -34,14 +34,6 @@ mod sensors {
+                 // ... other fields ...
+             }
+         }
+-
+-        pub fn data(&self) -> &Data {
+-            &self.data
+-        }
+-
+-        pub fn calibration(&mut self) -> &mut Calibration {
+-            &mut self.calibration
+-        }
+     }
+ }
+
+@@ -51,5 +43,9 @@ use sensors::*;
+ fn main() {
+     let mut sensor = Sensor::new();
+     let reference_sensor = Sensor::new();
+-    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());
++    calibrate(
++        &mut sensor.calibration,
++        &sensor.data,
++        &reference_sensor.data,
++    );
+ }
+```
+</details>
+""",
+"""
+Combine the sensors and calibration modules and pass the whole `Sensor` to
+`calibrate`.
+
+<details>
+<summary>View diff</summary>
+
+```diff
+@@ -2,23 +2,14 @@ mod data {
+     pub struct Data;
+ }
+
+-mod calibration {
++mod sensors {
+     use data::*;
+
+     pub struct Calibration;
+
+-    pub fn calibrate(
+-        calibration: &mut Calibration,
+-        data: &Data,
+-        reference_data: &Data,
+-    ) {
++    pub fn calibrate(sensor: &mut Sensor, reference_data: &Data) {
+         // ... update the calibration ...
+     }
+-}
+-
+-mod sensors {
+-    use calibration::*;
+-    use data::*;
+
+     pub struct Sensor {
+         data: Data,
+@@ -38,18 +29,13 @@ mod sensors {
+         pub fn data(&self) -> &Data {
+             &self.data
+         }
+-
+-        pub fn calibration(&mut self) -> &mut Calibration {
+-            &mut self.calibration
+-        }
+     }
+ }
+
+-use calibration::*;
+ use sensors::*;
+
+ fn main() {
+     let mut sensor = Sensor::new();
+     let reference_sensor = Sensor::new();
+-    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());
++    calibrate(&mut sensor, reference_sensor.data());
+ }
+```
+</details>
+"""
+]
+answer.answer = """
+Define a view type with public fields exposing only the relevant parts of `Sensor`.
+
+<details>
+<summary>View diff</summary>
+
+```diff
+@@ -7,6 +7,11 @@ mod calibration {
+
+     pub struct Calibration;
+
++    pub struct CalibrationView<'a> {
++        pub calibration: &'a mut Calibration,
++        pub data: &'a Data,
++    }
++
+     pub fn calibrate(
+         calibration: &mut Calibration,
+         data: &Data,
+@@ -39,8 +44,11 @@ mod sensors {
+             &self.data
+         }
+
+-        pub fn calibration(&mut self) -> &mut Calibration {
+-            &mut self.calibration
++        pub fn calibration(&mut self) -> CalibrationView {
++            CalibrationView {
++                calibration: &mut self.calibration,
++                data: &self.data,
++            }
+         }
+     }
+ }
+@@ -51,5 +59,10 @@ use sensors::*;
+ fn main() {
+     let mut sensor = Sensor::new();
+     let reference_sensor = Sensor::new();
+-    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());
++    let calibration = sensor.calibration();
++    calibrate(
++        calibration.calibration,
++        calibration.data,
++        reference_sensor.data(),
++    );
+ }
+```
+</details>
+"""
+context = """
+Making the fields public does not accomplish the goal of hiding the
+implementation.
+
+Combining the `sensor` and `calibration` modules and passing the whole `Sensor`
+to `calibrate` couples calibration to the specific `Sensor` type.
+"""
+id = "3040ed69-72e3-4c56-a5f6-be1269dfdabc"
