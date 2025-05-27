@@ -182,7 +182,9 @@ want to let us know which topic you'd like us to cover next, use the form to
 send us a message!</p>
 <p>This book is incomplete and may include links to chapters that have not yet been
 published. If you encounter such a link and want us to prioritize that chapter,
-let us know using the feedback form.</p>
+or if you have a suggestion for a chapter, let us know using the feedback form.</p>
+<p>If you answer the quizzes at the end of each chapter, we will save your
+responses anonymously for research purposes.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
 <p>In C++, constructors initialize objects.</p>
 <pre><code class="language-cpp">class Person {
@@ -5762,6 +5764,179 @@ impl Vec3 {
 traits, which have the additional purpose of supporting trait bounds on generic
 functions which should take any type convertible to a specific type.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;overloading&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;8cebf373-6026-43ed-9364-9fda8ca7fdcd&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It compiles.&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because `Pigeon` cannot have both an inherent method called\n`height` and implement a trait with a method called `height`.\n&quot;,&quot;It does not compile because `Pigeon` cannot implement two traits that both have\na method called `height`.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\ntrait Jump {\n    // Height above ground in meters\n    fn height(&amp;self) -&gt; f64;\n}\n\ntrait Fly {\n    // Height above ground in meters\n    fn height(&amp;self) -&gt; f64;\n}\n\nstruct Pigeon {}\n\nimpl Pigeon {\n    // Head to tail in meters\n    fn height(&amp;self) -&gt; f64 {\n        0.3\n    }\n}\n\nimpl Jump for Pigeon {\n    fn height(&amp;self) -&gt; f64 {\n        0.0\n    }\n}\n\nimpl Fly for Pigeon {\n    fn height(&amp;self) -&gt; f64 {\n        5.0\n    }\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="object-identity"><a class="header" href="#object-identity">Object identity</a></h1>
+<p>In C++ the pointer to an object is sometimes used to represent its identity in
+terms of the logic of a program.</p>
+<p>In some cases, this is a standard optimization, such as when implementing the
+copy assignment operator.</p>
+<p>In other cases the pointer value is used as a logical identity to distinguish
+between specific instances of an object that otherwise have the same properties.
+For example, representing a labeled graph where there may be distinct nodes that
+have the same label.</p>
+<p>In Rust, some of these cases are not applicable, and others cases are typically
+handled by instead by implementing a synthetic notion of identity for the
+values.</p>
+<h2 id="overloading-copy-assignment-and-equality-comparison-operators"><a class="header" href="#overloading-copy-assignment-and-equality-comparison-operators">Overloading copy assignment and equality comparison operators</a></h2>
+<p>For example, when implementing the copy-assignment operator, one might
+short-circuit when the copied object and the assignee are the same.
+Not that in this use the pointer values are not stored.</p>
+<p>This kind of optimization is unnecessary when implementing <a href="idioms//idioms/constructors/copy_and_move_constructors.html#assignment-operators">Rust's equivalent to
+the copy assignment
+operator</a>
+<code>Clone::clone_from</code>. The type of <code>Clone::clone_from</code> prevents the same object
+from being passed as both arguments, because one of the arguments is a mutable
+reference, which is exclusive, and so prevents the other reference argument from
+referring to the same object.</p>
+<div class="comparison">
+<pre><code class="language-cpp">struct Person
+{
+    std::string name;
+    // many other expensive-to-copy fields
+
+    Person&amp; operator=(const Person&amp; other) {
+        // compare object identity first
+        if (this != &amp;other) {
+            this.name = other.name;
+            // copy the other expensive-to-copy fields
+        }
+
+        return *this;
+    }
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Person {
+    name: String,
+}
+
+impl Clone for Person {
+    fn clone(&amp;self) -&gt; Self {
+        Self { name: self.name.clone() }
+    }
+
+    fn clone_from(&amp;mut self, source: &amp;Self) {
+        // self and source cannot be the same here,
+        // because that would mean there are a
+        // mutable and an immutable reference to
+        // the same memory location. Therefore, a
+        // check for assignment to self is not
+        // needed, even for the purpose of
+        // optimization.
+
+        self.name.clone_from(&amp;source.name);
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>In cases in C++ where most comparisons are between an object and itself (e.g.,
+the object's primary use is to be stored in a hash set), and comparison of
+unequal objects is expensive, comparing object identity might be used as
+optimization for the equality comparison operator overload.</p>
+<p>For supporting similar operations in Rust,
+<a href="https://doc.rust-lang.org/std/ptr/fn.eq.html"><code>std::ptr::eq</code></a> can be used.</p>
+<div class="comparison">
+<pre><code class="language-cpp">struct Person
+{
+    std::string name;
+    // many other expensive-to-compare fields
+};
+
+
+bool operator==(const Person&amp; lhs, const Person&amp; rhs) {
+    // compare object identity first
+    if (&amp;lhs == &amp;rhs) {
+        return true;
+    }
+
+    // compare the other expensive-to-compare fields
+
+    return true;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Person {
+    name: String,
+    // many other expensive-to-compare fields
+}
+
+impl PartialEq for Person {
+    fn eq(&amp;self, other: &amp;Self) -&gt; bool {
+        if std::ptr::eq(self, other) {
+            return true;
+        }
+        // compare other expensive-to-compare fields
+
+        true
+    }
+}
+
+impl Eq for Person {}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<h2 id="distinguishing-between-values-in-a-relational-structure"><a class="header" href="#distinguishing-between-values-in-a-relational-structure">Distinguishing between values in a relational structure</a></h2>
+<p>The other use is when relationships between values are represented using a data
+structure external to the values, such as when representing a labeled graph in
+which multiple nodes might share the same label, but have edges between
+different sets of other nodes. This differs from the earlier case because the
+pointer value is preserved.</p>
+<p>One real-world example of this is in the LLVM codebase, where occurrences of
+declarations, statements, and expressions in the AST are distinguished by object
+identity. For example, variable expressions (<code>class DeclRefExpr</code>) contain the
+<a href="https://github.com/llvm/llvm-project/blob/ddc48fefe389789f64713b5924a03fb2b7961ef3/clang/include/clang/AST/Expr.h#L1265C1-L1275C16">pointer to the occurrence of the declaration to which the variable
+refers</a>.</p>
+<p>Similarly, when comparing whether two variable declarations represent
+declarations of the same variable, <a href="https://github.com/llvm/llvm-project/blob/aa33c095617400a23a2b814c4defeb12e7761639/clang/lib/AST/Stmt.cpp#L1476-L1485">a pointer to some canonical <code>VarDecl</code> is
+used</a>:</p>
+<pre><code class="language-cpp">VarDecl *VarDecl::getCanonicalDecl();
+
+bool CapturedStmt::capturesVariable(const VarDecl *Var) const {
+  for (const auto &amp;I : captures()) {
+    if (!I.capturesVariable() &amp;&amp; !I.capturesVariableByCopy())
+      continue;
+    if (I.getCapturedVar()-&gt;getCanonicalDecl() == Var-&gt;getCanonicalDecl())
+      return true;
+  }
+
+  return false;
+}
+</code></pre>
+<p>This kind of use is often discouraged in C++ because of the risk of
+use-after-free bugs, but might be used in performance sensitive applications
+where either storing the memory to represent the mapping or the additional
+indirection to resolve an entity's value from its identity is cost prohibitive.</p>
+<p>In Rust it is generally preferred to represent the identity of the objects with
+synthetic identifiers. This is in part as a technique for modeling
+self-referential data structures.</p>
+<p>As an example, one popular Rust graph library
+<a href="https://docs.rs/petgraph/latest/petgraph/">petgraph</a> uses <code>u32</code> as its default
+node identity type. This incurs the cost of an extra call to dereference the
+synthetic identifier to the label of the represented node as well as the extra
+memory required to store the mapping from nodes to labels.</p>
+<p>A simplified graph representation using the same synthetic identifier technique
+would look like the following, which represents the node identities by their
+index in the vectors that represent the labels and the edges.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum Color {
+    Red,
+    Blue
+}
+
+struct Graph {
+    /// Maps from node id to node labels, which here are colors.
+    nodes_labels: Vec&lt;Color&gt;,
+
+    /// Maps from node id to adjacent nodes ids.
+    edges: Vec&lt;Vec&lt;usize&gt;&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>If performance requirements make the use of synthetic identifiers unacceptable,
+then it may be necessary to use prevent the value from being moved. The <a href="https://doc.rust-lang.org/std/pin/index.html"><code>Pin</code>
+and <code>PhantomPinned</code> structs</a> can
+be used to achieve an effect similar to deleting the move constructor in C++.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;object_identity&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;9f8a464a-6fbb-4352-815a-7a42d162f9fd&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;Because because `self` is a mutable reference, the borrow checker ensures that\n`source` can't be a reference to the same memory location.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;Because `std::ptr::mem` is unsafe Rust.\n&quot;,&quot;Because the compiler will add the check when optimizing anyway.\n&quot;],&quot;prompt&quot;:&quot;Why is the check for self-assignment in `clone_from` not idiomatic Rust?\n\n```rust\nstruct LargeStruct {\n    field1: String,\n    // ...\n    field100: String,\n}\n\nimpl Clone for LargeStruct {\n    fn clone(&amp;self) -&gt; Self {\n        Self {\n            field1: self.field1.clone(),\n            // ...\n            field100: self.field100.clone(),\n        }\n    }\n\n    fn clone_from(&amp;mut self, source: &amp;Self) {\n        if std::ptr::eq(self, source) {\n            return;\n        }\n\n        self.field1.clone_from(&amp;source.field1);\n        // ...\n        self.field100.clone_from(&amp;source.field100);\n    }\n}\n```\n&quot;}},{&quot;id&quot;:&quot;d60a321a-3b38-4425-8a9a-6b95fe0e3837&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;Synthetic identifiers are easier to use for forming self-referential structures.\n&quot;,&quot;Synthetic identifiers avoid the complexity of using `Pin` to prevent values from\nbeing moved.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;There is no way to access memory locations in Rust.\n&quot;,&quot;Comparing memory locations requires unsafe Rust.\n&quot;],&quot;prompt&quot;:&quot;Which are reasons why in Rust synthetic identifiers are usually used instead of\nmemory location for object identity?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="out-parameters"><a class="header" href="#out-parameters">Out parameters</a></h1>
 <p>There are several idioms in C++ that involve the use of out parameters: passing
 pointers or references to functions for the function to mutate to provide its
@@ -6196,180 +6371,7 @@ achieve the same results as when using slices of <code>MaybeUninit</code>, but w
 having to write any unsafe code. The IO APIs for avoiding unnecessary
 initialization use <code>BorrowedBuf</code> instead of slices of <code>MaybeUninit</code>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;pre-allocated_buffers&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;5b23f54f-b4a2-46f5-87b4-5551a2c93be8&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nlet mut buf = [0u8; 1024];\n\nwhile let Some(count) = fetch(&amp;mut buf) {\n    // use data in buf\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nlet mut buf;\n\nwhile let Some(count) = fetch(&amp;mut buf) {\n    // use data in buf\n}\n```\n&quot;,&quot;```rust\nloop {\n    let mut buf = [0u8; 1024];\n    let Some(count) = fetch(&amp;mut buf) else {\n        break;\n    };\n    // use data in buf\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic way in Rust to use the following\nfunction?\n\n```rust\n/// Fetches data into the given buffer. Returns the number of bytes populated,\n/// or `None` when the end of the data is reached. The contents of `buf` will\n/// not be read.\nfn fetch(buf: &amp;mut [u8]) -&gt; Option&lt;usize&gt;\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="object-identity"><a class="header" href="#object-identity">Object identity</a></h1>
-<p>In C++ the pointer to an object is sometimes used to represent its identity in
-terms of the logic of a program.</p>
-<p>In some cases, this is a standard optimization, such as when implementing the
-copy assignment operator.</p>
-<p>In other cases the pointer value is used as a logical identity to distinguish
-between specific instances of an object that otherwise have the same properties.
-For example, representing a labeled graph where there may be distinct nodes that
-have the same label.</p>
-<p>In Rust, some of these cases are not applicable, and others cases are typically
-handled by instead by implementing a synthetic notion of identity for the
-values.</p>
-<h2 id="overloading-copy-assignment-and-equality-comparison-operators"><a class="header" href="#overloading-copy-assignment-and-equality-comparison-operators">Overloading copy assignment and equality comparison operators</a></h2>
-<p>For example, when implementing the copy-assignment operator, one might
-short-circuit when the copied object and the assignee are the same.
-Not that in this use the pointer values are not stored.</p>
-<p>This kind of optimization is unnecessary when implementing <a href="idioms//idioms/constructors/copy_and_move_constructors.html#assignment-operators">Rust's equivalent to
-the copy assignment
-operator</a>
-<code>Clone::clone_from</code>. The type of <code>Clone::clone_from</code> prevents the same object
-from being passed as both arguments, because one of the arguments is a mutable
-reference, which is exclusive, and so prevents the other reference argument from
-referring to the same object.</p>
-<div class="comparison">
-<pre><code class="language-cpp">struct Person
-{
-    std::string name;
-    // many other expensive-to-copy fields
-
-    Person&amp; operator=(const Person&amp; other) {
-        // compare object identity first
-        if (this != &amp;other) {
-            this.name = other.name;
-            // copy the other expensive-to-copy fields
-        }
-
-        return *this;
-    }
-};
-</code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>struct Person {
-    name: String,
-}
-
-impl Clone for Person {
-    fn clone(&amp;self) -&gt; Self {
-        Self { name: self.name.clone() }
-    }
-
-    fn clone_from(&amp;mut self, source: &amp;Self) {
-        // self and source cannot be the same here,
-        // because that would mean there are a
-        // mutable and an immutable reference to
-        // the same memory location. Therefore, a
-        // check for assignment to self is not
-        // needed, even for the purpose of
-        // optimization.
-
-        self.name.clone_from(&amp;source.name);
-    }
-}
-<span class="boring">}</span></code></pre></pre>
-</div>
-<p>In cases in C++ where most comparisons are between an object and itself (e.g.,
-the object's primary use is to be stored in a hash set), and comparison of
-unequal objects is expensive, comparing object identity might be used as
-optimization for the equality comparison operator overload.</p>
-<p>For supporting similar operations in Rust,
-<a href="https://doc.rust-lang.org/std/ptr/fn.eq.html"><code>std::ptr::eq</code></a> can be used.</p>
-<div class="comparison">
-<pre><code class="language-cpp">struct Person
-{
-    std::string name;
-    // many other expensive-to-compare fields
-};
-
-
-bool operator==(const Person&amp; lhs, const Person&amp; rhs) {
-    // compare object identity first
-    if (&amp;lhs == &amp;rhs) {
-        return true;
-    }
-
-    // compare the other expensive-to-compare fields
-
-    return true;
-}
-</code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>struct Person {
-    name: String,
-    // many other expensive-to-compare fields
-}
-
-impl PartialEq for Person {
-    fn eq(&amp;self, other: &amp;Self) -&gt; bool {
-        if std::ptr::eq(self, other) {
-            return true;
-        }
-        // compare other expensive-to-compare fields
-
-        true
-    }
-}
-
-impl Eq for Person {}
-<span class="boring">}</span></code></pre></pre>
-</div>
-<h2 id="distinguishing-between-values-in-a-relational-structure"><a class="header" href="#distinguishing-between-values-in-a-relational-structure">Distinguishing between values in a relational structure</a></h2>
-<p>The other use is when relationships between values are represented using a data
-structure external to the values, such as when representing a labeled graph in
-which multiple nodes might share the same label, but have edges between
-different sets of other nodes. This differs from the earlier case because the
-pointer value is preserved.</p>
-<p>One real-world example of this is in the LLVM codebase, where occurrences of
-declarations, statements, and expressions in the AST are distinguished by object
-identity. For example, variable expressions (<code>class DeclRefExpr</code>) contain the
-<a href="https://github.com/llvm/llvm-project/blob/ddc48fefe389789f64713b5924a03fb2b7961ef3/clang/include/clang/AST/Expr.h#L1265C1-L1275C16">pointer to the occurrence of the declaration to which the variable
-refers</a>.</p>
-<p>Similarly, when comparing whether two variable declarations represent
-declarations of the same variable, <a href="https://github.com/llvm/llvm-project/blob/aa33c095617400a23a2b814c4defeb12e7761639/clang/lib/AST/Stmt.cpp#L1476-L1485">a pointer to some canonical <code>VarDecl</code> is
-used</a>:</p>
-<pre><code class="language-cpp">VarDecl *VarDecl::getCanonicalDecl();
-
-bool CapturedStmt::capturesVariable(const VarDecl *Var) const {
-  for (const auto &amp;I : captures()) {
-    if (!I.capturesVariable() &amp;&amp; !I.capturesVariableByCopy())
-      continue;
-    if (I.getCapturedVar()-&gt;getCanonicalDecl() == Var-&gt;getCanonicalDecl())
-      return true;
-  }
-
-  return false;
-}
-</code></pre>
-<p>This kind of use is often discouraged in C++ because of the risk of
-use-after-free bugs, but might be used in performance sensitive applications
-where either storing the memory to represent the mapping or the additional
-indirection to resolve an entity's value from its identity is cost prohibitive.</p>
-<p>In Rust it is generally preferred to represent the identity of the objects with
-synthetic identifiers. This is in part as a technique for modeling
-self-referential data structures.</p>
-<p>As an example, one popular Rust graph library
-<a href="https://docs.rs/petgraph/latest/petgraph/">petgraph</a> uses <code>u32</code> as its default
-node identity type. This incurs the cost of an extra call to dereference the
-synthetic identifier to the label of the represented node as well as the extra
-memory required to store the mapping from nodes to labels.</p>
-<p>A simplified graph representation using the same synthetic identifier technique
-would look like the following, which represents the node identities by their
-index in the vectors that represent the labels and the edges.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>enum Color {
-    Red,
-    Blue
-}
-
-struct Graph {
-    /// Maps from node id to node labels, which here are colors.
-    nodes_labels: Vec&lt;Color&gt;,
-
-    /// Maps from node id to adjacent nodes ids.
-    edges: Vec&lt;Vec&lt;usize&gt;&gt;,
-}
-<span class="boring">}</span></code></pre></pre>
-<p>If performance requirements make the use of synthetic identifiers unacceptable,
-then it may be necessary to use prevent the value from being moved. The <a href="https://doc.rust-lang.org/std/pin/index.html"><code>Pin</code>
-and <code>PhantomPinned</code> structs</a> can
-be used to achieve an effect similar to deleting the move constructor in C++.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;object_identity&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;9f8a464a-6fbb-4352-815a-7a42d162f9fd&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;Because because `self` is a mutable reference, the borrow checker ensures that\n`source` can't be a reference to the same memory location.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;Because `std::ptr::mem` is unsafe Rust.\n&quot;,&quot;Because the compiler will add the check when optimizing anyway.\n&quot;],&quot;prompt&quot;:&quot;Why is the check for self-assignment in `clone_from` not idiomatic Rust?\n\n```rust\nstruct LargeStruct {\n    field1: String,\n    // ...\n    field100: String,\n}\n\nimpl Clone for LargeStruct {\n    fn clone(&amp;self) -&gt; Self {\n        Self {\n            field1: self.field1.clone(),\n            // ...\n            field100: self.field100.clone(),\n        }\n    }\n\n    fn clone_from(&amp;mut self, source: &amp;Self) {\n        if std::ptr::eq(self, source) {\n            return;\n        }\n\n        self.field1.clone_from(&amp;source.field1);\n        // ...\n        self.field100.clone_from(&amp;source.field100);\n    }\n}\n```\n&quot;}},{&quot;id&quot;:&quot;d60a321a-3b38-4425-8a9a-6b95fe0e3837&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;Synthetic identifiers are easier to use for forming self-referential structures.\n&quot;,&quot;Synthetic identifiers avoid the complexity of using `Pin` to prevent values from\nbeing moved.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;There is no way to access memory locations in Rust.\n&quot;,&quot;Comparing memory locations requires unsafe Rust.\n&quot;],&quot;prompt&quot;:&quot;Which are reasons why in Rust synthetic identifiers are usually used instead of\nmemory location for object identity?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="curiously-recurring-template-pattern-crtp"><a class="header" href="#curiously-recurring-template-pattern-crtp">Curiously recurring template pattern (CRTP)</a></h1>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="curiously-recurring-template-pattern-crtp"><a class="header" href="#curiously-recurring-template-pattern-crtp">Curiously recurring template pattern (CRTP)</a></h1>
 <p>The C++ <a href="https://en.cppreference.com/w/cpp/language/crtp">curiously recurring template
 pattern</a> is used to make the
 concrete type of the derived class available in the definition of methods
@@ -6622,6 +6624,14 @@ crates.io</a>.</p>
 chain security.</p>
 <p>Solutions for supply chain security that do not involve vendoring or custom
 registries are <a href="https://github.com/rust-lang/rfcs/pull/3724">in progress</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="attribution-notices"><a class="header" href="#attribution-notices">Attribution notices</a></h1>
+<p>This book makes use of the Standard C++ Foundation logo under their posted
+<a href="https://isocpp.org/home/terms-of-use">terms of use</a>.</p>
+<p>This book makes use of the Rust logo, including a modified version of the logo,
+under the Creative Commons CC-BY license, as posted in the <a href="https://github.com/rust-lang/rust-artwork">rust-artwork
+repository</a> and under the posted
+<a href="https://rustfoundation.org/policy/rust-trademark-policy/">terms of use</a> for the
+trademark.</p>
 
 
                         <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=">Click here to leave us feedback about this page.</a>
