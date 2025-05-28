@@ -4492,7 +4492,385 @@ safe and unsafe Rust.</p>
 getters that return mutable references. As with getter methods, setter methods
 are mainly used when needed to preserve invariants.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;setters_and_getters&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Making the fields public does not accomplish the goal of hiding the\nimplementation.\n\nCombining the `sensor` and `calibration` modules and passing the whole `Sensor`\nto `calibrate` couples calibration to the specific `Sensor` type.\n&quot;,&quot;id&quot;:&quot;3040ed69-72e3-4c56-a5f6-be1269dfdabc&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;Define a view type with public fields exposing only the relevant parts of `Sensor`.\n\n&lt;details&gt;\n&lt;summary&gt;View diff&lt;/summary&gt;\n\n```diff\n@@ -7,6 +7,11 @@ mod calibration {\n\n     pub struct Calibration;\n\n+    pub struct CalibrationView&lt;'a&gt; {\n+        pub calibration: &amp;'a mut Calibration,\n+        pub data: &amp;'a Data,\n+    }\n+\n     pub fn calibrate(\n         calibration: &amp;mut Calibration,\n         data: &amp;Data,\n@@ -39,8 +44,11 @@ mod sensors {\n             &amp;self.data\n         }\n\n-        pub fn calibration(&amp;mut self) -&gt; &amp;mut Calibration {\n-            &amp;mut self.calibration\n+        pub fn calibration(&amp;mut self) -&gt; CalibrationView {\n+            CalibrationView {\n+                calibration: &amp;mut self.calibration,\n+                data: &amp;self.data,\n+            }\n         }\n     }\n }\n@@ -51,5 +59,10 @@ use sensors::*;\n fn main() {\n     let mut sensor = Sensor::new();\n     let reference_sensor = Sensor::new();\n-    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n+    let calibration = sensor.calibration();\n+    calibrate(\n+        calibration.calibration,\n+        calibration.data,\n+        reference_sensor.data(),\n+    );\n }\n```\n&lt;/details&gt;\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;Make the needed fields of `Sensor` public.\n\n&lt;details&gt;\n&lt;summary&gt;View diff&lt;/summary&gt;\n\n```diff\n@@ -21,8 +21,8 @@ mod sensors {\n     use data::*;\n\n     pub struct Sensor {\n-        data: Data,\n-        calibration: Calibration,\n+        pub data: Data,\n+        pub calibration: Calibration,\n         // ... other fields ...\n     }\n\n@@ -34,14 +34,6 @@ mod sensors {\n                 // ... other fields ...\n             }\n         }\n-\n-        pub fn data(&amp;self) -&gt; &amp;Data {\n-            &amp;self.data\n-        }\n-\n-        pub fn calibration(&amp;mut self) -&gt; &amp;mut Calibration {\n-            &amp;mut self.calibration\n-        }\n     }\n }\n\n@@ -51,5 +43,9 @@ use sensors::*;\n fn main() {\n     let mut sensor = Sensor::new();\n     let reference_sensor = Sensor::new();\n-    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n+    calibrate(\n+        &amp;mut sensor.calibration,\n+        &amp;sensor.data,\n+        &amp;reference_sensor.data,\n+    );\n }\n```\n&lt;/details&gt;\n&quot;,&quot;Combine the sensors and calibration modules and pass the whole `Sensor` to\n`calibrate`.\n\n&lt;details&gt;\n&lt;summary&gt;View diff&lt;/summary&gt;\n\n```diff\n@@ -2,23 +2,14 @@ mod data {\n     pub struct Data;\n }\n\n-mod calibration {\n+mod sensors {\n     use data::*;\n\n     pub struct Calibration;\n\n-    pub fn calibrate(\n-        calibration: &amp;mut Calibration,\n-        data: &amp;Data,\n-        reference_data: &amp;Data,\n-    ) {\n+    pub fn calibrate(sensor: &amp;mut Sensor, reference_data: &amp;Data) {\n         // ... update the calibration ...\n     }\n-}\n-\n-mod sensors {\n-    use calibration::*;\n-    use data::*;\n\n     pub struct Sensor {\n         data: Data,\n@@ -38,18 +29,13 @@ mod sensors {\n         pub fn data(&amp;self) -&gt; &amp;Data {\n             &amp;self.data\n         }\n-\n-        pub fn calibration(&amp;mut self) -&gt; &amp;mut Calibration {\n-            &amp;mut self.calibration\n-        }\n     }\n }\n\n-use calibration::*;\n use sensors::*;\n\n fn main() {\n     let mut sensor = Sensor::new();\n     let reference_sensor = Sensor::new();\n-    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n+    calibrate(&amp;mut sensor, reference_sensor.data());\n }\n```\n&lt;/details&gt;\n&quot;],&quot;prompt&quot;:&quot;The following Rust program attempts to use getter functions in the style of a\nC++ program in order to hide the representation of `Sensor`.\n\n```rust\nmod data {\n    pub struct Data;\n}\n\nmod calibration {\n    use data::*;\n\n    pub struct Calibration;\n\n    pub fn calibrate(\n        calibration: &amp;mut Calibration,\n        data: &amp;Data,\n        reference_data: &amp;Data,\n    ) {\n        // ... update the calibration ...\n    }\n}\n\nmod sensors {\n    use calibration::*;\n    use data::*;\n\n    pub struct Sensor {\n        data: Data,\n        calibration: Calibration,\n        // ... other fields ...\n    }\n\n    impl Sensor {\n        pub fn new() -&gt; Sensor {\n            Sensor {\n                data: Data,\n                calibration: Calibration,\n                // ... other fields ...\n            }\n        }\n\n        pub fn data(&amp;self) -&gt; &amp;Data {\n            &amp;self.data\n        }\n\n        pub fn calibration(&amp;mut self) -&gt; &amp;mut Calibration {\n            &amp;mut self.calibration\n        }\n    }\n}\n\nuse calibration::*;\nuse sensors::*;\n\nfn main() {\n    let mut sensor = Sensor::new();\n    let reference_sensor = Sensor::new();\n    calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n}\n```\n\nHowever, it fails to compile with the following error message.\n\n```text\nerror[E0502]: cannot borrow `sensor` as immutable because it is also borrowed as mutable\n  --&gt; example.rs:42:37\n   |\n42 |     calibrate(sensor.calibration(), sensor.data(), reference_sensor.data());\n   |     --------- ------                ^^^^^^ immutable borrow occurs here\n   |     |         |\n   |     |         mutable borrow occurs here\n   |     mutable borrow later used by call\n```\n\nWhich is the most idiom change to make the program work while still hiding the\nimplementation of `Sensor`?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="type-equivalents"><a class="header" href="#type-equivalents">Type equivalents</a></h1>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="exceptions-and-error-handling"><a class="header" href="#exceptions-and-error-handling">Exceptions and error handling</a></h1>
+<p>In C++ errors that are to be handled by the caller are sometimes indicated by
+sentinel values (e.g., <code>std::map::find</code> producing an empty iterator), sometimes
+indicated by exceptions (e.g., <code>std::vector::at</code> throwing <code>std::out_of_range</code>),
+and sometimes indicated by setting an error bit (e.g., <code>std::fstream::fail</code>).
+Errors that are not intended to be handled by the caller are usually indicated
+by exceptions (e.g., <code>std::bad_cast</code>). Errors that are due to programming bugs
+often just result in undefined behavior (e.g., <code>std::vector::operator[]</code> when
+the index is out-of-bounds).</p>
+<p>In contrast, safe Rust has two mechanisms for indicating errors. When the error
+is expected to be handled by the caller (because it is due to, e.g., user
+input), the function returns a
+<a href="https://doc.rust-lang.org/std/result/index.html"><code>Result</code></a> or
+<a href="https://doc.rust-lang.org/std/option/index.html"><code>Option</code></a>. When the error is
+due to a programming bug, the function panics. Undefined behavior can only occur
+if unchecked variants of functions are used with unsafe Rust.</p>
+<p>Many libraries in Rust will offer two versions of an API, one which returns a
+<code>Result</code> or <code>Option</code> type and one of which panics, so that the interpretation of
+the error (expected exceptional case or programmer bug) can be chosen by the
+caller.</p>
+<p>The major differences between using <code>Result</code> or <code>Option</code> and using exceptions
+are that</p>
+<ol>
+<li><code>Result</code> and <code>Option</code> force explicit handling of the error case in order to
+access the contained value. This also differs from <code>std::expected</code> in C++23.</li>
+<li>When propagating errors with <code>Result</code>, the types of the errors much match.
+There are libraries for making this easier to handle.</li>
+</ol>
+<h2 id="result-vs-option"><a class="header" href="#result-vs-option"><code>Result</code> vs <code>Option</code></a></h2>
+<p>The approaches demonstrated in the Rust examples in this chapter apply to both
+<code>Result</code> and <code>Option</code>. When the type is <code>Option</code> it indicates that there is no
+additional information to provide in the error case: <code>Option::None</code> does not
+contain a value, but <code>Result::Err</code> does. When there is no additional
+information, is usually because there is exactly one circumstance which can
+cause the error case.</p>
+<p>It is possible to convert between the two types.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let r: Result&lt;i32, &amp;'static str&gt; =
+        None.ok_or("my errror message");
+    let r2: Result&lt;i32, &amp;'static str&gt; =
+        None.ok_or_else(|| "expensive error message");
+    let o: Option&lt;i32&gt; = r.ok();
+}</code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="expected-errors"><a class="header" href="#expected-errors">Expected errors</a></h1>
+<p>In C++, <code>throw</code> both produces an error (the thrown exception) and initiates
+non-local control flow (unwinding to the nearest <code>catch</code> block). In Rust, error
+values (<code>Option::None</code> or <code>Result::Err</code>) are returned as normal values from a
+function. Rust's <code>return</code> statement can be used to return early from a function.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
+
+double divide(double dividend, double divisor) {
+  if (divisor == 0.0) {
+    throw std::domain_error("zero divisor");
+  }
+
+  return dividend / divisor;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn divide(
+    dividend: f64,
+    divisor: f64,
+) -&gt; Option&lt;f64&gt; {
+    if divisor == 0.0 {
+        return None;
+    }
+
+    Some(dividend / divisor)
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The requirement to have the return type indicate that an error is possible means
+that callbacks that are permitted to have errors need to be given an <code>Option</code> or
+<code>Result</code> return type. Omitting that is like requiring callbacks to be <code>noexcept</code>
+in C++. Functions that do not need to indicate errors but that will be used as
+callbacks where errors are permitted will need to wrap their results in
+<code>Option::Some</code> or <code>Result::Ok</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
+
+int produce_42() {
+  return 42;
+}
+
+int fail() {
+  throw std::runtime_error("oops");
+}
+
+int useCallback(int (*func)(void)) {
+  return func();
+}
+
+int main() {
+  try {
+    int x = useCallback(produce_42);
+    int y = useCallback(fail);
+
+    // use x and y
+  } catch (std::runtime_error &amp;e) {
+    // handle error
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn produce_42() -&gt; i32 {
+    42
+}
+
+fn fail() -&gt; Option&lt;i32&gt; {
+    None
+}
+
+fn use_callback(
+    f: impl Fn() -&gt; Option&lt;i32&gt;,
+) -&gt; Option&lt;i32&gt; {
+    f()
+}
+
+fn main() {
+    // need to wrap produce_42 to match the
+    // expected type
+    let Some(x) =
+        use_callback(|| Some(produce_42()))
+    else {
+        // handle error
+        return;
+    };
+    let Some(y) = use_callback(fail) else {
+        // handle error
+        return;
+    };
+    // use x and y
+}</code></pre></pre>
+</div>
+<h2 id="handling-errors"><a class="header" href="#handling-errors">Handling errors</a></h2>
+<p>In C++, the only way to handle exceptions is <code>catch</code>. In Rust, all of the
+features for dealing with <a href="idioms/exceptions//idioms/data_modeling/tagged_unions.html">tagged
+unions</a> can be used with <code>Result</code> and
+<code>Option</code>. The most approach depends on the intention of the program.</p>
+<p>The basic way of handling an error indicated by a <code>Result</code> in Rust is by using
+<code>match</code>.</p>
+<p>Using <code>match</code> is the most general approach, because it enables handling
+additional cases explicitly and can be used as an expression. <code>match</code> connotes
+equal importance of all branches.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;vector&gt;
+#include &lt;stdexcept&gt;
+
+int main() {
+    std::vector&lt;int&gt; v;
+    // ... populate v ...
+    try {
+        auto x = v.at(0);
+        // use x
+    } catch (std::out_of_range &amp;e) {
+        // handle error
+    }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = Vec::&lt;i32&gt;::new();
+    // ... populate v ...
+    match v.get(0) {
+        Some(x) =&gt; {
+            // use x
+        }
+        None =&gt; {
+            // handle error
+        }
+    }
+}</code></pre></pre>
+</div>
+<p>Because handling only a single variant of a Rust enum is so common, the <code>if let</code>
+syntax support that use case. The syntax both makes it clear that only the one
+case is important and reduces the levels of indentation.</p>
+<p><code>if let</code> is less general than <code>match</code>. It can also be used as an expression, but
+can only distinguish one case from the rest. <code>if let</code> connotes that the <code>else</code>
+case is not the normal case, but that some default handling will occur or some
+default value will be produced.</p>
+<p>Note that with <code>Result</code>, <code>if let</code> does not enable accessing the error value.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = Vec::&lt;i32&gt;::new();
+    // ... populate v ...
+    if let Some(x) = v.get(0) {
+        // use x
+    } else {
+        // handle error
+    }
+}</code></pre></pre>
+<p>When the error handling involves some kind of control flow operation, like
+<code>break</code> or <code>return</code>, the <code>let else</code> syntax is even more concise.</p>
+<p>Much like normal <code>let</code> statements, <code>let else</code> statements can only be used where
+statements are expected. <code>let else</code> statements also connote that the else case
+is not the normal case, and that no further (normal) processing will occur.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = Vec::&lt;i32&gt;::new();
+    // ... populate v ...
+    let Some(x) = v.get(0) else {
+        // handle error
+        return;
+    };
+    // use x
+}</code></pre></pre>
+<p><code>Result</code> and <code>Option</code> also have some helper methods for handling errors.
+These methods resemble the methods on <code>std::expected</code> in C++.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;expected&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::expected&lt;int, std::string&gt; res(42);
+  auto x(res.transform([](int n) { return n * 2; }));
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let res: Result&lt;i32, String&gt; = Ok(42);
+    let x = res.map(|n| n * 2);
+}</code></pre></pre>
+</div>
+<p>These helper methods and others are described in detail in the documentation for
+<a href="https://doc.rust-lang.org/std/option/enum.Option.html#implementations"><code>Option</code></a>
+and
+<a href="https://doc.rust-lang.org/std/result/enum.Result.html#implementations"><code>Result</code></a>.</p>
+<h2 id="borrowed-results"><a class="header" href="#borrowed-results">Borrowed results</a></h2>
+<p>In the above examples, the successful results are borrowed from the vector. It
+common to need to clone or copy the result into an owned copy, and to want to do
+so without having to match on and reconstruct the value. <code>Result</code> and <code>Option</code>
+have helper methods for these purposes.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = Vec::&lt;i32&gt;::new();
+    v.push(42);
+    let x: Option&lt;&amp;i32&gt; = v.get(0);
+    let y: Option&lt;i32&gt; = v.get(0).copied();
+
+    let mut w = Vec::&lt;String&gt;::new();
+    w.push("hello".to_string());
+    let s: Option&lt;&amp;String&gt; = w.get(0);
+    let r: Option&lt;String&gt; = w.get(0).cloned();
+}</code></pre></pre>
+<h2 id="propagating-errors"><a class="header" href="#propagating-errors">Propagating errors</a></h2>
+<p>In C++, exceptions propagate automatically. In Rust, errors indicated by
+<code>Result</code> or <code>Option</code> must be explicitly propagated. The <code>?</code> operator is a
+convenience for this. There are also several methods for manipulating <code>Result</code>
+and <code>Option</code> that have a similar effect to propagating the error.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstddef&gt;
+#include &lt;vector&gt;
+
+int accessValue(std::vector&lt;std::size_t&gt; indices,
+                 std::vector&lt;int&gt; values,
+                 std::size_t i) {
+  // vector::at throws
+  size_t idx(indices.at(i));
+  // vector::at throws
+  return values.at(idx);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn access_value(
+    indices: Vec&lt;usize&gt;,
+    values: Vec&lt;i32&gt;,
+    i: usize,
+) -&gt; Option&lt;i32&gt; {
+    // * dereferences the &amp;i32 to copy it
+    // ? propagates the None
+    let idx = *indices.get(i)?;
+    // returns the Option directly
+    values.get(idx).copied()
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The above Rust example is equivalent to the following, which does not use the
+<code>?</code> operator. The version using <code>?</code> is more idiomatic.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn access_value(
+    indices: Vec&lt;usize&gt;,
+    values: Vec&lt;i32&gt;,
+    i: usize,
+) -&gt; Option&lt;i32&gt; {
+    // matching through the &amp; makes a copy of the i32
+    let Some(&amp;idx) = indices.get(i) else {
+        return None;
+    };
+    // still returns the Option directly
+    values.get(idx).copied()
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The following example is also equivalent. It is not idiomatic (using <code>?</code> here is
+more readable), but does demonstrate one of the helper methods.
+<code>Option::and_then</code> is similar to <a href="https://en.cppreference.com/w/cpp/utility/optional/and_then"><code>std::optional::and_then</code> in
+C++23</a>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn access_value(
+    indices: Vec&lt;usize&gt;,
+    values: Vec&lt;i32&gt;,
+    i: usize,
+) -&gt; Option&lt;i32&gt; {
+    // matching through the &amp; makes a copy of the i32
+    indices
+        .get(i)
+        .and_then(|idx| values.get(*idx))
+        .copied()
+}
+<span class="boring">}</span></code></pre></pre>
+<p>These helper methods and others are described in detail in the documentation for
+<a href="https://doc.rust-lang.org/std/option/enum.Option.html#implementations"><code>Option</code></a>
+and
+<a href="https://doc.rust-lang.org/std/result/enum.Result.html#implementations"><code>Result</code></a>.</p>
+<h2 id="uncaught-exceptions-in-main"><a class="header" href="#uncaught-exceptions-in-main">Uncaught exceptions in <code>main</code></a></h2>
+<p>In C++ when an exception is uncaught, it terminates the program with a non-zero
+exit code and an error message. To achieve a similar result using <code>Result</code> in
+Rust, <code>main</code> can be given a return type of <code>Result</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
+
+int main() {
+  throw std::runtime_error("oops");
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn main() -&gt; Result&lt;(), &amp;'static str&gt; {
+    Err("oops")
+}</code></pre>
+</div>
+<p>The result type must be unit <code>()</code> and the error type can be any type that
+implements the <a href="https://doc.rust-lang.org/std/fmt/trait.Debug.html"><code>Debug</code>
+trait</a>.</p>
+<pre><pre class="playground"><code class="language-rust no_run">#[derive(Debug)]
+struct InterestingError {
+    message: &amp;'static str,
+    other_interesting_value: i32,
+}
+
+fn main() -&gt; Result&lt;(), InterestingError&gt; {
+    Err(InterestingError {
+        message: "oops",
+        other_interesting_value: 9001,
+    })
+}</code></pre></pre>
+<p>Running this program produces the output <code>Error: InterestingError { message: "oops", other_interesting_value: 9001 }</code> with an exit code of <code>1</code>.</p>
+<h2 id="limitations-to-forcing-error-handling-with-result"><a class="header" href="#limitations-to-forcing-error-handling-with-result">Limitations to forcing error handling with <code>Result</code></a></h2>
+<p>Returning <code>Result</code> or <code>Option</code> does not give the usual benefits when used with
+APIs that pass pre-allocated buffers by mutable reference. This is because the
+buffer is accessible outside of the <code>Result</code> or <code>Option</code>, and so the compiler
+cannot force handling of the error case.</p>
+<p>For example, in the following example the result of <code>read_line</code> can be ignored,
+resulting in logic errors in the program. However, since the buffer is required
+to be initialized, it will not result in memory safety violations or undefined
+behavior.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut buffer = String::with_capacity(1024);
+    std::io::stdin().read_line(&amp;mut buffer);
+    // use buffer
+}</code></pre></pre>
+<p>Rust will produce a warning in this case, because of the <a href="https://doc.rust-lang.org/reference/attributes/diagnostics.html#the-must_use-attribute"><code>#[must_use]</code>
+attribute</a>
+on <code>Result</code>.</p>
+<pre><code class="language-text">warning: unused `Result` that must be used
+ --&gt; example.rs:3:5
+  |
+3 |     std::io::stdin().read_line(&amp;mut buffer);
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this `Result` may be an `Err` variant, which should be handled
+  = note: `#[warn(unused_must_use)]` on by default
+help: use `let _ = ...` to ignore the resulting value
+  |
+3 |     let _ = std::io::stdin().read_line(&amp;mut buffer);
+  |     +++++++text
+</code></pre>
+<p><code>Option</code> does not have a <code>#[must_use]</code> attribute, so functions that return an
+<code>Option</code> that must be handled (due to the <code>None</code> case indicating an error)
+should be annotated with the <code>#[must_use]</code> attribute. For example, the <code>get</code>
+method on slices returns <code>Option</code> and is <a href="https://doc.rust-lang.org/src/core/slice/mod.rs.html#593-595">annotated as
+<code>#[must_use]</code></a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="type-equivalents"><a class="header" href="#type-equivalents">Type equivalents</a></h1>
 <p>The type equivalents listed in this document are equivalent for the purposes of
 programming in Rust as one would program in C++. They are not necessarily
 equivalent in terms of being useful for interacting with C or C++ programs via
