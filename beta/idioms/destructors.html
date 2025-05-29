@@ -198,7 +198,7 @@ struct A {
     other.id = 0;
   }
 
-  // deconstructor
+  // destructor
   ~A() {
     std::cout &lt;&lt; id &lt;&lt; std::endl;
   }
@@ -252,7 +252,7 @@ fn main() {
     let z = A { id: 3 };
 }</code></pre></pre>
 </div>
-<p>In Rust, after ownership of <code>y</code> is moved into the function <code>acccept</code>, there is
+<p>In Rust, after ownership of <code>y</code> is moved into the function <code>accept</code>, there is
 no additional object remaining, and so there is no additional <code>Drop::drop</code> call
 (which in the C++ example prints <code>0</code>).</p>
 <p>Rust's drop methods do run when leaving scope due to a panic, though not if the

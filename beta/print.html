@@ -163,7 +163,7 @@
 When you are writing Rust code and think, "I know how to do this in C++ but not Rust," then
 look for the corresponding chapter in this book.</p>
 <p>This book was hand-written by expert C++ and Rust programmers to provide accurate information with a tasteful degree of detail. No text in this book was written by AI.</p>
-<p>If would like updates on when we add new chapters to this book, you can <a href="https://forms.gle/rcrdZihmT81LWy6F6">drop your email here</a>.</p>
+<p>If you would like updates on when we add new chapters to this book, you can <a href="https://forms.gle/rcrdZihmT81LWy6F6">drop your email here</a>.</p>
 <h2 id="other-resources"><a class="header" href="#other-resources">Other resources</a></h2>
 <p>If you have zero Rust experience, you might consider first reading <a href="https://rust-book.cs.brown.edu/">The Rust Programming
 Language</a> or getting a quick overview at <a href="https://learnxinyminutes.com/rust/">Learn X in Y Minutes</a>.</p>
@@ -665,7 +665,7 @@ struct Person {
         best_friend(best_friend) {}
 
   // copy and move constructors and destructor
-  // implicilty declared and defined
+  // implicitly declared and defined
 };
 </code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -935,7 +935,7 @@ struct A {
     other.id = 0;
   }
 
-  // deconstructor
+  // destructor
   ~A() {
     std::cout &lt;&lt; id &lt;&lt; std::endl;
   }
@@ -989,7 +989,7 @@ fn main() {
     let z = A { id: 3 };
 }</code></pre></pre>
 </div>
-<p>In Rust, after ownership of <code>y</code> is moved into the function <code>acccept</code>, there is
+<p>In Rust, after ownership of <code>y</code> is moved into the function <code>accept</code>, there is
 no additional object remaining, and so there is no additional <code>Drop::drop</code> call
 (which in the C++ example prints <code>0</code>).</p>
 <p>Rust's drop methods do run when leaving scope due to a panic, though not if the
@@ -2539,7 +2539,7 @@ impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
         to: usize,
     ) -&gt; Result&lt;(), &amp;str&gt; {
         let num_nodes = self.num_nodes();
-        if from &gt; num_nodes || to &gt; num_nodes {
+        if from &gt;= num_nodes || to &gt;= num_nodes {
             Err("Node index out of range.")
         } else {
             self.adjacencies[from].push(to);
@@ -3112,7 +3112,7 @@ same results in Rust.</p>
 <p>Some uses of <code>nullptr</code> in C++ don't arise in the first place in Rust because of
 other language differences. For example, <a href="idioms//idioms/null/moved_members.html">moved objects don't leave anything
 behind that needs to be destroyed</a>. Therefore
-there is no to use <code>nullptr</code> as a as placeholder for a moved pointer that can
+there is no need to use <code>nullptr</code> as a placeholder for a moved pointer that can
 have <code>delete</code> or <code>free</code> called on it.</p>
 <p>Other uses are replaced by <code>Option</code>, which in safe Rust requires checking for
 the empty case before accessing the contained value. This use is common enough
@@ -6153,7 +6153,7 @@ values.</p>
 <h2 id="overloading-copy-assignment-and-equality-comparison-operators"><a class="header" href="#overloading-copy-assignment-and-equality-comparison-operators">Overloading copy assignment and equality comparison operators</a></h2>
 <p>For example, when implementing the copy-assignment operator, one might
 short-circuit when the copied object and the assignee are the same.
-Not that in this use the pointer values are not stored.</p>
+Note that in this use the pointer values are not stored.</p>
 <p>This kind of optimization is unnecessary when implementing <a href="idioms//idioms/constructors/copy_and_move_constructors.html#assignment-operators">Rust's equivalent to
 the copy assignment
 operator</a>

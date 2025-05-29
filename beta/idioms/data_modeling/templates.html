@@ -226,7 +226,7 @@ impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
         to: usize,
     ) -&gt; Result&lt;(), &amp;str&gt; {
         let num_nodes = self.num_nodes();
-        if from &gt; num_nodes || to &gt; num_nodes {
+        if from &gt;= num_nodes || to &gt;= num_nodes {
             Err("Node index out of range.")
         } else {
             self.adjacencies[from].push(to);
