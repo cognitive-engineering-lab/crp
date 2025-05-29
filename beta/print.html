@@ -162,7 +162,8 @@
 <p>The book can be read front-to-back, but it is designed to be used random-access.
 When you are writing Rust code and think, "I know how to do this in C++ but not Rust," then
 look for the corresponding chapter in this book.</p>
-<p>This book was hand-written by expert C++ and Rust programmers to provide accurate information with a tasteful degree of detail. No AI was used in the creation of this book.</p>
+<p>This book was hand-written by expert C++ and Rust programmers to provide accurate information with a tasteful degree of detail. No text in this book was written by AI.</p>
+<p>If would like updates on when we add new chapters to this book, you can <a href="https://forms.gle/rcrdZihmT81LWy6F6">drop your email here</a>.</p>
 <h2 id="other-resources"><a class="header" href="#other-resources">Other resources</a></h2>
 <p>If you have zero Rust experience, you might consider first reading <a href="https://rust-book.cs.brown.edu/">The Rust Programming
 Language</a> or getting a quick overview at <a href="https://learnxinyminutes.com/rust/">Learn X in Y Minutes</a>.</p>
@@ -177,60 +178,61 @@ send us a message.</p>
 <p>If you answer the quizzes at the end of each chapter, we will save your
 responses anonymously for research purposes.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
-<p>In C++, constructors initialize objects.</p>
-<pre><code class="language-cpp">class Person {
-  int age;
-
-public:
-  Person(int a) : age(a) {}
-};
-
-int main() {
-  Person person(42);
-  // ...
-}
-</code></pre>
-<p>At the point when a constructor is executed, storage for the object has been
+<p>In C++, constructors initialize objects. At the point when a constructor is executed, storage for the object has been
 allocated and the constructor is only performing initialization.</p>
-<pre><code class="language-cpp">class Person {
-  int age;
-  // non-owning pointer
-  Person *best_friend;
-
-public:
-  Person(int a) : age(a), best_friend(this) {}
-};
-
-int main() {
-  Person person(42);
-  // ...
-}
-</code></pre>
 <p>Rust does not have constructors in the same way as C++. In Rust, there is a
 single fundamental way to create an object, which is to initialize all of its
 members at once. The term "constructor" or "constructor method" in Rust refers
 to something more like a factory: a static method associated with a type (i.e.,
 a method that does not have a <code>self</code> parameter), which returns a value of the
 type.</p>
-<pre><pre class="playground"><code class="language-rust">struct Person {
-    age: i32
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;thread&gt;
+</span><span class="boring">unsigned int cpu_count() { 
+</span><span class="boring">    return std::thread::hardware_concurrency();
+</span><span class="boring">}
+</span><span class="boring">
+</span>class ThreadPool {
+  unsigned int num_threads;  
+
+public:
+  ThreadPool() : num_threads(cpu_count()) {}
+  ThreadPool(unsigned int nt) : num_threads(nt) {}
+};
+
+int main() {
+  ThreadPool p1;
+  ThreadPool p2(4);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn cpu_count() -&gt; usize {
+</span><span class="boring">    std::thread::available_parallelism().unwrap().get()
+</span><span class="boring">}
+</span><span class="boring">
+</span>struct ThreadPool {
+  num_threads: usize
 }
 
-impl Person {
-    const fn with_age(a: i32) -&gt; Self {
-        Self { age: a }
+impl ThreadPool {
+    fn new() -&gt; Self {
+        Self { num_threads: cpu_count() }
+    }
+
+    fn with_threads(nt: usize) -&gt; Self {
+        Self { num_threads: nt } 
     }
 }
 
 fn main() {
-    let person = Person::with_age(42);
-    // ...
+    let p1 = ThreadPool::new();
+    let p2 = ThreadPool::with_threads(4);
 }</code></pre></pre>
-<p>Typically the primary constructor for a type is named <code>new</code>, especially if it
-takes no arguments. See the chapter on <a href="idioms/constructors/default_constructors.html">default
-constructors</a>. Constructors based on
-some specific property of the value are usually named <code>with_details</code> (e.g.,
-<code>Person::with_name</code>). See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
+</div>
+<p>In Rust, typically the primary constructor for a type is named <code>new</code>, especially if it
+takes no arguments. (See the chapter on <a href="idioms/constructors/default_constructors.html">default
+constructors</a>.) Constructors based on
+some specific property of the value are usually named <code>with_&lt;something&gt;</code>, e.g.,
+<code>ThreadPool::with_threads</code>. See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
 guidelines</a> for the
 conventions on how to name constructor methods in Rust.</p>
 <p>If the fields to be initialized are visible, there is a reasonable default
@@ -253,74 +255,66 @@ fn main() {
         x: 1,
         ..Point::zero()
     };
-    // ...
 }</code></pre></pre>
 <p>Despite the name, "record update syntax" does not modify a record but instead
 creates a new value based on another one, taking ownership of it in order to do
 so.</p>
 <h2 id="storage-allocation-vs-initialization"><a class="header" href="#storage-allocation-vs-initialization">Storage allocation vs initialization</a></h2>
-<p>The actual construction of a structure or enum value in Rust occurs where the
-structure construction syntax <code>A { ... }</code> is, after the evaluation of the
+<p>In Rust, the actual construction of a structure or enum value occurs where the
+structure construction syntax <code>ThreadPool { ... }</code> is, after the evaluation of the
 expressions for the fields.</p>
 <p>A significant implication of this difference is that storage is not allocated
 for a struct in Rust at the point where the constructor method (such as
-<code>Person::with_age</code>) is called, and in fact is not allocated until after the
+<code>ThreadPool::with_threads</code>) is called, and in fact is not allocated until after the
 values of the fields of a struct have been computed (in terms of the semantics
 of the language — the optimizer may still avoid the copy). Therefore there is no
-easy way in Rust to write the C++ example above where the class stores a pointer to
-itself upon construction (this requires tools like <a href="https://doc.rust-lang.org/std/pin/struct.Pin.html"><code>Pin</code></a> and <a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a>).</p>
+straightforward way in Rust to translate patterns such as a class which stores a pointer to
+itself upon construction (in Rust, this requires tools like <a href="https://doc.rust-lang.org/std/pin/struct.Pin.html"><code>Pin</code></a> and <a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a>).</p>
 <h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
-<p>In C++ the only way constructors can indicate failure is by throwing exceptions. In Rust, because constructors are normal static methods, fallible constructors
+<p>In C++, the primary way constructors can indicate failure is by throwing exceptions. In Rust, because constructors are normal static methods, fallible constructors
 can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code> (akin to
 <code>std::optional</code>).</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;stdexcept&gt;
 
-class Person {
-  int age;
+class ThreadPool {
+  unsigned int num_threads;
 
 public:
-  Person(int a) : age(a) {
-    if (age &lt; 0) {
-      throw std::domain_error("Bad argument");
+  ThreadPool(unsigned int nt) : num_threads(nt) {
+    if (num_threads == 0) {
+      throw std::domain_error("Cannot have zero threads");
     }
   }
 };
 
 int main() {
   try {
-    Person person(-4);
+    ThreadPool p(0);
   } catch (const std::domain_error &amp;e) {
     std::cout &lt;&lt; e.what() &lt;&lt; std::endl;
   }
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust">struct Person {
-    age: i32,
+<pre><pre class="playground"><code class="language-rust">struct ThreadPool {
+    num_threads: usize,
 }
 
-#[derive(Debug)]
-struct NegativeAgeError(i32);
-
-impl Person {
-    fn with_age(a: i32) -&gt; Result&lt;Self, NegativeAgeError&gt; {
-        if a &lt; 0 {
-            Err(NegativeAgeError(a))
+impl ThreadPool {
+    fn with_threads(nt: usize) -&gt; Result&lt;Self, String&gt; {
+        if nt == 0 {
+            Err("Cannot have zero threads".to_string())
         } else {
-            Ok(Self { age: a })
+            Ok(Self { num_threads: nt })
         }
     }
 }
 
 fn main() {
-    match Person::with_age(-4) {
-        Err(err) =&gt; {
-            println!("{err:?}");
-        }
-        Ok(person) =&gt; {
-            // ...
-        }
+    match ThreadPool::with_threads(0) {
+        Err(err) =&gt; println!("{err}"),        
+        Ok(p) =&gt; { /* ... */ }
     }
 }</code></pre></pre>
 </div>
@@ -328,7 +322,10 @@ fn main() {
 how C++ exceptions and exception handling translate to Rust.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
 <p>C++ has a special concept of default constructors to support several scenarios
-in which they are implicitly called.</p>
+in which they are implicitly called.
+Rust does not have the same notion of a default constructor. The most similar mechanism is the <a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code>
+trait</a>.</p>
+<div class="comparison">
 <pre><code class="language-cpp">class Person {
     int age;
 
@@ -337,14 +334,6 @@ public:
     Person() : age(0) {}
 }
 </code></pre>
-<p>Rust does not have a notion of a default constructor in the same way as in C++.
-Some of the uses cases are achieved via a different mechanism or with different
-conventions, and others do not apply to Rust.</p>
-<p>If a structure has a useful default value (such as would be constructed by a
-default constructor in C++), then the type should provide
-<a href="https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits">both</a>
-a <code>new</code> method that takes no arguments and an implementation of the <a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code>
-trait</a>.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Person {
@@ -363,8 +352,13 @@ impl Default for Person {
     }
 }
 <span class="boring">}</span></code></pre></pre>
+</div>
+<p>If a structure has a useful default value (such as would be constructed by a
+default constructor in C++), then the type should provide
+<a href="https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits">both</a>
+a <code>new</code> method that takes no arguments and an implementation of <code>Default</code>.</p>
 <h2 id="implicit-initialization-of-class-members"><a class="header" href="#implicit-initialization-of-class-members">Implicit initialization of class members</a></h2>
-<p>In C++ if a member is not explicitly initialized by a constructor, then it is
+<p>In C++, if a member is not explicitly initialized by a constructor, then it is
 default-initialized. When the type of the member is a class, the
 default-initialization invokes the default constructor.</p>
 <p>In Rust, if all of the fields of a struct implement the <code>Default</code> trait, then an
@@ -394,7 +388,7 @@ struct Student {
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>The use of the derive macros in Rust is equivalent to writing the following.</p>
+<p>The <code>#[derive(Default)]</code> macros in Rust are equivalent to writing the following.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Person {
@@ -422,8 +416,8 @@ impl Default for Student {
 }
 <span class="boring">}</span></code></pre></pre>
 <p>Unlike C++ where the default initialization value for integers is indeterminate,
-in Rust the default value for the primitive integer and floating point types is
-zero.</p>
+in Rust the default value for the primitive integer and floating point types <a href="https://doc.rust-lang.org/std/primitive.i32.html#impl-Default-for-i32">is
+zero</a>.</p>
 <p><a name="struct-update"></a> Deriving the <code>Default</code> trait has a similar effect
 on code concision as eliding initialization in C++. In situations where all of
 the types implement the <code>Default</code> trait, but only some of the fields should have
@@ -496,7 +490,7 @@ fn main() {
 }</code></pre></pre>
 <h2 id="container-element-initialization"><a class="header" href="#container-element-initialization">Container element initialization</a></h2>
 <p>In C++, the default constructor could be used to implicitly define collection
-types, such as <code>std::vector</code>. Before C++11 one value would be default
+types, such as <code>std::vector</code>. Before C++11, one value would be default
 constructed, and the elements would be copy constructed from that initial
 element. Since C++11, all elements are default constructed.</p>
 <p>As with array initialization, the values must be explicitly specified in Rust.
@@ -506,15 +500,15 @@ arrays.</p>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 
 class Person {
-  int age;
+    int age;
 
 public:
-  Person() : age(0) {}
+    Person() : age(0) {}
 }
 
 int main() {
-  std::vector&lt;Person&gt; v(3);
-  // ...
+    std::vector&lt;Person&gt; people(3);
+    // ...
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
@@ -523,11 +517,22 @@ struct Person {
 }
 
 fn main() {
-    let people_arr: [Person; 3] = std::array::from_fn(|_| Default::default());
+    let people_arr: [Person; 3] = 
+        std::array::from_fn(|_| Default::default());
     let people: Vec&lt;Person&gt; = Vec::from(people_arr);
     // ...
 }</code></pre></pre>
 </div>
+<p>In Rust, the vector can also be constructed from an iterator.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let people: Vec&lt;Person&gt; = (0..3).map(|_| Default::default()).collect();
+    // ...
+}</code></pre></pre>
 <p>If the type implements the <code>Clone</code> trait, then the array can be constructed
 using the <code>vec!</code> macro. See the chapter on <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html">copy
 constructors</a> for more
@@ -547,15 +552,15 @@ local variables that are not explicitly initialized.</p>
 <p>In Rust, initialization of local variables is always explicit.</p>
 <div class="comparison">
 <pre><code class="language-cpp">class Person {
-  int age;
+    int age;
 
 public:
-  Person() : age(0) {}
+    Person() : age(0) {}
 };
 
 int main() {
-  Person person;
-  // ...
+    Person person;
+    // ...
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
@@ -596,14 +601,14 @@ default constructors are not used for initialization in C++.</p>
 <code>Default</code> implementation of the contained type.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
 struct Person {
-  age: i32,
+    age: i32,
 }
 
 fn main() {
     let b: Box&lt;Person&gt; = Default::default();
     // ...
 }</code></pre></pre>
-<p>This differs from the treatment of <code>std::unique_ptr</code> C++ because unlike <code>Box</code>,
+<p>This differs from the treatment of <code>std::unique_ptr</code> in C++ because unlike <code>Box</code>,
 <code>std::unique_ptr</code> is nullable, and so the default constructor for
 <code>std:unique_ptr</code> produces a pointer that owns nothing. The equivalent type in
 Rust is <code>Option&lt;Box&lt;Person&gt;&gt;</code>, for which the <code>Default</code> implementation produces

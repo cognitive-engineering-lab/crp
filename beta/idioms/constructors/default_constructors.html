@@ -158,7 +158,10 @@
                     <main>
                         <h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
 <p>C++ has a special concept of default constructors to support several scenarios
-in which they are implicitly called.</p>
+in which they are implicitly called.
+Rust does not have the same notion of a default constructor. The most similar mechanism is the <a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code>
+trait</a>.</p>
+<div class="comparison">
 <pre><code class="language-cpp">class Person {
     int age;
 
@@ -167,14 +170,6 @@ public:
     Person() : age(0) {}
 }
 </code></pre>
-<p>Rust does not have a notion of a default constructor in the same way as in C++.
-Some of the uses cases are achieved via a different mechanism or with different
-conventions, and others do not apply to Rust.</p>
-<p>If a structure has a useful default value (such as would be constructed by a
-default constructor in C++), then the type should provide
-<a href="https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits">both</a>
-a <code>new</code> method that takes no arguments and an implementation of the <a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code>
-trait</a>.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Person {
@@ -193,8 +188,13 @@ impl Default for Person {
     }
 }
 <span class="boring">}</span></code></pre></pre>
+</div>
+<p>If a structure has a useful default value (such as would be constructed by a
+default constructor in C++), then the type should provide
+<a href="https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits">both</a>
+a <code>new</code> method that takes no arguments and an implementation of <code>Default</code>.</p>
 <h2 id="implicit-initialization-of-class-members"><a class="header" href="#implicit-initialization-of-class-members">Implicit initialization of class members</a></h2>
-<p>In C++ if a member is not explicitly initialized by a constructor, then it is
+<p>In C++, if a member is not explicitly initialized by a constructor, then it is
 default-initialized. When the type of the member is a class, the
 default-initialization invokes the default constructor.</p>
 <p>In Rust, if all of the fields of a struct implement the <code>Default</code> trait, then an
@@ -224,7 +224,7 @@ struct Student {
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>The use of the derive macros in Rust is equivalent to writing the following.</p>
+<p>The <code>#[derive(Default)]</code> macros in Rust are equivalent to writing the following.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Person {
@@ -252,8 +252,8 @@ impl Default for Student {
 }
 <span class="boring">}</span></code></pre></pre>
 <p>Unlike C++ where the default initialization value for integers is indeterminate,
-in Rust the default value for the primitive integer and floating point types is
-zero.</p>
+in Rust the default value for the primitive integer and floating point types <a href="https://doc.rust-lang.org/std/primitive.i32.html#impl-Default-for-i32">is
+zero</a>.</p>
 <p><a name="struct-update"></a> Deriving the <code>Default</code> trait has a similar effect
 on code concision as eliding initialization in C++. In situations where all of
 the types implement the <code>Default</code> trait, but only some of the fields should have
@@ -326,7 +326,7 @@ fn main() {
 }</code></pre></pre>
 <h2 id="container-element-initialization"><a class="header" href="#container-element-initialization">Container element initialization</a></h2>
 <p>In C++, the default constructor could be used to implicitly define collection
-types, such as <code>std::vector</code>. Before C++11 one value would be default
+types, such as <code>std::vector</code>. Before C++11, one value would be default
 constructed, and the elements would be copy constructed from that initial
 element. Since C++11, all elements are default constructed.</p>
 <p>As with array initialization, the values must be explicitly specified in Rust.
@@ -336,15 +336,15 @@ arrays.</p>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 
 class Person {
-  int age;
+    int age;
 
 public:
-  Person() : age(0) {}
+    Person() : age(0) {}
 }
 
 int main() {
-  std::vector&lt;Person&gt; v(3);
-  // ...
+    std::vector&lt;Person&gt; people(3);
+    // ...
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
@@ -353,11 +353,22 @@ struct Person {
 }
 
 fn main() {
-    let people_arr: [Person; 3] = std::array::from_fn(|_| Default::default());
+    let people_arr: [Person; 3] = 
+        std::array::from_fn(|_| Default::default());
     let people: Vec&lt;Person&gt; = Vec::from(people_arr);
     // ...
 }</code></pre></pre>
 </div>
+<p>In Rust, the vector can also be constructed from an iterator.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let people: Vec&lt;Person&gt; = (0..3).map(|_| Default::default()).collect();
+    // ...
+}</code></pre></pre>
 <p>If the type implements the <code>Clone</code> trait, then the array can be constructed
 using the <code>vec!</code> macro. See the chapter on <a href="/idioms/constructors/copy_and_move_constructors.html">copy
 constructors</a> for more
@@ -377,15 +388,15 @@ local variables that are not explicitly initialized.</p>
 <p>In Rust, initialization of local variables is always explicit.</p>
 <div class="comparison">
 <pre><code class="language-cpp">class Person {
-  int age;
+    int age;
 
 public:
-  Person() : age(0) {}
+    Person() : age(0) {}
 };
 
 int main() {
-  Person person;
-  // ...
+    Person person;
+    // ...
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
@@ -426,14 +437,14 @@ default constructors are not used for initialization in C++.</p>
 <code>Default</code> implementation of the contained type.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
 struct Person {
-  age: i32,
+    age: i32,
 }
 
 fn main() {
     let b: Box&lt;Person&gt; = Default::default();
     // ...
 }</code></pre></pre>
-<p>This differs from the treatment of <code>std::unique_ptr</code> C++ because unlike <code>Box</code>,
+<p>This differs from the treatment of <code>std::unique_ptr</code> in C++ because unlike <code>Box</code>,
 <code>std::unique_ptr</code> is nullable, and so the default constructor for
 <code>std:unique_ptr</code> produces a pointer that owns nothing. The equivalent type in
 Rust is <code>Option&lt;Box&lt;Person&gt;&gt;</code>, for which the <code>Default</code> implementation produces
