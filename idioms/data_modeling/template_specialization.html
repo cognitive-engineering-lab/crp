@@ -161,18 +161,83 @@
 different implementations for different parameters. Most STL implementations
 make use of this to, for example, provide a <a href="https://en.cppreference.com/w/cpp/container/vector_bool">space-efficient representation of
 <code>std::vector&lt;bool&gt;</code></a>.</p>
-<p>In Rust it is not possible to specialize a generic implementation in this way.
-This is because unlike C++ templates, Rust's generics are not a mechanism for
-metaprogramming.</p>
-<p>Instead it is more common in Rust to define traits for interfaces and to
-implement generic functions over those interfaces, enabling clients to select
-their choice of representation by using a different concrete type. This is more
-practical to do in Rust than in C++ because generics not being a metaprogramming
-facility means that generic entities can be type checked locally, making them
-easier to define.</p>
-<p>Additionally, because generic functions can only interact with generic values in
-ways defined by the trait bounds, it is easier to test generic implementations.
-In particular, code testing a generic implementation only has to consider the
+<p>Because of the possibility of template specialization, when a C++ function
+operates on values of a template class like <code>std::vector</code>, the function is
+essentially defined in terms of the interface provided by the template class,
+rather than for a specific implementation.</p>
+<p>To accomplish the same thing in Rust requires defining the function in terms of
+a trait for the interface against which it operates. This enables clients to
+select their choice of representation for data by using any concrete type that
+implements the interface.</p>
+<p>This is more practical to do in Rust than in C++, because generics not being a
+general metaprogramming facility means that <a href="/idioms/data_modeling/templates.html#a-note-on-type-checking-and-type-errors">generic entities can be type
+checked
+locally</a>,
+making them easier to define. It is more common to do in Rust than in C++
+because Rust does not have <a href="/idioms/data_modeling/inheritance_and_reuse.html">implementation
+inheritance</a>, so there is a
+sharper line between interface and implementation than there is in C++.</p>
+<p>The following example shows how a Rust function can be implemented so that
+different concrete representations can be selected by a client. For a compact
+bit vector representation, the example uses the
+<a href="https://docs.rs/bitvec/latest/bitvec/vec/struct.BitVec.html"><code>BitVec</code></a> type
+from the <a href="https://docs.rs/bitvec/latest/bitvec/">bitvec crate</a>. <code>BitVec</code> is
+intended intended to provide an API similar to <code>Vec&lt;bool&gt;</code> or
+<code>std::vector&lt;bool&gt;</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;string&gt;
+#include &lt;vector&gt;
+
+template &lt;typename T&gt;
+void push_if_even(int n,
+                  std::vector&lt;T&gt; &amp;collection,
+                  T item) {
+  if (n % 2 == 0) {
+    collection.push_back(item);
+  }
+}
+
+int main() {
+  // Operate on the default std::vector
+  // implementation
+  std::vector&lt;std::string&gt; v{"a", "b"};
+  push_if_even(2, v, std::string("c"));
+
+  // Operate on the (likely space-optimized)
+  // std::vector implementation
+  std::vector&lt;bool&gt; bv{false, true};
+  push_if_even(2, bv, false);
+}
+</code></pre>
+<pre><code class="language-rust ignore">// The Extend trait is for types that support
+// appending values to the collection.
+fn push_if_even&lt;T, I: Extend&lt;T&gt;&gt;(
+    n: u32,
+    collection: &amp;mut I,
+    item: T,
+) {
+    if n % 2 == 0 {
+        collection.extend([item]);
+    }
+}
+
+use bitvec::prelude::*;
+
+fn main() {
+    // Operate on Vec
+    let mut v =
+        vec!["a".to_string(), "b".to_string()];
+    push_if_even(2, &amp;mut v, "c".to_string());
+
+    // Operate on BitVec
+    let mut bv = bitvec![0, 1];
+    push_if_even(2, &amp;mut bv, 0);
+}</code></pre>
+</div>
+<h2 id="trade-offs-between-generics-and-templates"><a class="header" href="#trade-offs-between-generics-and-templates">Trade-offs between generics and templates</a></h2>
+<p>Because generic functions can only interact with generic values in ways defined
+by the trait bounds, it is easier to test generic implementations. In
+particular, code testing a generic implementation only has to consider the
 possible behaviors of the given trait.</p>
 <p>For a comparison, consider the following programs.</p>
 <div class="comparison">

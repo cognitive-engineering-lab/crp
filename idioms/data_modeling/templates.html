@@ -226,7 +226,7 @@ impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
         to: usize,
     ) -&gt; Result&lt;(), &amp;str&gt; {
         let num_nodes = self.num_nodes();
-        if from &gt; num_nodes || to &gt; num_nodes {
+        if from &gt;= num_nodes || to &gt;= num_nodes {
             Err("Node index out of range.")
         } else {
             self.adjacencies[from].push(to);
@@ -434,6 +434,58 @@ example.</p>
     }
 }
 <span class="boring">}</span></code></pre></pre>
+<p>An even more idiomatic implementation would make use of the <a href="https://docs.rs/itertools/latest/itertools/trait.Itertools.html#method.position_min">itertools
+crate</a>.</p>
+<pre><code class="language-rust ignore">use itertools::*;
+
+<span class="boring">pub struct DirectedGraph&lt;Label&gt; {
+</span><span class="boring">    adjacencies: Vec&lt;Vec&lt;usize&gt;&gt;,
+</span><span class="boring">    node_labels: Vec&lt;Label&gt;,
+</span><span class="boring">}
+</span><span class="boring">
+</span>impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
+<span class="boring">    pub fn new() -&gt; Self {
+</span><span class="boring">        DirectedGraph {
+</span><span class="boring">            adjacencies: Vec::new(),
+</span><span class="boring">            node_labels: Vec::new(),
+</span><span class="boring">        }
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    pub fn add_node(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        label: Label,
+</span><span class="boring">    ) -&gt; usize {
+</span><span class="boring">        self.adjacencies.push(Vec::new());
+</span><span class="boring">        self.node_labels.push(label);
+</span><span class="boring">        self.num_nodes() - 1
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    pub fn num_nodes(&amp;self) -&gt; usize {
+</span><span class="boring">        self.node_labels.len()
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    pub fn add_edge(
+</span><span class="boring">        &amp;mut self,
+</span><span class="boring">        from: usize,
+</span><span class="boring">        to: usize,
+</span><span class="boring">    ) -&gt; Result&lt;(), &amp;str&gt; {
+</span><span class="boring">        if from &gt; self.num_nodes()
+</span><span class="boring">            || to &gt; self.num_nodes()
+</span><span class="boring">        {
+</span><span class="boring">            Err("Node not in graph.")
+</span><span class="boring">        } else {
+</span><span class="boring">            self.adjacencies[from].push(to);
+</span><span class="boring">            Ok(())
+</span><span class="boring">        }
+</span><span class="boring">    }
+</span><span class="boring">
+</span>    pub fn smallest_node(&amp;self) -&gt; Option&lt;usize&gt;
+    where
+        Label: Ord,
+    {
+        self.node_labels.iter().position_min()
+    }
+}</code></pre>
 <h2 id="constexpr-template-parameters"><a class="header" href="#constexpr-template-parameters"><code>constexpr</code> template parameters</a></h2>
 <p>Rust also supports the equivalent of constexpr template parameters. For example,
 one can define a generic function that returns an array consecutive integers
@@ -470,33 +522,11 @@ because both are part of the type of the produced array.</p>
 defined with all of the generic type parameters filled in. It can be useful to
 refer to this type especially in cases where there are many parameters that
 would otherwise have to be listed out.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// Self is equivalent to Wrapper&lt;T&gt;
-struct Wrapper&lt;T&gt;(T, Option&lt;Box&lt;Self&gt;&gt;);
-
-impl Wrapper&lt;i32&gt; {
-    // Self is equivalent to Wrapper&lt;i32&gt;
-    fn zero() -&gt; Self {
-        Wrapper(0, None)
-    }
-}
-
-impl&lt;T&gt; Wrapper&lt;T&gt; {
-    // Self is equivalent to Wrapper&lt;T&gt;
-    fn new() -&gt; Self
-    where
-        T: Default,
-    {
-        Wrapper(Default::default(), None)
-    }
-}
-<span class="boring">}</span></code></pre></pre>
-<p>The <code>Self</code> type can also be used when defining generic traits to refer to the
+<p>The <code>Self</code> type is necessary when defining generic traits to refer to the
 concrete implementing type. Because Rust does not have inheritance between
 concrete types and does not have method overriding, this is sufficient to avoid
-the need to pass the implementing type as a type parameter. For examples of
-this, see the chapter on the <a href="/patterns/crtp.html">curiously reoccurring template
+the need to pass the implementing type as a type parameter.</p>
+<p>For examples of this, see the chapter on the <a href="/patterns/crtp.html#method-chaining">curiously reoccurring template
 pattern</a>.</p>
 <h2 id="a-note-on-type-checking-and-type-errors"><a class="header" href="#a-note-on-type-checking-and-type-errors">A note on type checking and type errors</a></h2>
 <p>The checking of generic types at the point of definition rather than at the
@@ -504,11 +534,109 @@ point of template expansion impacts when errors are detected and how they are
 reported. Some of this difference cannot be achieved by consistently using C++
 concepts to declare the operations required.</p>
 <p>For example, one might accidentally make the <code>nodeLabels</code> member a vector of
-integers instead of a vector of the label parameter. If all of the test cases
+<code>size_t</code> instead of a vector of the label parameter. If all of the test cases
 for the graph used label types that were convertible to integers, the error
 would not be detected.</p>
 <p>A similar Rust program fails to compile, even without a function that
 instantiates the generic structure with a concrete type.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
+#include &lt;vector&gt;
+
+template &lt;typename Label&gt;
+class DirectedGraph {
+  // The mistake is here: size_t should be Label
+  std::vector&lt;std::vector&lt;size_t&gt;&gt; adjacencies;
+  std::vector&lt;size_t&gt; nodeLabels;
+
+public:
+  Label getNode(size_t nodeId) {
+    return nodeLabels[nodeId];
+  }
+
+  size_t addNode(Label label) {
+    adjacencies.push_back(std::vector&lt;size_t&gt;());
+    nodeLabels.push_back(label);
+    return numNodes() - 1;
+  }
+
+  size_t numNodes() const {
+    return adjacencies.size();
+  }
+};
+
+#define BOOST_TEST_MODULE DirectedGraphTests
+#include &lt;boost/test/included/unit_test.hpp&gt;
+
+BOOST_AUTO_TEST_CASE(test_add_node_int) {
+  DirectedGraph&lt;int&gt; g;
+  auto n1 = g.addNode(1);
+  BOOST_CHECK_EQUAL(1, g.getNode(n1));
+}
+
+BOOST_AUTO_TEST_CASE(test_add_node_float) {
+  DirectedGraph&lt;float&gt; g;
+  float label = 1.0f;
+  auto n1 = g.addNode(label);
+  BOOST_CHECK_CLOSE(label, g.getNode(n1), 0.0001);
+}
+</code></pre>
+<pre><code class="language-rust ignore">pub struct DirectedGraph&lt;Label&gt; {
+    // The mistake is here: size_t should be Label
+    adjacencies: Vec&lt;Vec&lt;usize&gt;&gt;,
+    node_labels: Vec&lt;usize&gt;,
+}
+
+impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
+    pub fn new() -&gt; Self {
+        DirectedGraph {
+            adjacencies: Vec::new(),
+            node_labels: Vec::new(),
+        }
+    }
+
+    pub fn get_node(
+        &amp;self,
+        node_id: usize,
+    ) -&gt; Option&lt;&amp;Label&gt; {
+        self.node_labels.get(node_id)
+    }
+
+    pub fn add_node(
+        &amp;mut self,
+        label: Label,
+    ) -&gt; usize {
+        self.adjacencies.push(Vec::new());
+        self.node_labels.push(label);
+        self.num_nodes() - 1
+    }
+
+    pub fn num_nodes(&amp;self) -&gt; usize {
+        self.node_labels.len()
+    }
+}</code></pre>
+</div>
+<p>Despite the error, the C++ example compiles and passes the tests.</p>
+<pre><code class="language-text">Running 2 test cases...
+
+*** No errors detected
+</code></pre>
+<p>Even without test cases, the Rust example fails to compile and produces a
+message useful for identifying the error.</p>
+<pre><code class="language-text">error[E0308]: mismatched types
+    --&gt; example.rs:26:31
+     |
+6    | impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
+     |      ----- found this type parameter
+...
+26   |         self.node_labels.push(label);
+     |                          ---- ^^^^^ expected `usize`, found type parameter `Label`
+     |                          |
+     |                          arguments to this method are incorrect
+     |
+     = note:        expected type `usize`
+             found type parameter `Label`
+</code></pre>
 <h2 id="lifetimes-parameters"><a class="header" href="#lifetimes-parameters">Lifetimes parameters</a></h2>
 <p>Rust's generics are also used for classes, methods, traits, and functions that
 are generic in the lifetimes of the references they manipulate. Unlike other

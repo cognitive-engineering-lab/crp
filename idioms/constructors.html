@@ -157,60 +157,61 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
-<p>In C++, constructors initialize objects.</p>
-<pre><code class="language-cpp">class Person {
-  int age;
-
-public:
-  Person(int a) : age(a) {}
-};
-
-int main() {
-  Person person(42);
-  // ...
-}
-</code></pre>
-<p>At the point when a constructor is executed, storage for the object has been
+<p>In C++, constructors initialize objects. At the point when a constructor is executed, storage for the object has been
 allocated and the constructor is only performing initialization.</p>
-<pre><code class="language-cpp">class Person {
-  int age;
-  // non-owning pointer
-  Person *best_friend;
-
-public:
-  Person(int a) : age(a), best_friend(this) {}
-};
-
-int main() {
-  Person person(42);
-  // ...
-}
-</code></pre>
 <p>Rust does not have constructors in the same way as C++. In Rust, there is a
 single fundamental way to create an object, which is to initialize all of its
 members at once. The term "constructor" or "constructor method" in Rust refers
 to something more like a factory: a static method associated with a type (i.e.,
 a method that does not have a <code>self</code> parameter), which returns a value of the
 type.</p>
-<pre><pre class="playground"><code class="language-rust">struct Person {
-    age: i32
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;thread&gt;
+</span><span class="boring">unsigned int cpu_count() { 
+</span><span class="boring">    return std::thread::hardware_concurrency();
+</span><span class="boring">}
+</span><span class="boring">
+</span>class ThreadPool {
+  unsigned int num_threads;  
+
+public:
+  ThreadPool() : num_threads(cpu_count()) {}
+  ThreadPool(unsigned int nt) : num_threads(nt) {}
+};
+
+int main() {
+  ThreadPool p1;
+  ThreadPool p2(4);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">fn cpu_count() -&gt; usize {
+</span><span class="boring">    std::thread::available_parallelism().unwrap().get()
+</span><span class="boring">}
+</span><span class="boring">
+</span>struct ThreadPool {
+  num_threads: usize
 }
 
-impl Person {
-    const fn with_age(a: i32) -&gt; Self {
-        Self { age: a }
+impl ThreadPool {
+    fn new() -&gt; Self {
+        Self { num_threads: cpu_count() }
+    }
+
+    fn with_threads(nt: usize) -&gt; Self {
+        Self { num_threads: nt } 
     }
 }
 
 fn main() {
-    let person = Person::with_age(42);
-    // ...
+    let p1 = ThreadPool::new();
+    let p2 = ThreadPool::with_threads(4);
 }</code></pre></pre>
-<p>Typically the primary constructor for a type is named <code>new</code>, especially if it
-takes no arguments. See the chapter on <a href="constructors/default_constructors.html">default
-constructors</a>. Constructors based on
-some specific property of the value are usually named <code>with_details</code> (e.g.,
-<code>Person::with_name</code>). See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
+</div>
+<p>In Rust, typically the primary constructor for a type is named <code>new</code>, especially if it
+takes no arguments. (See the chapter on <a href="constructors/default_constructors.html">default
+constructors</a>.) Constructors based on
+some specific property of the value are usually named <code>with_&lt;something&gt;</code>, e.g.,
+<code>ThreadPool::with_threads</code>. See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
 guidelines</a> for the
 conventions on how to name constructor methods in Rust.</p>
 <p>If the fields to be initialized are visible, there is a reasonable default
@@ -233,74 +234,66 @@ fn main() {
         x: 1,
         ..Point::zero()
     };
-    // ...
 }</code></pre></pre>
 <p>Despite the name, "record update syntax" does not modify a record but instead
 creates a new value based on another one, taking ownership of it in order to do
 so.</p>
 <h2 id="storage-allocation-vs-initialization"><a class="header" href="#storage-allocation-vs-initialization">Storage allocation vs initialization</a></h2>
-<p>The actual construction of a structure or enum value in Rust occurs where the
-structure construction syntax <code>A { ... }</code> is, after the evaluation of the
+<p>In Rust, the actual construction of a structure or enum value occurs where the
+structure construction syntax <code>ThreadPool { ... }</code> is, after the evaluation of the
 expressions for the fields.</p>
 <p>A significant implication of this difference is that storage is not allocated
 for a struct in Rust at the point where the constructor method (such as
-<code>Person::with_age</code>) is called, and in fact is not allocated until after the
+<code>ThreadPool::with_threads</code>) is called, and in fact is not allocated until after the
 values of the fields of a struct have been computed (in terms of the semantics
 of the language — the optimizer may still avoid the copy). Therefore there is no
-easy way in Rust to write the C++ example above where the class stores a pointer to
-itself upon construction (this requires tools like <a href="https://doc.rust-lang.org/std/pin/struct.Pin.html"><code>Pin</code></a> and <a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a>).</p>
+straightforward way in Rust to translate patterns such as a class which stores a pointer to
+itself upon construction (in Rust, this requires tools like <a href="https://doc.rust-lang.org/std/pin/struct.Pin.html"><code>Pin</code></a> and <a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a>).</p>
 <h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
-<p>In C++ the only way constructors can indicate failure is by throwing exceptions. In Rust, because constructors are normal static methods, fallible constructors
+<p>In C++, the primary way constructors can indicate failure is by throwing exceptions. In Rust, because constructors are normal static methods, fallible constructors
 can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code> (akin to
 <code>std::optional</code>).</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;stdexcept&gt;
 
-class Person {
-  int age;
+class ThreadPool {
+  unsigned int num_threads;
 
 public:
-  Person(int a) : age(a) {
-    if (age &lt; 0) {
-      throw std::domain_error("Bad argument");
+  ThreadPool(unsigned int nt) : num_threads(nt) {
+    if (num_threads == 0) {
+      throw std::domain_error("Cannot have zero threads");
     }
   }
 };
 
 int main() {
   try {
-    Person person(-4);
+    ThreadPool p(0);
   } catch (const std::domain_error &amp;e) {
     std::cout &lt;&lt; e.what() &lt;&lt; std::endl;
   }
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust">struct Person {
-    age: i32,
+<pre><pre class="playground"><code class="language-rust">struct ThreadPool {
+    num_threads: usize,
 }
 
-#[derive(Debug)]
-struct NegativeAgeError(i32);
-
-impl Person {
-    fn with_age(a: i32) -&gt; Result&lt;Self, NegativeAgeError&gt; {
-        if a &lt; 0 {
-            Err(NegativeAgeError(a))
+impl ThreadPool {
+    fn with_threads(nt: usize) -&gt; Result&lt;Self, String&gt; {
+        if nt == 0 {
+            Err("Cannot have zero threads".to_string())
         } else {
-            Ok(Self { age: a })
+            Ok(Self { num_threads: nt })
         }
     }
 }
 
 fn main() {
-    match Person::with_age(-4) {
-        Err(err) =&gt; {
-            println!("{err:?}");
-        }
-        Ok(person) =&gt; {
-            // ...
-        }
+    match ThreadPool::with_threads(0) {
+        Err(err) =&gt; println!("{err}"),        
+        Ok(p) =&gt; { /* ... */ }
     }
 }</code></pre></pre>
 </div>

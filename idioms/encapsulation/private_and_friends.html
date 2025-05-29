@@ -589,7 +589,7 @@ mod test {
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>Testing in Rust is described in more detail in the <a href="TODO">chapter on unit
+<p>Testing in Rust is described in more detail in the <a href="/etc/unit_tests.html">chapter on unit
 testing</a>.</p>
 <h2 id="visibility-of-methods-on-rust-traits"><a class="header" href="#visibility-of-methods-on-rust-traits">Visibility of methods on Rust traits</a></h2>
 <p>Because traits in Rust are intended for the definition of interfaces, the
@@ -598,6 +598,13 @@ trait and the type are visible. In other words, it is not possible to have
 private trait methods.</p>
 <p>The default visibility for trait methods differs from Rust structs where the
 default visibility is private to the defining module.</p>
+<h2 id="private-constructors-and-friends"><a class="header" href="#private-constructors-and-friends">Private constructors and friends</a></h2>
+<p>In C++ one can control which classes can derive from a specific class by making
+all of the constructors private and then declaring classes which may derive from
+it as friends.</p>
+<p>In Rust, one can achieve the similar goal of controlling which types can
+implement a trait by using the <a href="https://predr.ag/blog/definitive-guide-to-sealed-traits-in-rust/">sealed trait
+pattern</a>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;private_and_friends&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Methods for trait implementations are visible wherever both the type and the\ntrait are visible.\n&quot;,&quot;id&quot;:&quot;0cf46fc5-2456-44b1-bb4e-f5adac2ffaf3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;It does not compile because the triangle module is not visible from `main`.\n&quot;,&quot;It does not compile because the `area` method of the `Shape` implementation for\nTriangle isn't visible from `main`.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because the shapes module is not visible from the location\nof `use`.\n&quot;,&quot;It does not compile because the `area` method of the `Shapes` trait is not\nvisible from `main`.\n&quot;,&quot;It does not compile because the `area` method of the `Shape` trait is not\nvisible from the implementation of the `Shape` trait for `Triangle`.\n&quot;],&quot;prompt&quot;:&quot;Which of the following are reasons why this program does not compile?\n\n```rust\nmod shapes {\n    pub trait Shape {\n        fn area(&amp;self) -&gt; f64;\n    }\n\n    mod triangle {\n        use super::*;\n\n        pub struct Triangle {\n            pub base: f64,\n            pub height: f64,\n        }\n\n        impl Shape for Triangle {\n            fn area(&amp;self) -&gt; f64 {\n                0.5 * self.base * self.height\n            }\n        }\n    }\n}\n\nuse shapes::*;\n\nfn main() {\n    let t = triangle::Triangle {\n        base: 1.0,\n        height: 2.0,\n    };\n    println!(\&quot;{}\&quot;, t.area());\n}\n```\n&quot;}},{&quot;id&quot;:&quot;86a2afdc-85f8-4662-aa1b-b219cb99c457&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;Change `mod triangle` to `pub mod triangle`.\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;Change `impl Shape for Triangle` to `pub impl Shape for Triangle`.\n&quot;,&quot;Change `fn area(&amp;self) -&gt; f64` to `pub fn area(&amp;self) -&gt; f64` in the\nimplementation of `Shape` for `Triangle`.\n&quot;,&quot;Change `fn area(&amp;self) -&gt; f64` to `pub fn area(&amp;self) -&gt; f64` in the\ndefinition of the `Shape` trait.\n&quot;],&quot;prompt&quot;:&quot;What changes are required to make this program compile?\n\n```rust\nmod shapes {\n    pub trait Shape {\n        fn area(&amp;self) -&gt; f64;\n    }\n\n    mod triangle {\n        use super::*;\n\n        pub struct Triangle {\n            pub base: f64,\n            pub height: f64,\n        }\n\n        impl Shape for Triangle {\n            fn area(&amp;self) -&gt; f64 {\n                0.5 * self.base * self.height\n            }\n        }\n    }\n}\n\nuse shapes::*;\n\nfn main() {\n    let t = triangle::Triangle {\n        base: 1.0,\n        height: 2.0,\n    };\n    println!(\&quot;{}\&quot;, t.area());\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 

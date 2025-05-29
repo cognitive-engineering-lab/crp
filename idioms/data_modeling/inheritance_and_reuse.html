@@ -199,12 +199,9 @@ public:
 int main() {
     Printer myPrinter;
     myPrinter.resetDevice();
-    return 0;
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>trait Device {
+<pre><pre class="playground"><code class="language-rust">trait Device {
     fn power_on(&amp;mut self);
     fn power_off(&amp;mut self);
 
@@ -219,6 +216,12 @@ struct Printer {
     powered: bool,
 }
 
+impl Printer {
+    fn new() -&gt; Printer {
+        Printer { powered: false }
+    }
+}
+
 impl Device for Printer {
     fn power_on(&amp;mut self) {
         self.powered = true;
@@ -230,7 +233,11 @@ impl Device for Printer {
         println!("Printer is powered off");
     }
 }
-<span class="boring">}</span></code></pre></pre>
+
+fn main() {
+    let mut p = Printer::new();
+    p.reset_device();
+}</code></pre></pre>
 </div>
 <p>In practice, the <code>resetDevice()</code> method in the <code>Device</code> class might be made
 non-virtual in C++ if it is not expected that it will be overridden. In order to
