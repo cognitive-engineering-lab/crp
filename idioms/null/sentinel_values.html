@@ -204,7 +204,7 @@ fn parse(
 <p>The <code>Box&lt;T&gt;</code> type has the same meaning as <code>std::unique_ptr&lt;T&gt;</code> in terms of being
 an uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
 it cannot be null. Rust's <code>Option&lt;T&gt;</code> is like <code>std::optional&lt;T&gt;</code> in C++, except
-that it can be used with pointers and references. In <a href="/idioms/data_modeling/template_specialization.html#niche-optimization">those cases (and in some
+that it can be used with pointers and references. In <a href="../data_modeling/template_specialization.html#niche-optimization">those cases (and in some
 other
 cases)</a> the
 compiler optimizes the representation to be the same size as <code>Box&lt;T&gt;</code> by

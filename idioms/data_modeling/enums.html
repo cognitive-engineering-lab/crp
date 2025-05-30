@@ -165,7 +165,7 @@ each of those enumerators corresponds to a specific integer value, such as is ne
 when working with hardware, system calls, or protocol implementations.</p>
 <p>For example, the various modes for a GPIO pin could be modeled as an enum, which
 would restrict methods using the mode to valid values.</p>
-<p>While Rust enums are <a href="/idioms/data_modeling/tagged_unions.html">more general</a>,
+<p>While Rust enums are <a href="./tagged_unions.html">more general</a>,
 they can still be used for this sort of modeling.</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;cstdint&gt;
@@ -298,7 +298,7 @@ fn main() {
   // use pin p
 }</code></pre></pre>
 </div>
-<p>See <a href="/idioms/exceptions.html">Exceptions and error handling</a> for examples of how
+<p>See <a href="../exceptions.html">Exceptions and error handling</a> for examples of how
 to ergonomically handle the result of <code>try_from</code>.</p>
 <p>If low-level performance is more of a concern than memory safety,
 <code>std::mem::transmute</code> is analogous to a C++ reinterpret cast, but requires

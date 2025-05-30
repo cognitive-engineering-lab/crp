@@ -163,7 +163,7 @@
 <p>One idiom in C++ for optionally producing a result from a method or function is
 to use a reference parameter along with a boolean or integer return value to
 indicate whether the result was produced. This might be done for the same
-reasons as for using <a href="/idioms/out_params/multiple_return.html">out parameters for multiple return
+reasons as for using <a href="./multiple_return.html">out parameters for multiple return
 values</a>:</p>
 <ul>
 <li>compatibility with versions of C++ earlier than C++11,</li>
@@ -229,13 +229,13 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>When there is useful information to provide in the failing case, the <a href="https://doc.rust-lang.org/std/result/"><code>Result</code>
-type</a> can be used instead. The <a href="/idioms/exceptions.html">chapter
+type</a> can be used instead. The <a href="../exceptions.html">chapter
 on error handling</a> describes the use of <code>Result</code>.</p>
 <h2 id="returning-a-pointer"><a class="header" href="#returning-a-pointer">Returning a pointer</a></h2>
 <p>When the value being returned is a pointer, another common idiom in C++ is to
 use <code>nullptr</code> to represent the optional case. In the Rust translation of that
 idiom, <code>Option</code> is also used, along with a reference type, such as <code>&amp;</code> or <code>Box</code>.
-See <a href="/idioms/null/sentinel_values.html#nullptr">the chapter on using <code>nullptr</code> as a sentinel
+See <a href="../null/sentinel_values.html#nullptr">the chapter on using <code>nullptr</code> as a sentinel
 value</a> for more details.</p>
 <h2 id="problems-with-the-direct-transliteration"><a class="header" href="#problems-with-the-direct-transliteration">Problems with the direct transliteration</a></h2>
 <p>It is possible to transliterate the original example that uses out parameters to
@@ -263,7 +263,7 @@ fn main() {
     go(10, 2);
     go(10, 0);
 }</code></pre></pre>
-<p>This shares the same problems as with using out-parameters for <a href="/idioms/out_params/multiple_return.html#problems-with-the-direct-transliteration">multiple return
+<p>This shares the same problems as with using out-parameters for <a href="./multiple_return.html#problems-with-the-direct-transliteration">multiple return
 values</a>.</p>
 <h2 id="similarities-with-c-since-c17"><a class="header" href="#similarities-with-c-since-c17">Similarities with C++ since C++17</a></h2>
 <p>C++17 and later offer <code>std::optional</code>, which can be used to express optional
@@ -378,7 +378,7 @@ can be used, but is an unsafe method.</p>
 <p>There are <a href="https://doc.rust-lang.org/std/option/#boolean-operators">additional utility
 methods</a> that enable
 concise handling of <code>Option</code> values, which this book covers in the chapter on
-<a href="/idioms/exceptions.html">exceptions and error handling</a>.</p>
+<a href="../exceptions.html">exceptions and error handling</a>.</p>
 <h2 id="an-alternative-approach"><a class="header" href="#an-alternative-approach">An alternative approach</a></h2>
 <p>An alternative approach in Rust to returning optional values is to require that
 the caller of a function prove that the value with which they call a function

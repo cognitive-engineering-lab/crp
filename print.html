@@ -230,7 +230,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>In Rust, typically the primary constructor for a type is named <code>new</code>, especially if it
-takes no arguments. (See the chapter on <a href="idioms/constructors/default_constructors.html">default
+takes no arguments. (See the chapter on <a href="idioms/./constructors/default_constructors.html">default
 constructors</a>.) Constructors based on
 some specific property of the value are usually named <code>with_&lt;something&gt;</code>, e.g.,
 <code>ThreadPool::with_threads</code>. See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
@@ -319,7 +319,7 @@ fn main() {
     }
 }</code></pre></pre>
 </div>
-<p>See <a href="idioms//idioms/exceptions.html">the chapter on exceptions</a> for more information on
+<p>See <a href="idioms/./exceptions.html">the chapter on exceptions</a> for more information on
 how C++ exceptions and exception handling translate to Rust.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
 <p>C++ has a special concept of default constructors to support several scenarios
@@ -477,7 +477,7 @@ fn main() {
     // ...
 }</code></pre></pre>
 </div>
-<p>If the type happens to be <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">trivially
+<p>If the type happens to be <a href="idioms/constructors/./copy_and_move_constructors.html#trivially-copyable-types">trivially
 copyable</a>,
 then a shorthand can be used.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy, Default)]
@@ -535,7 +535,7 @@ fn main() {
     // ...
 }</code></pre></pre>
 <p>If the type implements the <code>Clone</code> trait, then the array can be constructed
-using the <code>vec!</code> macro. See the chapter on <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html">copy
+using the <code>vec!</code> macro. See the chapter on <a href="idioms/constructors/./copy_and_move_constructors.html">copy
 constructors</a> for more
 details on <code>Clone</code>.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
@@ -591,7 +591,7 @@ public:
 };
 </code></pre>
 <p>Since Rust does not have inheritance, there is no equivalent to this case.
-See the chapter on <a href="idioms/constructors//idioms/data_modeling/inheritance_and_reuse.html">implementation
+See the chapter on <a href="idioms/constructors/../data_modeling/inheritance_and_reuse.html">implementation
 reuse</a> or the section on <a href="https://doc.rust-lang.org/book/ch10-02-traits.html">traits
 in the Rust book</a> for
 alternatives.</p>
@@ -883,14 +883,14 @@ classes should make use of types from the STL (<code>shared_ptr</code>, <code>ve
 dealing with ownership concerns so that the implicitly defined copy and move
 constructors are sufficient.</p>
 <p>In Rust, the same is true. See the list of Rust type equivalents for equivalents
-of C++ <a href="idioms/constructors//idioms/type_equivalents.html#pointers">smart pointer types</a> and
-equivalents of C++ <a href="idioms/constructors//idioms/type_equivalents.html#containers">container types</a>.</p>
+of C++ <a href="idioms/constructors/../type_equivalents.html#pointers">smart pointer types</a> and
+equivalents of C++ <a href="idioms/constructors/../type_equivalents.html#containers">container types</a>.</p>
 <p>One difference between C++ and Rust in applying the rule of zero is that in C++
 <code>std::unique_ptr</code> can take a custom deleter, making it possible to use
 <code>std::unique_ptr</code> for wrapping raw pointers that require custom destruction
 logic. In Rust, the <code>Box</code> type is not parameterized in the same way. To
 accomplish the same goal, one instead must define a new type with a user-defined
-<code>Drop</code> implementation, as is done in <a href="idioms/constructors//idioms/constructors/copy_and_move_constructors.html#user-defined-constructors">the example in the chapter on copy and
+<code>Drop</code> implementation, as is done in <a href="idioms/constructors/./copy_and_move_constructors.html#user-defined-constructors">the example in the chapter on copy and
 move
 constructors</a>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;rule_of_three_five_zero&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;cddc736a-b6c3-4f3f-a3a7-b42eb362d650&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;`Clone`&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;`Move`&quot;,&quot;`Copy`&quot;],&quot;prompt&quot;:&quot;If the `Drop` trait is implemented for a type in Rust, which other traits should\nprobably be implemented?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
@@ -899,7 +899,7 @@ constructors</a>.</p>
 function <code>~T()</code>. To achieve the equivalent in Rust, the <a href="https://doc.rust-lang.org/std/ops/trait.Drop.html"><code>Drop</code>
 trait</a> is implemented for a
 type.</p>
-<p>For an example, see <a href="idioms//idioms/constructors/copy_and_move_constructors.html#user-defined-constructors">the chapter on copy and move
+<p>For an example, see <a href="idioms/./constructors/copy_and_move_constructors.html#user-defined-constructors">the chapter on copy and move
 constructors</a>.</p>
 <p><code>Drop</code> implementations play the same role as destructors in C++ for types that
 manage resources. That is, they enable cleanup of resources owned by the value
@@ -1008,7 +1008,7 @@ the object must be structured so that the variable goes out of scope at the
 desired time.</p>
 <p>In Rust, values can be dropped early for early cleanup by using
 <a href="https://doc.rust-lang.org/std/mem/fn.drop.html"><code>std::mem::drop</code></a>. This works
-because (<a href="idioms//idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">for non-<code>Copy</code>
+because (<a href="idioms/./constructors/copy_and_move_constructors.html#trivially-copyable-types">for non-<code>Copy</code>
 types</a>)
 ownership of the object is actually transferred to <code>std::mem::drop</code> function,
 and so <code>Drop::drop</code> is called at the end of <code>std::mem::drop</code> when the lifetime
@@ -1048,7 +1048,7 @@ time, the approach in C++ and the approach in Rust are the same. In both cases
 interfaces that defines the required operations are defined. Concrete types,
 possibly defined by the client, implement those interfaces.</p>
 <p>This way of modeling data can make use of either
-<a href="idioms//idioms/data_modeling/abstract_classes.html">dynamic</a> or <a href="idioms//idioms/data_modeling/concepts.html">static
+<a href="idioms/./data_modeling/abstract_classes.html">dynamic</a> or <a href="idioms/./data_modeling/concepts.html">static
 dispatch</a>, each of which is covered in its
 own section.</p>
 <h2 id="fixed-data-varying-operations"><a class="header" href="#fixed-data-varying-operations">Fixed data, varying operations</a></h2>
@@ -1057,7 +1057,7 @@ data must support vary, there are a few approaches in C++. Which approaches are
 available to use depend on the version of the standard in use.</p>
 <p>In older versions of the standard, one might use manually defined tagged unions.
 In newer versions, <code>std::variant</code> is available to improve the safety and
-ergonomics of tagged unions. <a href="idioms//idioms/data_modeling/tagged_unions.html">Both of these approaches map to the same approach
+ergonomics of tagged unions. <a href="idioms/./data_modeling/tagged_unions.html">Both of these approaches map to the same approach
 in Rust</a>.</p>
 <p>Additionally, despite it not being strictly necessary to model a fixed set of
 variants, the visitor pattern is sometimes used for this situation, especially
@@ -1288,7 +1288,7 @@ be forbidden in C++ because <code>Shape</code> is an abstract class.</p>
 fn print_area(shape: &amp;dyn Shape) {}</code></pre></pre>
 <p>The decision to include the vtable in the reference instead of in the value is
 one part of what makes it reasonable to use traits both for polymorphism via
-dynamic dispatch and for <a href="idioms/data_modeling//idioms/data_modeling/concepts.html">polymorphism via static dispatch, where one would use
+dynamic dispatch and for <a href="idioms/data_modeling/./concepts.html">polymorphism via static dispatch, where one would use
 concepts in C++</a>.</p>
 <h2 id="limitations-of-trait-objects-in-rust"><a class="header" href="#limitations-of-trait-objects-in-rust">Limitations of trait objects in Rust</a></h2>
 <p>In Rust, not all traits can be used as the base trait for trait objects. The
@@ -1431,10 +1431,10 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>Note that in the Rust example, the definition of the trait and the struct have
-not changed from the example in the chapter on <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html">virtual methods and dynamic
+not changed from the example in the chapter on <a href="idioms/data_modeling/./abstract_classes.html">virtual methods and dynamic
 dispatch</a>. Even so, this example
 does use static dispatch. This is the result of a design trade-off in Rust
-around the representation of vtables and vptrs which is <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">described later in that
+around the representation of vtables and vptrs which is <a href="idioms/data_modeling/./abstract_classes.html#vtables-and-rust-trait-object-types">described later in that
 chapter</a>.</p>
 <p>The difference between Rust and C++ in the above examples arises from Rust being
 nominally typed (types must opt in to supporting a specific interface, merely
@@ -1593,7 +1593,7 @@ void store(S s, std::unique_ptr&lt;Shape&gt; data) {
 }
 </code></pre>
 <p>Rust checks the bounds on lifetimes of references contained within type
-parameters. <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html#trait-objects-and-lifetimes">Just as with trait object
+parameters. <a href="idioms/data_modeling/./abstract_classes.html#trait-objects-and-lifetimes">Just as with trait object
 types</a>,
 these bounds are usually inferred according to the <a href="https://doc.rust-lang.org/reference/lifetime-elision.html">lifetime elision
 rules</a>. When they
@@ -1683,7 +1683,7 @@ each of those enumerators corresponds to a specific integer value, such as is ne
 when working with hardware, system calls, or protocol implementations.</p>
 <p>For example, the various modes for a GPIO pin could be modeled as an enum, which
 would restrict methods using the mode to valid values.</p>
-<p>While Rust enums are <a href="idioms/data_modeling//idioms/data_modeling/tagged_unions.html">more general</a>,
+<p>While Rust enums are <a href="idioms/data_modeling/./tagged_unions.html">more general</a>,
 they can still be used for this sort of modeling.</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;cstdint&gt;
@@ -1816,7 +1816,7 @@ fn main() {
   // use pin p
 }</code></pre></pre>
 </div>
-<p>See <a href="idioms/data_modeling//idioms/exceptions.html">Exceptions and error handling</a> for examples of how
+<p>See <a href="idioms/data_modeling/../exceptions.html">Exceptions and error handling</a> for examples of how
 to ergonomically handle the result of <code>try_from</code>.</p>
 <p>If low-level performance is more of a concern than memory safety,
 <code>std::mem::transmute</code> is analogous to a C++ reinterpret cast, but requires
@@ -2369,7 +2369,7 @@ fn main() {
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="inheritance-and-implementation-reuse"><a class="header" href="#inheritance-and-implementation-reuse">Inheritance and implementation reuse</a></h1>
 <p>Rust does not have inheritance and so the primary means of reuse of
 implementations in Rust are composition, aggregation, and
-<a href="idioms/data_modeling//idioms/data_modeling/templates.html">generics</a>.</p>
+<a href="idioms/data_modeling/./templates.html">generics</a>.</p>
 <p>However, Rust traits do have support for default methods which resemble one
 simple case of using inheritance for reuse of implementations. For example, in
 the following example two virtual methods are used to support a method whose
@@ -2452,9 +2452,9 @@ fn main() {
 <p>In practice, the <code>resetDevice()</code> method in the <code>Device</code> class might be made
 non-virtual in C++ if it is not expected that it will be overridden. In order to
 make it align with the Rust example, we have made it virtual here, since Rust
-traits can be used either for <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html">dynamic
-dispatch</a> or <a href="idioms/data_modeling//idioms/data_modeling/concepts.html">static
-dispatch</a> (with <a href="idioms/data_modeling//idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
+traits can be used either for <a href="idioms/data_modeling/./abstract_classes.html">dynamic
+dispatch</a> or <a href="idioms/data_modeling/./concepts.html">static
+dispatch</a> (with <a href="idioms/data_modeling/./abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
 static dispatch
 case</a>).</p>
 <p>Rust traits differ from abstract classes in few more ways. For example,
@@ -2678,7 +2678,7 @@ class DirectedGraph {
 <p>The major difference between these implementations is that in the C++ version
 <code>operator&gt;</code> is used on the values without knowing whether the operator is
 defined for the type. In the Rust version, there is a constraint requiring that
-the <code>Label</code> type implement the <code>Ord</code> trait. (See the chapter on <a href="idioms/data_modeling//idioms/data_modeling/concepts.html">concepts,
+the <code>Label</code> type implement the <code>Ord</code> trait. (See the chapter on <a href="idioms/data_modeling/./concepts.html">concepts,
 interfaces, and static dispatch</a> for more
 details on Rust traits and how they relate to C++ concepts.)</p>
 <p>Unlike C++ templates, generic definitions in Rust are type checked at the point
@@ -2840,7 +2840,7 @@ would otherwise have to be listed out.</p>
 concrete implementing type. Because Rust does not have inheritance between
 concrete types and does not have method overriding, this is sufficient to avoid
 the need to pass the implementing type as a type parameter.</p>
-<p>For examples of this, see the chapter on the <a href="idioms/data_modeling//patterns/crtp.html#method-chaining">curiously reoccurring template
+<p>For examples of this, see the chapter on the <a href="idioms/data_modeling/../../patterns/crtp.html#method-chaining">curiously reoccurring template
 pattern</a>.</p>
 <h2 id="a-note-on-type-checking-and-type-errors"><a class="header" href="#a-note-on-type-checking-and-type-errors">A note on type checking and type errors</a></h2>
 <p>The checking of generic types at the point of definition rather than at the
@@ -2957,7 +2957,7 @@ are generic in the lifetimes of the references they manipulate. Unlike other
 type parameters, the using a function with different lifetimes does not cause
 additional copies of the function to be generated in the compiled code, because
 lifetimes do not impact the runtime representation.</p>
-<p>The chapter on concepts includes <a href="idioms/data_modeling//idioms/data_modeling/concepts.html#generics-and-lifetimes">examples of how lifetimes interact with Rust's
+<p>The chapter on concepts includes <a href="idioms/data_modeling/./concepts.html#generics-and-lifetimes">examples of how lifetimes interact with Rust's
 generics</a>.</p>
 <h2 id="conditional-compilation"><a class="header" href="#conditional-compilation">Conditional compilation</a></h2>
 <p>One significant difference between C++ templates and Rust generics is that C++
@@ -2967,7 +2967,7 @@ its macro system, which differs significantly from C++. The most common use of
 the macro system, conditional compilation, is provided by <a href="https://doc.rust-lang.org/rust-by-example/attribute/cfg.html">the <code>cfg</code> attribute
 and <code>cfg!</code> macro</a>.</p>
 <p>The separation of conditional compilation from generics in Rust involves similar
-design considerations as the omission of <a href="idioms/data_modeling//idioms/data_modeling/template_specialization.html">template
+design considerations as the omission of <a href="idioms/data_modeling/./template_specialization.html">template
 specialization</a> from Rust.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;templates&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;07a5f967-6274-456e-ba10-ccc66bea69b7&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nuse std::collections::vec_deque::*;\n\npub struct Assoc&lt;K, V&gt; {\n    assocs: VecDeque&lt;(K, V)&gt;,\n}\n\nimpl&lt;K, V&gt; Assoc&lt;K, V&gt; {\n    pub fn insert(&amp;mut self, key: K, value: V) {\n        self.assocs.push_front((key, value));\n    }\n\n    pub fn lookup(&amp;self, key: K) -&gt; Option&lt;&amp;V&gt;\n    where\n        K: Eq,\n    {\n        for (k, v) in &amp;self.assocs {\n            if *k == key {\n                return Some(v);\n            }\n        }\n\n        None\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nuse std::collections::vec_deque::*;\n\npub struct Assoc&lt;K, V&gt; {\n    assocs: VecDeque&lt;(K, V)&gt;,\n}\n\nimpl&lt;K, V&gt; Assoc&lt;K, V&gt; {\n    pub fn insert(&amp;mut self, key: K, value: V) {\n        self.assocs.push_front((key, value));\n    }\n\n    pub fn lookup(&amp;self, key: K) -&gt; Option&lt;&amp;V&gt; {\n        for (k, v) in &amp;self.assocs {\n            if *k == key {\n                return Some(v);\n            }\n        }\n\n        None\n    }\n}\n```\n&quot;,&quot;```rust\nuse std::collections::vec_deque::*;\n\npub struct Assoc&lt;K, V&gt; {\n    assocs: VecDeque&lt;(K, V)&gt;,\n}\n\nimpl&lt;K, V&gt; Assoc&lt;K, V&gt;\nwhere\n    K: Eq,\n{\n    pub fn insert(&amp;mut self, key: K, value: V) {\n        self.assocs.push_front((key, value));\n    }\n\n    pub fn lookup(&amp;self, key: K) -&gt; Option&lt;&amp;V&gt; {\n        for (k, v) in &amp;self.assocs {\n            if *k == key {\n                return Some(v);\n            }\n        }\n\n        None\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which Rust program is the most idiomatic translation of the following C++\nprogram?\n\n```cpp\n#include &lt;optional&gt;\n#include &lt;utility&gt;\n#include &lt;vector&gt;\n\ntemplate &lt;typename K, typename V&gt;\nclass Assoc {\n  std::vector&lt;std::pair&lt;K, V&gt;&gt; assocs;\n\npublic:\n  void insert(K key, V value) {\n    assocs.push_front(std::make_pair(key, value));\n  }\n\n  std::optional&lt;V &amp;&gt; lookup(K key) const {\n    K k;\n    V v;\n    for (std::pair&lt;K, V&gt; assoc : assocs) {\n      std::tie(k, v) = assoc;\n      if (k == key) {\n        return std::make_optional(v);\n      }\n    }\n    return std::nullopt;\n  }\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="template-specialization"><a class="header" href="#template-specialization">Template specialization</a></h1>
@@ -2984,11 +2984,11 @@ a trait for the interface against which it operates. This enables clients to
 select their choice of representation for data by using any concrete type that
 implements the interface.</p>
 <p>This is more practical to do in Rust than in C++, because generics not being a
-general metaprogramming facility means that <a href="idioms/data_modeling//idioms/data_modeling/templates.html#a-note-on-type-checking-and-type-errors">generic entities can be type
+general metaprogramming facility means that <a href="idioms/data_modeling/./templates.html#a-note-on-type-checking-and-type-errors">generic entities can be type
 checked
 locally</a>,
 making them easier to define. It is more common to do in Rust than in C++
-because Rust does not have <a href="idioms/data_modeling//idioms/data_modeling/inheritance_and_reuse.html">implementation
+because Rust does not have <a href="idioms/data_modeling/./inheritance_and_reuse.html">implementation
 inheritance</a>, so there is a
 sharper line between interface and implementation than there is in C++.</p>
 <p>The following example shows how a Rust function can be implemented so that
@@ -3111,7 +3111,7 @@ observation pointers in C++.</p>
 <p>This section covers idiomatic uses of <code>nullptr</code> in C++ and how to achieve the
 same results in Rust.</p>
 <p>Some uses of <code>nullptr</code> in C++ don't arise in the first place in Rust because of
-other language differences. For example, <a href="idioms//idioms/null/moved_members.html">moved objects don't leave anything
+other language differences. For example, <a href="idioms/./null/moved_members.html">moved objects don't leave anything
 behind that needs to be destroyed</a>. Therefore
 there is no need to use <code>nullptr</code> as a placeholder for a moved pointer that can
 have <code>delete</code> or <code>free</code> called on it.</p>
@@ -3166,7 +3166,7 @@ fn parse(
 <p>The <code>Box&lt;T&gt;</code> type has the same meaning as <code>std::unique_ptr&lt;T&gt;</code> in terms of being
 an uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
 it cannot be null. Rust's <code>Option&lt;T&gt;</code> is like <code>std::optional&lt;T&gt;</code> in C++, except
-that it can be used with pointers and references. In <a href="idioms/null//idioms/data_modeling/template_specialization.html#niche-optimization">those cases (and in some
+that it can be used with pointers and references. In <a href="idioms/null/../data_modeling/template_specialization.html#niche-optimization">those cases (and in some
 other
 cases)</a> the
 compiler optimizes the representation to be the same size as <code>Box&lt;T&gt;</code> by
@@ -3345,7 +3345,7 @@ public:
 </code></pre>
 <p>Rust's notion of moving objects does not involve leaving behind an object on
 which a destructor will be called, and so this use of null does not have a
-corresponding idiom. See the chapter on <a href="idioms/null//idioms/constructors/copy_and_move_constructors.html">copy and move
+corresponding idiom. See the chapter on <a href="idioms/null/../constructors/copy_and_move_constructors.html">copy and move
 constructors</a> for more
 details.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="zero-length-arrays"><a class="header" href="#zero-length-arrays">Zero-length arrays</a></h1>
@@ -3406,7 +3406,7 @@ encapsulation both mechanically and conceptually.</p>
 translation units to other translation units without requiring the duplication
 of the declarations in multiple files. By convention, declarations that are not
 included in the header are considered to be private to the defining translation
-unit (though, to enforce this convention other mechanisms, such as <a href="idioms/encapsulation//idioms/encapsulation/anonymous_namespaces.html">anonymous
+unit (though, to enforce this convention other mechanisms, such as <a href="idioms/encapsulation/./anonymous_namespaces.html">anonymous
 namespaces</a>, are required).</p>
 <p>In contrast, Rust uses neither textually-included header files nor forward
 declarations. Instead, Rust modules control visibility and linkage
@@ -3487,7 +3487,7 @@ the module themselves.</p>
 <h2 id="submodules-and-additional-visibility-features"><a class="header" href="#submodules-and-additional-visibility-features">Submodules and additional visibility features</a></h2>
 <p>Modules and visibility declarations are more powerful than shown in the above
 example. More details on how to use modules, <code>pub</code>, and <code>use</code> to achieve
-encapsulation goals are described in the chapter on <a href="idioms/encapsulation//idioms/encapsulation/private_and_friends.html">private members and
+encapsulation goals are described in the chapter on <a href="idioms/encapsulation/./private_and_friends.html">private members and
 friends</a>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;headers&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Even if in C++ you wouldn't use namespaces to structure the program, in Rust\nsplitting programs into separate files also means splitting them into separate\nmodules.\n&quot;,&quot;id&quot;:&quot;4665b8ad-511f-4e0b-9dff-bf53e2a8f931&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n// square.rs\npub struct Square {\n    width: f64,\n}\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// square.rsi\npub struct Square {\n    width: f64;\n}\n\nimpl Square {\n    fn area(&amp;self) -&gt; f64;\n}\n\n// square.rs\nmod square;\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;,&quot;```rust\n// square.rs\nstruct Square {\n    width: f64,\n}\n\nimpl Square {\n    fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;,&quot;```rust\n// square.rs\nmod square {\n    struct Square {\n        width: f64,\n    }\n\n    impl Square {\n        fn area(&amp;self) -&gt; f64 {\n            self.width * self.width\n        }\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which Rust program is the idiomatic equivalent to the following C++ program?\n\n```cpp\n// square.h\nstruct Square {\n  double width;\n\n  double area() const;\n};\n\n// square.cc\n#include \&quot;square.h\&quot;\n\ndouble Square::area() const {\n  return this-&gt;width * this.width;\n}\n\n// main.cc\n#include \&quot;square.h\&quot;\n#include &lt;iostream&gt;\n\nint main() {\n  Square square(3.0);\n\n  std::cout &lt;&lt; square.area() &lt;&lt; std::endl;\n}\n```\n&quot;}},{&quot;id&quot;:&quot;e3948224-44d7-47d1-bf37-d5667fd8c9bb&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `mod` defines a module and `greeting.rs` is not a\nvalid module body.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile and prints `Hello!` to standard out.\n&quot;,&quot;It does not compile because the `main.rs` file must include an explicit `use\ngreetings;` statement.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n// greetings.rs\nprintln!(\&quot;Hello!\&quot;);\n```\n\n```rust\n// main.rs\nfn main() {\n    #[path = \&quot;greetings.rs\&quot;]\n    mod greetings;\n}\n```\n&quot;}},{&quot;context&quot;:&quot;In Rust, `mod` defines a module whose body happens to be given in another file.\nThe whole program is compiled from the root file (in this case `main.rs`) as a\ntree of modules.\n&quot;,&quot;id&quot;:&quot;68d431c0-8d39-4f4f-804c-bb6e7baa8d2b&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nmod greetings {\n    pub fn print_greeting() {\n        print_hello();\n        print_goodbye();\n    }\n\n    fn print_hello() {\n        println!(\&quot;Hello!\&quot;);\n    }\n\n    fn print_goodbye() {\n        println!(\&quot;Goodbye!\&quot;);\n    }\n}\n\nuse greetings::*;\n\nfn main() {\n    print_greeting();\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn print_greeting() {\n   print_hello();\n   print_goodbye();\n}\n\nfn print_hello() {\n    println!(\&quot;Hello!\&quot;);\n}\n\nfn print_goodbye() {\n    println!(\&quot;Goodbye!\&quot;);\n}\n\nfn main() {\n    print_hello();\n}\n```\n&quot;,&quot;```rust\nmod greetings {\n    pub fn print_greeting() {\n        print_hello();\n        print_goodbye();\n    }\n\n    fn print_hello() {\n        println!(\&quot;Hello!\&quot;);\n    }\n\n    fn print_goodbye() {\n        println!(\&quot;Goodbye!\&quot;);\n    }\n}\n\nmod main {\n    use greetings::*;\n\n    fn main() {\n        print_greeting();\n    }\n}\n```\n&quot;,&quot;```rust\nmod main {\n    mod greetings {\n        pub fn print_greeting() {\n            print_hello();\n            print_goodbye();\n        }\n\n        fn print_hello() {\n            println!(\&quot;Hello!\&quot;);\n        }\n\n        fn print_goodbye() {\n            println!(\&quot;Goodbye!\&quot;);\n        }\n    }\n\n    use greetings::*;\n\n    fn main() {\n        print_greeting();\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which single-file Rust program is equivalent to this program which is split\nacross multiple files?\n\n```rust\n// greetings.rs\npub fn print_greeting() {\n   print_hello();\n   print_goodbye();\n}\n\nfn print_hello() {\n    println!(\&quot;Hello!\&quot;);\n}\n\nfn print_goodbye() {\n    println!(\&quot;Goodbye!\&quot;);\n}\n\n// main.rs\nmod greetings;\n\nuse greetings::*;\n\nfn main() {\n    print_greeting();\n}\n```\n&quot;}},{&quot;context&quot;:&quot;Since neither `mod` nor `use` performs textual inclusion, it is possible to have\nrecurisve modules within a single crate.\n&quot;,&quot;id&quot;:&quot;b2d00b6a-8efa-40e5-98c7-f9c54f48d09a&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;The program does compile and prints `true`.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because the files have a cyclical dependency.\n&quot;,&quot;It does not compile because `even.rs` and `odd.rs` don't have `mod`\ndeclarations for each other.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n// even.rs\nuse crate::odd::*;\n\npub fn is_even(n: u64) -&gt; bool {\n    if n == 0 {\n        true\n    } else {\n        is_odd(n - 1)\n    }\n}\n\n// odd.rs\nuse crate::even::*;\n\npub fn is_odd(n: u64) -&gt; bool {\n    if n == 1 {\n        true\n    } else {\n        is_even(n - 1)\n    }\n}\n\n// main.rs\nmod even;\nmod odd;\n\nuse even::*;\n\nfn main() {\n    println!(\&quot;{}\&quot;, is_even(4));\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="anonymous-namespaces-and-static"><a class="header" href="#anonymous-namespaces-and-static">Anonymous namespaces and <code>static</code></a></h1>
@@ -3518,7 +3518,7 @@ translation unit).</p>
 <p>Rust avoids the linkage problem by controlling linkage and visibility
 simultaneously, with declarations always also being definitions. Instead of
 translation units, programs are structured in terms of
-<a href="idioms/encapsulation//idioms/encapsulation/headers.html">modules</a>, which provide both namespaces and
+<a href="idioms/encapsulation/./headers.html">modules</a>, which provide both namespaces and
 visibility controls over definitions, enabling the Rust compiler to guarantee
 that symbol collision issues cannot happen.</p>
 <p>The following Rust program achieves the same goal as the C++ program above, in
@@ -3644,7 +3644,7 @@ fn main() {
     // println!("{}", alice.age);
 }</code></pre></pre>
 </div>
-<p>In the Rust example, the <a href="idioms/encapsulation//idioms/encapsulation/private_constructors.html">constructor for <code>Person</code> is
+<p>In the Rust example, the <a href="idioms/encapsulation/./private_constructors.html">constructor for <code>Person</code> is
 private</a> because one of the
 fields is private.</p>
 <h2 id="friends"><a class="header" href="#friends">Friends</a></h2>
@@ -4014,7 +4014,7 @@ pattern</a>.</p>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="private-constructors"><a class="header" href="#private-constructors">Private constructors</a></h1>
 <p>In C++ constructors for classes can be made private by declaring them private,
 or by defining a class using <code>class</code> and using the default private visibility.</p>
-<p>In Rust, constructors (the actual constructors, not <a href="idioms/encapsulation//idioms/constructors.html">"constructor
+<p>In Rust, constructors (the actual constructors, not <a href="idioms/encapsulation/../constructors.html">"constructor
 methods"</a>) for structs are visible from wherever the
 type and all fields are visible. To achieve similar visibility restrictions as
 in the C++ example, an additional private field needs to be added to the struct
@@ -4626,7 +4626,7 @@ fn main() {
 </div>
 <h2 id="handling-errors"><a class="header" href="#handling-errors">Handling errors</a></h2>
 <p>In C++, the only way to handle exceptions is <code>catch</code>. In Rust, all of the
-features for dealing with <a href="idioms/exceptions//idioms/data_modeling/tagged_unions.html">tagged
+features for dealing with <a href="idioms/exceptions/../data_modeling/tagged_unions.html">tagged
 unions</a> can be used with <code>Result</code> and
 <code>Option</code>. The most approach depends on the intention of the program.</p>
 <p>The basic way of handling an error indicated by a <code>Result</code> in Rust is by using
@@ -4921,7 +4921,7 @@ Rust</a>.</p>
 represent raw memory. In Rust, arrays (<code>[u8; N]</code>), vectors (<code>Vec&lt;u8&gt;</code>), or
 slices (<code>&amp;[u8]</code>) of <code>u8</code> are used to accomplish the same goal. However,
 accessing the underlying memory of another Rust value in that way requires
-unsafe Rust. There are <a href="idioms//etc/libraries.html">libraries</a> for creating safe wrappers
+unsafe Rust. There are <a href="idioms/../etc/libraries.html">libraries</a> for creating safe wrappers
 around that kind of access for purposes such as serialization or interacting
 with hardware.</p>
 <h3 id="character-and-string-types"><a class="header" href="#character-and-string-types">Character and string types</a></h3>
@@ -4967,7 +4967,7 @@ encoding
 <tr><td>representing bytes</td><td>vectors, arrays, or slices of <code>u8</code></td></tr>
 <tr><td>interacting with OS</td><td><code>OsString</code> and <code>&amp;OsStr</code></td></tr>
 <tr><td>representing UTF-8</td><td><code>String</code></td></tr>
-<tr><td>representing UTF-16</td><td>use <a href="idioms//etc/libraries.html">a library</a></td></tr>
+<tr><td>representing UTF-16</td><td>use <a href="idioms/../etc/libraries.html">a library</a></td></tr>
 </tbody></table>
 </div>
 <h3 id="boolean-types"><a class="header" href="#boolean-types">Boolean types</a></h3>
@@ -5081,7 +5081,7 @@ comparison function used, the types require that the key types implement the
 with different hash or comparison functions, one must use a wrapper type with a
 different implementation of the required trait.</p>
 <p>Some C++ container types provided by the STL have no equivalent in Rust. Many of
-those have equivalents available in third-party <a href="idioms//etc/libraries.html">libraries</a>.</p>
+those have equivalents available in third-party <a href="idioms/../etc/libraries.html">libraries</a>.</p>
 <p>One significant different in the use of these types between C++ in Rust is with
 the <code>Vec&lt;T&gt;</code> and array <code>[T; N]</code> types, from which slice references <code>&amp;[T]</code> or
 <code>&amp;mut [T]</code> to part or all of the data can be cheaply created. For this reason,
@@ -5186,7 +5186,7 @@ or array-specific functionality is needed.</p>
 <p>Unlike in C++ where the conversion from arrays to pointers is built into the
 language, this is actually a general mechanism provided by the <a href="https://doc.rust-lang.org/std/ops/trait.Deref.html"><code>Deref</code>
 trait</a>, which provides one
-kind of <a href="idioms//idioms/user-defined_conversions.html">user-defined conversion</a>.</p>
+kind of <a href="idioms/./user-defined_conversions.html">user-defined conversion</a>.</p>
 <h2 id="function-to-pointer"><a class="header" href="#function-to-pointer">Function to pointer</a></h2>
 <p>In C++ functions and static member functions are automatically converted to
 function pointers.</p>
@@ -5367,7 +5367,7 @@ bug and producing unexpected behavior.</p>
 <p>In Rust the conversion requires the use of the <code>as</code> operator, and providing
 <code>From</code> and <code>TryFrom</code> implementations to move back and forth between the enum and
 its representation type is recommended. Examples and additional details are
-given in the <a href="idioms//idioms/data_modeling/enums.html">chapter on enums</a>.</p>
+given in the <a href="idioms/./data_modeling/enums.html">chapter on enums</a>.</p>
 <h2 id="qualification-conversion"><a class="header" href="#qualification-conversion">Qualification conversion</a></h2>
 <p>In C++ qualification conversions enable the use of const (or volatile) values
 where the const (or volatile) qualifier is not expected.</p>
@@ -5504,7 +5504,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <h2 id="user-defined-conversions"><a class="header" href="#user-defined-conversions">User-defined conversions</a></h2>
-<p>User-defined conversions are covered in a <a href="idioms//idioms/user-defined_conversions.html">separate
+<p>User-defined conversions are covered in a <a href="idioms/./user-defined_conversions.html">separate
 chapter</a>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;promotions_and_conversions&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;98badbec-d894-490a-929b-327021cda0c3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nuse std::convert::TryInto;\n\nfn main() {\n    let x = 4294967296i64;\n\n    match TryInto::&lt;i32&gt;::try_into(x) {\n        Ok(y) =&gt; {\n            // ...\n        }\n        Err(err) =&gt; {\n            // ...\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn main() {\n    let x = 4294967296i64;\n    if Into::&lt;i64&gt;::into(i32::MIN) &lt; x\n        &amp;&amp; x &lt; Into::&lt;i64&gt;::into(i32::MAX)\n    {\n        let y = x as i32;\n        // ...\n    } else {\n        // ...\n    }\n}\n```\n&quot;,&quot;```rust\nfn main() {\n    let x = 4294967296i64;\n    let y = x as i32;\n    if y as i64 == x {\n        // ...\n    } else {\n        // ...\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which Rust program is the most idiomatic translation of the following C++\nprogram?\n\n```cpp\n#include &lt;cstdint&gt;\n#include &lt;limits&gt;\n\nint main() {\n  int64_t x(4294967296);\n\n  if (std::numeric_limits&lt;int32_t&gt;::min() &lt; x &amp;&amp;\n      x &lt; std::numeric_limits&lt;int32_t&gt;::max()) {\n    int32_t y(x);\n    // ...\n  } else {\n    // ...\n  }\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="user-defined-conversions-1"><a class="header" href="#user-defined-conversions-1">User-defined conversions</a></h1>
@@ -5628,7 +5628,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>Conversion functions are is often used to implement the safe bool pattern in
-C++, <a href="idioms//idioms/promotions_and_conversions.html#safe-bools">which is addressed in a different way in
+C++, <a href="idioms/./promotions_and_conversions.html#safe-bools">which is addressed in a different way in
 Rust</a>.</p>
 <h2 id="borrowing-conversions"><a class="header" href="#borrowing-conversions">Borrowing conversions</a></h2>
 <p>The methods in the <code>From</code> and <code>Into</code> traits take ownership of the values to be
@@ -5714,7 +5714,7 @@ literal strings can more easily be used as paths.</p>
 <h2 id="fallible-conversions"><a class="header" href="#fallible-conversions">Fallible conversions</a></h2>
 <p>In C++ when conversions might fail it is possible (though usually discouraged)
 to throw an exception from the converting constructor or converting function.</p>
-<p>Error handling in Rust <a href="idioms//idioms/exceptions.html">does not use exceptions</a>. Instead
+<p>Error handling in Rust <a href="idioms/./exceptions.html">does not use exceptions</a>. Instead
 the <a href="https://doc.rust-lang.org/std/convert/trait.TryFrom.html"><code>TryFrom</code> trait</a>
 and <a href="https://doc.rust-lang.org/std/convert/trait.TryInto.html"><code>TryInto</code> trait</a>
 are used for fallible conversions. These traits differ from <code>From</code> and <code>Into</code> in
@@ -5834,7 +5834,7 @@ int twice(int x) {
 <p>In practice, an example like the above would also likely be implemented in a
 more structured way even in C++, using templates.</p>
 <p>When phrased this way, the example can be translated to Rust, with the notable
-addition of <a href="idioms//idioms/data_modeling/concepts.html">requiring a trait bound on the
+addition of <a href="idioms/./data_modeling/concepts.html">requiring a trait bound on the
 type</a>.</p>
 <div class="comparison">
 <pre><code class="language-cpp">template &lt;typename T&gt;
@@ -5973,7 +5973,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>Additionally, sometimes it is best to provide trait implementations for various
-combinations of reference types, especially for types that implement the <a href="idioms//idioms/constructors/copy_and_move_constructors.html"><code>Copy trait</code></a>, since they are
+combinations of reference types, especially for types that implement the <a href="idioms/./constructors/copy_and_move_constructors.html"><code>Copy trait</code></a>, since they are
 likely to want to be used either with or without taking a reference. For the
 example above, that involve defining four implementations.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy)]
@@ -6155,7 +6155,7 @@ values.</p>
 <p>For example, when implementing the copy-assignment operator, one might
 short-circuit when the copied object and the assignee are the same.
 Note that in this use the pointer values are not stored.</p>
-<p>This kind of optimization is unnecessary when implementing <a href="idioms//idioms/constructors/copy_and_move_constructors.html#assignment-operators">Rust's equivalent to
+<p>This kind of optimization is unnecessary when implementing <a href="idioms/./constructors/copy_and_move_constructors.html#assignment-operators">Rust's equivalent to
 the copy assignment
 operator</a>
 <code>Clone::clone_from</code>. The type of <code>Clone::clone_from</code> prevents the same object
@@ -6378,7 +6378,7 @@ help with avoiding programming errors.</p>
 the program, and produces a significantly faster binary for that version.</p>
 <p>In situations where the performance of memory allocation is a concern (such as
 when it is necessary to reuse entire buffers in memory), the trade-offs may be
-different. That situation is discussed in the chapter on <a href="idioms/out_params//idioms/out_params/pre-allocated_buffers.html">pre-allocated
+different. That situation is discussed in the chapter on <a href="idioms/out_params/./pre-allocated_buffers.html">pre-allocated
 buffers</a>.</p>
 <h2 id="similarities-with-idiomatic-c-since-c11"><a class="header" href="#similarities-with-idiomatic-c-since-c11">Similarities with idiomatic C++ since C++11</a></h2>
 <p>In C++11 and later, <code>std::pair</code> and <code>std::tuple</code> are available for returning
@@ -6403,7 +6403,7 @@ values.</p>
 <p>One idiom in C++ for optionally producing a result from a method or function is
 to use a reference parameter along with a boolean or integer return value to
 indicate whether the result was produced. This might be done for the same
-reasons as for using <a href="idioms/out_params//idioms/out_params/multiple_return.html">out parameters for multiple return
+reasons as for using <a href="idioms/out_params/./multiple_return.html">out parameters for multiple return
 values</a>:</p>
 <ul>
 <li>compatibility with versions of C++ earlier than C++11,</li>
@@ -6469,13 +6469,13 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>When there is useful information to provide in the failing case, the <a href="https://doc.rust-lang.org/std/result/"><code>Result</code>
-type</a> can be used instead. The <a href="idioms/out_params//idioms/exceptions.html">chapter
+type</a> can be used instead. The <a href="idioms/out_params/../exceptions.html">chapter
 on error handling</a> describes the use of <code>Result</code>.</p>
 <h2 id="returning-a-pointer"><a class="header" href="#returning-a-pointer">Returning a pointer</a></h2>
 <p>When the value being returned is a pointer, another common idiom in C++ is to
 use <code>nullptr</code> to represent the optional case. In the Rust translation of that
 idiom, <code>Option</code> is also used, along with a reference type, such as <code>&amp;</code> or <code>Box</code>.
-See <a href="idioms/out_params//idioms/null/sentinel_values.html#nullptr">the chapter on using <code>nullptr</code> as a sentinel
+See <a href="idioms/out_params/../null/sentinel_values.html#nullptr">the chapter on using <code>nullptr</code> as a sentinel
 value</a> for more details.</p>
 <h2 id="problems-with-the-direct-transliteration-1"><a class="header" href="#problems-with-the-direct-transliteration-1">Problems with the direct transliteration</a></h2>
 <p>It is possible to transliterate the original example that uses out parameters to
@@ -6503,7 +6503,7 @@ fn main() {
     go(10, 2);
     go(10, 0);
 }</code></pre></pre>
-<p>This shares the same problems as with using out-parameters for <a href="idioms/out_params//idioms/out_params/multiple_return.html#problems-with-the-direct-transliteration">multiple return
+<p>This shares the same problems as with using out-parameters for <a href="idioms/out_params/./multiple_return.html#problems-with-the-direct-transliteration">multiple return
 values</a>.</p>
 <h2 id="similarities-with-c-since-c17"><a class="header" href="#similarities-with-c-since-c17">Similarities with C++ since C++17</a></h2>
 <p>C++17 and later offer <code>std::optional</code>, which can be used to express optional
@@ -6618,7 +6618,7 @@ can be used, but is an unsafe method.</p>
 <p>There are <a href="https://doc.rust-lang.org/std/option/#boolean-operators">additional utility
 methods</a> that enable
 concise handling of <code>Option</code> values, which this book covers in the chapter on
-<a href="idioms/out_params//idioms/exceptions.html">exceptions and error handling</a>.</p>
+<a href="idioms/out_params/../exceptions.html">exceptions and error handling</a>.</p>
 <h2 id="an-alternative-approach"><a class="header" href="#an-alternative-approach">An alternative approach</a></h2>
 <p>An alternative approach in Rust to returning optional values is to require that
 the caller of a function prove that the value with which they call a function
@@ -6845,7 +6845,7 @@ fn main() {
 </div>
 <p>The reason why nothing additional needs to be done for the default method to
 invoke area statically in Rust is that calls to methods on <code>self</code> are always
-resolved statically in Rust. This is possible because <a href="patterns//idioms/data_modeling/inheritance_and_reuse.html">Rust does not have
+resolved statically in Rust. This is possible because <a href="patterns/../idioms/data_modeling/inheritance_and_reuse.html">Rust does not have
 inheritance between concrete
 types</a>. Despite being defined in
 the trait, the default method is actually implemented as part of the
@@ -6964,7 +6964,7 @@ fn main() {
     println!("{}", x.0)
 }</code></pre></pre>
 </div>
-<p>Again, the reason why <code>Self</code> can refer to the implementing type is that <a href="patterns//idioms/data_modeling/inheritance_and_reuse.html">Rust
+<p>Again, the reason why <code>Self</code> can refer to the implementing type is that <a href="patterns/../idioms/data_modeling/inheritance_and_reuse.html">Rust
 does not have inheritance between concrete
 types</a>. This contrasts with C++
 where a value may be used at any number of types which are concrete, and so it

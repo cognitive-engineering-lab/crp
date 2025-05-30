@@ -280,7 +280,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>Conversion functions are is often used to implement the safe bool pattern in
-C++, <a href="/idioms/promotions_and_conversions.html#safe-bools">which is addressed in a different way in
+C++, <a href="./promotions_and_conversions.html#safe-bools">which is addressed in a different way in
 Rust</a>.</p>
 <h2 id="borrowing-conversions"><a class="header" href="#borrowing-conversions">Borrowing conversions</a></h2>
 <p>The methods in the <code>From</code> and <code>Into</code> traits take ownership of the values to be
@@ -366,7 +366,7 @@ literal strings can more easily be used as paths.</p>
 <h2 id="fallible-conversions"><a class="header" href="#fallible-conversions">Fallible conversions</a></h2>
 <p>In C++ when conversions might fail it is possible (though usually discouraged)
 to throw an exception from the converting constructor or converting function.</p>
-<p>Error handling in Rust <a href="/idioms/exceptions.html">does not use exceptions</a>. Instead
+<p>Error handling in Rust <a href="./exceptions.html">does not use exceptions</a>. Instead
 the <a href="https://doc.rust-lang.org/std/convert/trait.TryFrom.html"><code>TryFrom</code> trait</a>
 and <a href="https://doc.rust-lang.org/std/convert/trait.TryInto.html"><code>TryInto</code> trait</a>
 are used for fallible conversions. These traits differ from <code>From</code> and <code>Into</code> in

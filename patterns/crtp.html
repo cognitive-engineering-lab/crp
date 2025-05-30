@@ -258,7 +258,7 @@ fn main() {
 </div>
 <p>The reason why nothing additional needs to be done for the default method to
 invoke area statically in Rust is that calls to methods on <code>self</code> are always
-resolved statically in Rust. This is possible because <a href="/idioms/data_modeling/inheritance_and_reuse.html">Rust does not have
+resolved statically in Rust. This is possible because <a href="../idioms/data_modeling/inheritance_and_reuse.html">Rust does not have
 inheritance between concrete
 types</a>. Despite being defined in
 the trait, the default method is actually implemented as part of the
@@ -377,7 +377,7 @@ fn main() {
     println!("{}", x.0)
 }</code></pre></pre>
 </div>
-<p>Again, the reason why <code>Self</code> can refer to the implementing type is that <a href="/idioms/data_modeling/inheritance_and_reuse.html">Rust
+<p>Again, the reason why <code>Self</code> can refer to the implementing type is that <a href="../idioms/data_modeling/inheritance_and_reuse.html">Rust
 does not have inheritance between concrete
 types</a>. This contrasts with C++
 where a value may be used at any number of types which are concrete, and so it

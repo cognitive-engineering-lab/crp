@@ -178,7 +178,7 @@ time, the approach in C++ and the approach in Rust are the same. In both cases
 interfaces that defines the required operations are defined. Concrete types,
 possibly defined by the client, implement those interfaces.</p>
 <p>This way of modeling data can make use of either
-<a href="/idioms/data_modeling/abstract_classes.html">dynamic</a> or <a href="/idioms/data_modeling/concepts.html">static
+<a href="./data_modeling/abstract_classes.html">dynamic</a> or <a href="./data_modeling/concepts.html">static
 dispatch</a>, each of which is covered in its
 own section.</p>
 <h2 id="fixed-data-varying-operations"><a class="header" href="#fixed-data-varying-operations">Fixed data, varying operations</a></h2>
@@ -187,7 +187,7 @@ data must support vary, there are a few approaches in C++. Which approaches are
 available to use depend on the version of the standard in use.</p>
 <p>In older versions of the standard, one might use manually defined tagged unions.
 In newer versions, <code>std::variant</code> is available to improve the safety and
-ergonomics of tagged unions. <a href="/idioms/data_modeling/tagged_unions.html">Both of these approaches map to the same approach
+ergonomics of tagged unions. <a href="./data_modeling/tagged_unions.html">Both of these approaches map to the same approach
 in Rust</a>.</p>
 <p>Additionally, despite it not being strictly necessary to model a fixed set of
 variants, the visitor pattern is sometimes used for this situation, especially

@@ -229,10 +229,10 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>Note that in the Rust example, the definition of the trait and the struct have
-not changed from the example in the chapter on <a href="/idioms/data_modeling/abstract_classes.html">virtual methods and dynamic
+not changed from the example in the chapter on <a href="./abstract_classes.html">virtual methods and dynamic
 dispatch</a>. Even so, this example
 does use static dispatch. This is the result of a design trade-off in Rust
-around the representation of vtables and vptrs which is <a href="/idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">described later in that
+around the representation of vtables and vptrs which is <a href="./abstract_classes.html#vtables-and-rust-trait-object-types">described later in that
 chapter</a>.</p>
 <p>The difference between Rust and C++ in the above examples arises from Rust being
 nominally typed (types must opt in to supporting a specific interface, merely
@@ -391,7 +391,7 @@ void store(S s, std::unique_ptr&lt;Shape&gt; data) {
 }
 </code></pre>
 <p>Rust checks the bounds on lifetimes of references contained within type
-parameters. <a href="/idioms/data_modeling/abstract_classes.html#trait-objects-and-lifetimes">Just as with trait object
+parameters. <a href="./abstract_classes.html#trait-objects-and-lifetimes">Just as with trait object
 types</a>,
 these bounds are usually inferred according to the <a href="https://doc.rust-lang.org/reference/lifetime-elision.html">lifetime elision
 rules</a>. When they

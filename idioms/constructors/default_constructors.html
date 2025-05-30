@@ -315,7 +315,7 @@ fn main() {
     // ...
 }</code></pre></pre>
 </div>
-<p>If the type happens to be <a href="/idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">trivially
+<p>If the type happens to be <a href="./copy_and_move_constructors.html#trivially-copyable-types">trivially
 copyable</a>,
 then a shorthand can be used.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy, Default)]
@@ -373,7 +373,7 @@ fn main() {
     // ...
 }</code></pre></pre>
 <p>If the type implements the <code>Clone</code> trait, then the array can be constructed
-using the <code>vec!</code> macro. See the chapter on <a href="/idioms/constructors/copy_and_move_constructors.html">copy
+using the <code>vec!</code> macro. See the chapter on <a href="./copy_and_move_constructors.html">copy
 constructors</a> for more
 details on <code>Clone</code>.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
@@ -429,7 +429,7 @@ public:
 };
 </code></pre>
 <p>Since Rust does not have inheritance, there is no equivalent to this case.
-See the chapter on <a href="/idioms/data_modeling/inheritance_and_reuse.html">implementation
+See the chapter on <a href="../data_modeling/inheritance_and_reuse.html">implementation
 reuse</a> or the section on <a href="https://doc.rust-lang.org/book/ch10-02-traits.html">traits
 in the Rust book</a> for
 alternatives.</p>

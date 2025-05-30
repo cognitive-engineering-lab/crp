@@ -377,7 +377,7 @@ be forbidden in C++ because <code>Shape</code> is an abstract class.</p>
 fn print_area(shape: &amp;dyn Shape) {}</code></pre></pre>
 <p>The decision to include the vtable in the reference instead of in the value is
 one part of what makes it reasonable to use traits both for polymorphism via
-dynamic dispatch and for <a href="/idioms/data_modeling/concepts.html">polymorphism via static dispatch, where one would use
+dynamic dispatch and for <a href="./concepts.html">polymorphism via static dispatch, where one would use
 concepts in C++</a>.</p>
 <h2 id="limitations-of-trait-objects-in-rust"><a class="header" href="#limitations-of-trait-objects-in-rust">Limitations of trait objects in Rust</a></h2>
 <p>In Rust, not all traits can be used as the base trait for trait objects. The

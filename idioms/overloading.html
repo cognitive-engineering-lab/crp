@@ -193,7 +193,7 @@ int twice(int x) {
 <p>In practice, an example like the above would also likely be implemented in a
 more structured way even in C++, using templates.</p>
 <p>When phrased this way, the example can be translated to Rust, with the notable
-addition of <a href="/idioms/data_modeling/concepts.html">requiring a trait bound on the
+addition of <a href="./data_modeling/concepts.html">requiring a trait bound on the
 type</a>.</p>
 <div class="comparison">
 <pre><code class="language-cpp">template &lt;typename T&gt;
@@ -332,7 +332,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>Additionally, sometimes it is best to provide trait implementations for various
-combinations of reference types, especially for types that implement the <a href="/idioms/constructors/copy_and_move_constructors.html"><code>Copy trait</code></a>, since they are
+combinations of reference types, especially for types that implement the <a href="./constructors/copy_and_move_constructors.html"><code>Copy trait</code></a>, since they are
 likely to want to be used either with or without taking a reference. For the
 example above, that involve defining four implementations.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy)]

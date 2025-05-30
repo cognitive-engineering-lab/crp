@@ -184,14 +184,14 @@ classes should make use of types from the STL (<code>shared_ptr</code>, <code>ve
 dealing with ownership concerns so that the implicitly defined copy and move
 constructors are sufficient.</p>
 <p>In Rust, the same is true. See the list of Rust type equivalents for equivalents
-of C++ <a href="/idioms/type_equivalents.html#pointers">smart pointer types</a> and
-equivalents of C++ <a href="/idioms/type_equivalents.html#containers">container types</a>.</p>
+of C++ <a href="../type_equivalents.html#pointers">smart pointer types</a> and
+equivalents of C++ <a href="../type_equivalents.html#containers">container types</a>.</p>
 <p>One difference between C++ and Rust in applying the rule of zero is that in C++
 <code>std::unique_ptr</code> can take a custom deleter, making it possible to use
 <code>std::unique_ptr</code> for wrapping raw pointers that require custom destruction
 logic. In Rust, the <code>Box</code> type is not parameterized in the same way. To
 accomplish the same goal, one instead must define a new type with a user-defined
-<code>Drop</code> implementation, as is done in <a href="/idioms/constructors/copy_and_move_constructors.html#user-defined-constructors">the example in the chapter on copy and
+<code>Drop</code> implementation, as is done in <a href="./copy_and_move_constructors.html#user-defined-constructors">the example in the chapter on copy and
 move
 constructors</a>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;rule_of_three_five_zero&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;cddc736a-b6c3-4f3f-a3a7-b42eb362d650&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;`Clone`&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;`Move`&quot;,&quot;`Copy`&quot;],&quot;prompt&quot;:&quot;If the `Drop` trait is implemented for a type in Rust, which other traits should\nprobably be implemented?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
