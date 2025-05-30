@@ -162,17 +162,21 @@ distributions or that are vendored.</p>
 <p>Rust programs tend to rely on a central registry of Rust libraries ("crates")
 called <a href="https://crates.io/">crates.io</a> (along with a central documentation
 repository created from the in-code documentation of those crates called
-<a href="https://docs.rs/">Docs.rs</a>). Dependencies on crates are managed using the
+<a href="https://docs.rs/">docs.rs</a>). Dependencies on crates are managed using the
 <a href="https://doc.rust-lang.org/cargo/index.html">Cargo package manager</a>.</p>
+<p><a href="https://lib.rs/">Lib.rs</a> is a good resource for finding popular crates organized by category.</p>
 <h2 id="some-specific-alternatives"><a class="header" href="#some-specific-alternatives">Some specific alternatives</a></h2>
 <div class="table-wrapper"><table><thead><tr><th>C++ library</th><th>Rust alternative</th></tr></thead><tbody>
 <tr><td>STL UTF-16 and UTF-32 strings</td><td><a href="https://docs.rs/widestring/latest/widestring/">widestring</a></td></tr>
-<tr><td>STL <code>multiset</code></td><td></td></tr>
-<tr><td>STL <code>multimap</code></td><td></td></tr>
-<tr><td>Boost.Test</td><td><a href="/etc/unit_tests.html">cargo test</a></td></tr>
+<tr><td>STL random</td><td><a href="https://github.com/rust-random/rand">rand</a></td></tr>
+<tr><td>STL regex</td><td><a href="https://github.com/rust-lang/regex">regex</a></td></tr>
+<tr><td>Boost.Test</td><td><a href="https://doc.rust-lang.org/book/ch11-01-writing-tests.html">cargo test</a></td></tr>
+<tr><td>pybind11</td><td><a href="https://pyo3.rs/">PyO3</a></td></tr>
+<tr><td>OpenSSL</td><td><a href="https://github.com/rustls/rustls">rustls</a></td></tr>
 </tbody></table>
-</div>
-<p>If there is a C++ library that you use that does not have an alternative listed,
+</div><!-- | STL `multiset`                |                                                             |
+| STL `multimap`                |                                                             | -->
+<p>If there is a C++ library that you use where you cannot find a Rust alternative,
 please leave feedback using the link below, letting us know the name and purpose
 of the library.</p>
 <h2 id="supply-chain-management"><a class="header" href="#supply-chain-management">Supply chain management</a></h2>

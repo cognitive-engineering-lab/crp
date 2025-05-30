@@ -172,9 +172,7 @@ a complement to <a href="https://docs.rust-embedded.org/book/">The Embedded Rust
 <p>Compared to resources like the <a href="https://doc.rust-lang.org/nomicon/">Rustonomicon</a> and <a href="https://rust-unofficial.github.io/too-many-lists/">Learn Rust With Entirely Too Many Linked Lists</a>, this book is less about "Rust behind the scenes" and more about explicitly describing how Rust works in terms of C++.</p>
 <h2 id="feedback-on-this-book"><a class="header" href="#feedback-on-this-book">Feedback on this book</a></h2>
 <p>At the bottom of every page there is a link
-to a form where you can submit feedback. Whether you've found a mistake or just
-want to let us know which topic you'd like us to cover next, use the form to
-send us a message.</p>
+to a form where you can submit feedback: typos, factual errors, or any other issues you spot.</p>
 <p>If you answer the quizzes at the end of each chapter, we will save your
 responses anonymously for research purposes.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="constructors"><a class="header" href="#constructors">Constructors</a></h1>
@@ -1063,12 +1061,12 @@ variants, the visitor pattern is sometimes used for this situation, especially
 when using versions of the C++ standard before the introduction of
 <code>std::variant</code>. In most of these cases the idiomatic Rust solution is the same
 as what one would do when converting a C++ solution that uses tagged unions. The
-chapter on the <a href="idioms//patterns/visitor.html">visitor pattern</a> describes when to use a
+chapter on the visitor pattern<!-- LINKME --> describes when to use a
 Rust version of the visitor pattern or when to use Rust's enums (which are
 closer to <code>std::variant</code> than to C++ enums) to model the data.</p>
 <h2 id="varying-data-and-operations"><a class="header" href="#varying-data-and-operations">Varying data and operations</a></h2>
-<p>When both data and operations may be extended by a client, the <a href="idioms//patterns/visitor.html">visitor pattern
-is used in both C++ and in Rust</a>.</p>
+<p>When both data and operations may be extended by a client, the visitor pattern
+is used in both C++ and in Rust<!-- LINKME -->.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="abstract-classes-interfaces-and-dynamic-dispatch"><a class="header" href="#abstract-classes-interfaces-and-dynamic-dispatch">Abstract classes, interfaces, and dynamic dispatch</a></h1>
 <p>In C++ when an interface will be used with dynamic dispatch to resolve invoked
 methods, the interface is defined using an abstract class. Types that implement
@@ -3993,8 +3991,8 @@ mod test {
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>Testing in Rust is described in more detail in the <a href="idioms/encapsulation//etc/unit_tests.html">chapter on unit
-testing</a>.</p>
+<!-- Testing in Rust is described in more detail in the [chapter on unit
+testing](/etc/unit_tests.md). -->
 <h2 id="visibility-of-methods-on-rust-traits"><a class="header" href="#visibility-of-methods-on-rust-traits">Visibility of methods on Rust traits</a></h2>
 <p>Because traits in Rust are intended for the definition of interfaces, the
 methods for some type that are declared by a trait are visible whenever both the
@@ -5050,8 +5048,8 @@ the compiler will prevent the incorrect use of the shared owner types.</p>
 <p>Unlike with C++ references, Rust can have references-to-references. Rust
 references are more like observer pointers than they are like C++ references.</p>
 <h3 id="void-1"><a class="header" href="#void-1"><code>void*</code></a></h3>
-<p>Rust does not have anything directly analogous to <code>void*</code> in C++. The <a href="idioms//idioms/RTTI.html">chapter
-on <code>RTTI</code></a> covers some use cases where the goal is dynamic
+<p>Rust does not have anything directly analogous to <code>void*</code> in C++. The upcoming chapter
+on <code>RTTI</code><!--LINKME--> will cover some use cases where the goal is dynamic
 typing. The <a href="https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs">FFI chapter of the
 Rustonomicon</a>
 covers some use cases where the goal is interoperability with C programs that
@@ -6750,7 +6748,7 @@ initialization use <code>BorrowedBuf</code> instead of slices of <code>MaybeUnin
 pattern</a> is used to make the
 concrete type of the derived class available in the definition of methods
 defined in the base class.</p>
-<h1 id="sharing-implementations-with-static-polymorphism"><a class="header" href="#sharing-implementations-with-static-polymorphism">Sharing implementations with static polymorphism</a></h1>
+<h2 id="sharing-implementations-with-static-polymorphism"><a class="header" href="#sharing-implementations-with-static-polymorphism">Sharing implementations with static polymorphism</a></h2>
 <p>The basic use of the CRTP is for reducing redundancy in implementations that
 make use of static polymorphism. In this use case, the <code>this</code> pointer is cast to
 the type provided by the template parameter so that methods from the derived
@@ -6849,7 +6847,7 @@ inheritance between concrete
 types</a>. Despite being defined in
 the trait, the default method is actually implemented as part of the
 implementing struct.</p>
-<h1 id="method-chaining"><a class="header" href="#method-chaining">Method chaining</a></h1>
+<h2 id="method-chaining"><a class="header" href="#method-chaining">Method chaining</a></h2>
 <p>Another common use for the CRTP is for implementing method chaining when an
 implementation of a method to be chained is provided by a base class.</p>
 <p>In C++ the template parameter is used to ensure that the type returned from the
@@ -6975,17 +6973,21 @@ distributions or that are vendored.</p>
 <p>Rust programs tend to rely on a central registry of Rust libraries ("crates")
 called <a href="https://crates.io/">crates.io</a> (along with a central documentation
 repository created from the in-code documentation of those crates called
-<a href="https://docs.rs/">Docs.rs</a>). Dependencies on crates are managed using the
+<a href="https://docs.rs/">docs.rs</a>). Dependencies on crates are managed using the
 <a href="https://doc.rust-lang.org/cargo/index.html">Cargo package manager</a>.</p>
+<p><a href="https://lib.rs/">Lib.rs</a> is a good resource for finding popular crates organized by category.</p>
 <h2 id="some-specific-alternatives"><a class="header" href="#some-specific-alternatives">Some specific alternatives</a></h2>
 <div class="table-wrapper"><table><thead><tr><th>C++ library</th><th>Rust alternative</th></tr></thead><tbody>
 <tr><td>STL UTF-16 and UTF-32 strings</td><td><a href="https://docs.rs/widestring/latest/widestring/">widestring</a></td></tr>
-<tr><td>STL <code>multiset</code></td><td></td></tr>
-<tr><td>STL <code>multimap</code></td><td></td></tr>
-<tr><td>Boost.Test</td><td><a href="etc//etc/unit_tests.html">cargo test</a></td></tr>
+<tr><td>STL random</td><td><a href="https://github.com/rust-random/rand">rand</a></td></tr>
+<tr><td>STL regex</td><td><a href="https://github.com/rust-lang/regex">regex</a></td></tr>
+<tr><td>Boost.Test</td><td><a href="https://doc.rust-lang.org/book/ch11-01-writing-tests.html">cargo test</a></td></tr>
+<tr><td>pybind11</td><td><a href="https://pyo3.rs/">PyO3</a></td></tr>
+<tr><td>OpenSSL</td><td><a href="https://github.com/rustls/rustls">rustls</a></td></tr>
 </tbody></table>
-</div>
-<p>If there is a C++ library that you use that does not have an alternative listed,
+</div><!-- | STL `multiset`                |                                                             |
+| STL `multimap`                |                                                             | -->
+<p>If there is a C++ library that you use where you cannot find a Rust alternative,
 please leave feedback using the link below, letting us know the name and purpose
 of the library.</p>
 <h2 id="supply-chain-management"><a class="header" href="#supply-chain-management">Supply chain management</a></h2>

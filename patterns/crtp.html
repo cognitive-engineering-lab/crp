@@ -161,7 +161,7 @@
 pattern</a> is used to make the
 concrete type of the derived class available in the definition of methods
 defined in the base class.</p>
-<h1 id="sharing-implementations-with-static-polymorphism"><a class="header" href="#sharing-implementations-with-static-polymorphism">Sharing implementations with static polymorphism</a></h1>
+<h2 id="sharing-implementations-with-static-polymorphism"><a class="header" href="#sharing-implementations-with-static-polymorphism">Sharing implementations with static polymorphism</a></h2>
 <p>The basic use of the CRTP is for reducing redundancy in implementations that
 make use of static polymorphism. In this use case, the <code>this</code> pointer is cast to
 the type provided by the template parameter so that methods from the derived
@@ -260,7 +260,7 @@ inheritance between concrete
 types</a>. Despite being defined in
 the trait, the default method is actually implemented as part of the
 implementing struct.</p>
-<h1 id="method-chaining"><a class="header" href="#method-chaining">Method chaining</a></h1>
+<h2 id="method-chaining"><a class="header" href="#method-chaining">Method chaining</a></h2>
 <p>Another common use for the CRTP is for implementing method chaining when an
 implementation of a method to be chained is provided by a base class.</p>
 <p>In C++ the template parameter is used to ensure that the type returned from the
