@@ -1,0 +1,504 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Abstract classes, interfaces, and dynamic dispatch - C++ to Rust Phrasebook</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="abstract-classes-interfaces-and-dynamic-dispatch"><a class="header" href="#abstract-classes-interfaces-and-dynamic-dispatch">Abstract classes, interfaces, and dynamic dispatch</a></h1>
+<p>In C++ when an interface will be used with dynamic dispatch to resolve invoked
+methods, the interface is defined using an abstract class. Types that implement
+the interface inherit from the abstract class. In Rust the interface is given by
+a <em>trait</em>, which is then implemented for the types that support that trait.
+Programs can then be written over <em>trait objects</em> that use that trait as their
+base type.</p>
+<p>The following example defines an interface, two implementations of that
+interface, and a function that takes an argument that satisfies the interface.
+In C++ the interface is defined with an abstract class with pure virtual
+methods, and in Rust the interface is defined with a trait. In both languages,
+the function (<code>printArea</code> in C++ and <code>print_area</code> in Rust) invokes a method
+using dynamic dispatch.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;memory&gt;
+
+// Define an abstract class for an interface
+struct Shape {
+  Shape() = default;
+  virtual ~Shape() = default;
+  virtual double area() = 0;
+};
+
+// Implement the interface for a concrete class
+struct Triangle : public Shape {
+  double base;
+  double height;
+
+  Triangle(double base, double height)
+      : base(base), height(height) {}
+
+  double area() override {
+    return 0.5 * base * height;
+  }
+};
+
+// Implement the interface for a concrete class
+struct Rectangle : public Shape {
+  double width;
+  double height;
+
+  Rectangle(double width, double height)
+      : width(width), height(height) {}
+
+  double area() override {
+    return width * height;
+  }
+};
+
+// Use an object via a reference to the interface
+void printArea(Shape &amp;shape) {
+  std::cout &lt;&lt; shape.area() &lt;&lt; std::endl;
+}
+
+int main() {
+  Triangle triangle = Triangle{1.0, 1.0};
+
+  printArea(triangle);
+
+  // Use an object via an owned pointer to the
+  // interface
+  std::unique_ptr&lt;Shape&gt; shape;
+  if (true) {
+    shape = std::make_unique&lt;Rectangle&gt;(1.0, 1.0);
+  } else {
+    shape = std::make_unique&lt;Triangle&gt;(
+        std::move(triangle));
+  }
+
+  // Convert to a reference to the interface
+  printArea(*shape);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">// Define an interface
+trait Shape {
+    fn area(&amp;self) -&gt; f64;
+}
+
+struct Triangle {
+    base: f64,
+    height: f64,
+}
+
+// Implement the interface for a concrete type
+impl Shape for Triangle {
+    fn area(&amp;self) -&gt; f64 {
+        0.5 * self.base * self.height
+    }
+}
+
+struct Rectangle {
+    width: f64,
+    height: f64,
+}
+
+// Implement the interface for a concrete type
+impl Shape for Rectangle {
+    fn area(&amp;self) -&gt; f64 {
+        self.width * self.height
+    }
+}
+
+// Use a value via a reference to the interface
+fn print_area(shape: &amp;dyn Shape) {
+    println!("{}", shape.area());
+}
+
+fn main() {
+    let triangle = Triangle {
+        base: 1.0,
+        height: 1.0,
+    };
+
+    print_area(&amp;triangle);
+
+    // Use a value via an owned pointer to the
+    // interface
+    let shape: Box&lt;dyn Shape&gt; = if true {
+        Box::new(Rectangle {
+            width: 1.0,
+            height: 1.0,
+        })
+    } else {
+        Box::new(triangle)
+    };
+
+    // Convert to a reference to the interface
+    print_area(shape.as_ref());
+}</code></pre></pre>
+</div>
+<p>There are several places where the Rust implementation differs slightly from the
+C++ implementation.</p>
+<p>In Rust, a trait's methods are always visible whenever the trait itself is
+visible. Additionally, the fact that a type implements a trait is always visible
+whenever both the trait and the type are visible. These properties of Rust
+explain the lack of visibility declarations in places where one might find them
+in C++.</p>
+<p>In C++, to associate methods with a type rather than value of that type, you use
+the <code>static</code> keyword. In Rust, non-static methods take an explicit <code>self</code> parameter.
+This syntactic choice makes it possible to indicate (in way similar to other parameters) whether the
+method mutates the object (by taking <code>&amp;mut self</code> instead of <code>&amp;self</code>) and whether
+it takes ownership of the object (by taking <code>self</code> instead of <code>&amp;self</code>).</p>
+<p>Rust methods do not need to be declared as virtual. Because of differences in
+vtable representation, all methods for a type are available for dynamic
+dispatch. Types of values that use vtables are indicated with the <code>dyn</code> keyword.
+This is further described <a href="#vtables-and-rust-trait-object-types">below</a>.</p>
+<p>Additionally, Rust does not have an equivalent for the virtual destructor
+declaration because in Rust every vtable includes the drop behavior (whether
+given by a user defined <code>Drop</code> implementation or not) required for the value.</p>
+<h2 id="vtables-and-rust-trait-object-types"><a class="header" href="#vtables-and-rust-trait-object-types">Vtables and Rust trait object types</a></h2>
+<p>C++ and Rust both requires some kind of indirection to perform dynamic dispatch
+against an interface. In C++ this indirection takes the form of a pointer to the
+abstract class (instead of the derived concrete class), making use of a vtable
+to resolve the virtual method.</p>
+<p>In the above Rust example, the type <code>dyn Shape</code> is the type of a trait object
+for the <code>Shape</code> trait. A trait object includes a vtable along with the
+underlying value.</p>
+<p>In C++ all objects whose class inherits from a class with a virtual method have
+a vtable in their representation, whether dynamic dispatch is used or not.
+Pointers or references to objects are the same size as pointers to objects
+without virtual methods, but every object includes its vtable.</p>
+<p>In Rust, vtables are present only when values are represented as trait objects.
+The reference to the trait object is twice the size of a normal reference since
+it includes both the pointer to the value and the pointer to the vtable. In the
+Rust example above, the local variable <code>triangle</code> in <code>main</code> does not have a
+vtable in its representation, but when the reference to it is converted to a
+reference to a trait object (so that it can be passed to <code>print_area</code>), that
+does include a pointer to the vtable.</p>
+<p>Additionally, just as abstract classes in C++ cannot be used as the type of a
+local variable, the type of a parameter of a function, or the type of a return
+value of a function, trait object types in Rust cannot be used in corresponding
+contexts. In Rust, this is enforced by the type <code>dyn Shape</code> not implementing the
+<code>Sized</code> marker trait, preventing it from being used in contexts that require
+knowing the size of a type statically.</p>
+<p>The following example shows some places where a trait object type can and cannot
+be used due to not implementing <code>Sized</code>. The uses forbidden in Rust would also
+be forbidden in C++ because <code>Shape</code> is an abstract class.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">trait Shape {
+</span><span class="boring">    fn area(&amp;self) -&gt; f64;
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">struct Triangle {
+</span><span class="boring">    base: f64,
+</span><span class="boring">    height: f64,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">impl Shape for Triangle {
+</span><span class="boring">    fn area(&amp;self) -&gt; f64 {
+</span><span class="boring">        0.5 * self.base * self.height
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span>fn main() {
+    // Local variables must have a known size.
+    // let v: dyn Shape = Triangle { base: 1.0, height: 1.0 };
+
+    // References always have a known size.
+    let shape: &amp;dyn Shape = &amp;Triangle {
+        base: 1.0,
+        height: 1.0,
+    };
+    // Boxes also always have a known size.
+    let boxed_shape: Box&lt;dyn Shape&gt; = Box::new(Triangle {
+        base: 1.0,
+        height: 1.0,
+    });
+
+    // Types like Option&lt;T&gt; the value of type T directly, and so also need to
+    // know the size of T.
+    // let v: Option&lt;dyn Shape&gt; = Some(Triangle { base: 1.0, height: 1.0 });
+}
+
+// Parameter types must have a known size.
+// fn print_area(shape: dyn Shape) { }
+fn print_area(shape: &amp;dyn Shape) {}</code></pre></pre>
+<p>The decision to include the vtable in the reference instead of in the value is
+one part of what makes it reasonable to use traits both for polymorphism via
+dynamic dispatch and for <a href="/idioms/data_modeling/concepts.html">polymorphism via static dispatch, where one would use
+concepts in C++</a>.</p>
+<h2 id="limitations-of-trait-objects-in-rust"><a class="header" href="#limitations-of-trait-objects-in-rust">Limitations of trait objects in Rust</a></h2>
+<p>In Rust, not all traits can be used as the base trait for trait objects. The
+most commonly encountered restriction is that traits that require knowledge of
+the object's size via a <code>Sized</code> supertrait are not <code>dyn</code>-compatible. There are
+<a href="https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility">additional
+restrictions</a>.</p>
+<h2 id="trait-objects-and-lifetimes"><a class="header" href="#trait-objects-and-lifetimes">Trait objects and lifetimes</a></h2>
+<p>Objects which are used with dynamic dispatch may contain pointers or references
+to other objects. In C++ the lifetimes of those references must be tracked
+manually by the programmer.</p>
+<p>Rust checks the bounds on the lifetimes of references that the trait objects may
+contain. If the bounds are not given explicitly, they are determined according
+to the <a href="https://doc.rust-lang.org/reference/lifetime-elision.html#r-lifetime-elision.trait-object">lifetime elision
+rules</a>.
+The bound is part of the type of the trait object.</p>
+<p>Usually the elision rules pick the correct lifetime bound. Sometimes, the rules
+result in surprising error messages from the compiler. In those situations or
+when the compiler cannot determine which lifetime bound to assign, the bound may
+be given manually. The following example shows explicitly what the inferred
+lifetimes are for a structure storing a trait object and for the <code>print_area</code>
+function.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">trait Shape {
+</span><span class="boring">    fn area(&amp;self) -&gt; f64;
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">struct Triangle {
+</span><span class="boring">    base: f64,
+</span><span class="boring">    height: f64,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">impl Shape for Triangle {
+</span><span class="boring">    fn area(&amp;self) -&gt; f64 {
+</span><span class="boring">        0.5 * self.base * self.height
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">
+</span>struct Scaled {
+    scale: f64,
+    // 'static is the lifetime that would be inferred by the lifetime elision
+    // rule [lifetime-elision.trait-object.default].
+    shape: Box&lt;dyn Shape + 'static&gt;,
+}
+
+impl Shape for Scaled {
+    fn area(&amp;self) -&gt; f64 {
+        self.scale * self.shape.area()
+    }
+}
+
+// These are the lifetimes that would be inferred by the lifetime elision rule
+// [lifetime-elision.function.implicit-lifetime-parameters] for the reference
+// and [lifetime-elision.trait-object.containing-type-unique] for the trait
+// bound.
+fn print_area&lt;'a&gt;(shape: &amp;'a (dyn Shape + 'a)) {
+    println!("{}", shape.area());
+}
+
+fn main() {
+    let triangle = Triangle {
+        base: 1.0,
+        height: 1.0,
+    };
+    print_area(&amp;triangle);
+
+    let scaled_triangle = Scaled {
+        scale: 2.0,
+        shape: Box::new(triangle),
+    };
+    print_area(&amp;scaled_triangle);
+}</code></pre></pre>
+<div class="quiz-placeholder" data-quiz-name="&quot;abstract_classes&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;507115c6-4ed1-4a16-9f40-f5a01d3830a8&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Iterable {\n  type Item;\n  fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt;;\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Iterable&lt;Item&gt; {}\nimpl&lt;Item&gt; Iterable&lt;Item&gt; {\n  fn next(&amp;mut self) -&gt; Option&lt;Item&gt;;\n}\n```\n&quot;,&quot;```rust\nstruct Iterable&lt;Item&gt; {\n  fn next(&amp;mut self) -&gt; Option&lt;Item&gt;;\n}\n```\n&quot;,&quot;```rust\ntrait Iterable {\n  type Item;\n  fn new() -&gt; Self;\n  fn drop(self);\n  fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt;;\n}\n```\n&quot;],&quot;prompt&quot;:&quot;For the following C++ abstract virtual class, which of the following snippets represents the most idiomatic translation into Rust?\n```cpp\ntemplate&lt;typename Item&gt;\nstruct Iterable {\n  Iterable() {};\n  virtual ~Iterable() {};\n  virtual Item* next() = 0;\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
+
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Abstract classes, interfaces, and dynamic dispatch">Click here to leave us feedback about this page.</a>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../idioms/data_modeling.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../idioms/data_modeling/concepts.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../idioms/data_modeling.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../idioms/data_modeling/concepts.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../telemetry/dist/telemetry.iife.js"></script>
+
+
+    </div>
+    </body>
+</html>

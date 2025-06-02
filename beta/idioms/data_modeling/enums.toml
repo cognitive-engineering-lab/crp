@@ -1,0 +1,115 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt="""
+Which of these Rust programs is the most idiomatic translation of the following
+C++ program?
+
+```cpp
+#include <cstdint>
+#include <iostream>
+
+enum ColorImpl : uint8_t {
+  Red,
+  Blue,
+  Green,
+  Yellow,
+};
+
+struct InvalidColor {
+  uint8_t color;
+};
+
+struct Color {
+  ColorImpl color;
+
+  Color(ColorImpl c) : color(c) {}
+
+  operator ColorImpl() {
+    return color;
+  }
+
+  explicit Color(uint8_t c) {
+    if (c < Red || c > Yellow) {
+      throw InvalidColor{c};
+    }
+    color = static_cast<ColorImpl>(c);
+  }
+};
+```
+
+All of the Rust options start with the following import and definitions.
+
+```rust
+use std::convert::TryFrom;
+
+#[repr(i8)]
+#[derive(Clone, Copy)]
+enum Color {
+    Red,
+    Blue,
+    Green,
+    Yellow,
+}
+
+struct InvalidColor(u8);
+```
+"""
+prompt.distractors= [
+# Thinking that integer types can be cast to enums, as static_cast does in C++.
+"""
+```rust
+impl TryFrom<u8> for Color {
+    type Error = InvalidColor;
+
+    fn try_from(c: u8) -> Result<Self, InvalidColor> {
+        match c {
+            0 | 2 | 3 => Ok(c as Color),
+            _ => Err(InvalidColor(c)),
+        }
+    }
+}
+```
+""",
+# Thinking that enums need a wrapper for methods, like they do in C++.
+"""
+```rust
+#[derive(Clone, Copy)]
+struct ColorWrapper {
+    color: Color,
+}
+
+impl TryFrom<u8> for ColorWrapper {
+    type Error = InvalidColor;
+
+    fn try_from(c: u8) -> Result<Self, InvalidColor> {
+        let color = match c {
+            0 => Ok(Color::Red),
+            1 => Ok(Color::Blue),
+            2 => Ok(Color::Green),
+            3 => Ok(Color::Yellow),
+            _ => Err(InvalidColor(c)),
+        }?;
+        Ok(ColorWrapper { color })
+    }
+}
+```
+"""
+]
+answer.answer = """
+```rust
+impl TryFrom<u8> for Color {
+    type Error = InvalidColor;
+
+    fn try_from(c: u8) -> Result<Self, InvalidColor> {
+        match c {
+            0 => Ok(Color::Red),
+            1 => Ok(Color::Blue),
+            2 => Ok(Color::Green),
+            3 => Ok(Color::Yellow),
+            _ => Err(InvalidColor(c)),
+        }
+    }
+}
+```
+"""
+id = "b1f69693-be11-4105-b408-7f8925c4303d"

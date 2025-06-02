@@ -1,0 +1,453 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>RTTI and dynamic_cast - C++ to Rust Phrasebook</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="rtti-and-dynamic_cast"><a class="header" href="#rtti-and-dynamic_cast">RTTI and <code>dynamic_cast</code></a></h1>
+<p>Rust does not built-in support for general RTTI or have a direct analog to
+<code>dynamic_cast</code>.</p>
+<p>The Rust standard library does provide an <a href="https://doc.rust-lang.org/std/any/trait.Any.html"><code>Any</code>
+trait</a> that supports similar
+uses to <code>std::any</code> in C++. However, <code>Any</code> does not enable testing for
+implementation of or converting to another trait, it only enables testing for
+and converting to a concrete type.</p>
+<p>Every type with a <code>'static</code> lifetime bound (i.e., that does not contain
+non-static lifetime references) implements <code>Any</code> via a blanket implementation in
+the standard library.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;any&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+void print_if_string(const std::any &amp;x) {
+  try {
+    const std::string &amp;s =
+        any_cast&lt;std::string const &amp;&gt;(x);
+    std::cout &lt;&lt; s &lt;&lt; std::endl;
+  } catch (std::bad_any_cast &amp;e) {
+    std::cout &lt;&lt; "Not a string!" &lt;&lt; std::endl;
+  }
+}
+
+int main() {
+  print_if_string(std::string("hello world"));
+
+  print_if_string(5);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">use std::any::Any;
+
+fn print_if_string(x: &amp;dyn Any) {
+    if let Some(s) = x.downcast_ref::&lt;String&gt;() {
+        println!("{}", s);
+    } else {
+        println!("Not a string!");
+    }
+}
+
+fn main() {
+    print_if_string(&amp;"hello world".to_string());
+    print_if_string(&amp;5);
+}</code></pre></pre>
+</div>
+<h2 id="event-handling"><a class="header" href="#event-handling">Event handling</a></h2>
+<p>One practical use of RTTI and <code>dynamic_cast</code> in C++ is for event handling in
+situations where both the subsystem generating events and the events themselves
+need to be decoupled from the handling logic. This is usually because the events
+are generated by a framework, such as a GUI or game framework, while the
+response to the events is application-specific.</p>
+<div class="comparison">
+<pre><code class="language-cpp">struct Event {
+  virtual ~Event() = default;
+};
+
+struct ClickEvent : public Event {
+  int x;
+  int y;
+};
+
+struct ResizeEvent : public Event {
+  int old_height;
+  int old_width;
+  int new_height;
+  int new_width;
+};
+
+void handle_event(Event *e) {
+  if (auto click_event =
+          dynamic_cast&lt;ClickEvent *&gt;(e)) {
+    // ...
+  } else if (auto resize_event =
+                 dynamic_cast&lt;ResizeEvent *&gt;(e)) {
+    // ...
+  } else {
+    // ... handle unknown event ...
+  }
+}
+
+// register event handler in main
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum Event {
+    ClickEvent {
+        x: i32,
+        y: i32,
+    },
+    ResizeEvent {
+        old_height: i32,
+        old_width: i32,
+        new_height: i32,
+        new_width: i32,
+    },
+}
+
+fn handle_event(e: Event) {
+    match e {
+        Event::ClickEvent { x, y } =&gt; {
+            // ...
+        }
+        Event::ResizeEvent {
+            old_height,
+            old_width,
+            new_height,
+            new_width,
+        } =&gt; {
+            // ...
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>Even when the a client of the library is needs to be able to define custom
+events, it is usually possible to make use of an event enum. This is the
+approach taken by the <a href="https://docs.rs/winit/latest/winit/event/enum.Event.html">winit
+crate</a>, which does
+cross-platform window and event loop management.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">struct Event {
+</span><span class="boring">  virtual ~Event() = default;
+</span><span class="boring">};
+</span><span class="boring">
+</span><span class="boring">struct ClickEvent : public Event {
+</span><span class="boring">  int x;
+</span><span class="boring">  int y;
+</span><span class="boring">};
+</span><span class="boring">
+</span><span class="boring">struct ResizeEvent : public Event {
+</span><span class="boring">  int old_height;
+</span><span class="boring">  int old_width;
+</span><span class="boring">  int new_height;
+</span><span class="boring">  int new_width;
+</span><span class="boring">};
+</span><span class="boring">
+</span>struct DoSomething : public Event {
+  double how_much;
+}
+
+struct DoSomethingElse : public Event {
+  double how_many;
+}
+
+void handle_event(Event *e) {
+<span class="boring">  if (auto click_event =
+</span><span class="boring">          dynamic_cast&lt;ClickEvent *&gt;(e)) {
+</span><span class="boring">    // ...
+</span><span class="boring">  } else if (auto resize_event =
+</span><span class="boring">                 dynamic_cast&lt;ResizeEvent *&gt;(e)) {
+</span><span class="boring">    // ...
+</span>  // ...
+  } else if (auto user_event =
+                 dynamic_cast&lt;DoSomething *&gt;(e)) {
+    // ...
+  } else if (auto user_event =
+                 dynamic_cast&lt;DoSomethingElse *&gt;(
+                     e)) {
+    // ...
+  } else {
+    // ... handle unknown event ...
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum Event&lt;T&gt; {
+<span class="boring">    ClickEvent {
+</span><span class="boring">        x: i32,
+</span><span class="boring">        y: i32,
+</span><span class="boring">    },
+</span><span class="boring">    ResizeEvent {
+</span><span class="boring">        old_height: i32,
+</span><span class="boring">        old_width: i32,
+</span><span class="boring">        new_height: i32,
+</span><span class="boring">        new_width: i32,
+</span><span class="boring">    },
+</span>    // ...
+    UserEvent(T),
+}
+
+enum UserEvent {
+    DoSomething { how_much: f64 },
+    DoSomethingElse { how_many: i32 },
+}
+
+fn handle_event(e: Event&lt;UserEvent&gt;) {
+    match e {
+<span class="boring">        Event::ClickEvent { x, y } =&gt; {
+</span><span class="boring">            // ...
+</span><span class="boring">        }
+</span><span class="boring">        Event::ResizeEvent {
+</span><span class="boring">            old_height,
+</span><span class="boring">            old_width,
+</span><span class="boring">            new_height,
+</span><span class="boring">            new_width,
+</span><span class="boring">        } =&gt; {
+</span><span class="boring">            // ...
+</span><span class="boring">        }
+</span>        // ...
+        Event::UserEvent(
+            UserEvent::DoSomething { how_much },
+        ) =&gt; {
+            // ...
+        }
+        Event::UserEvent(
+            UserEvent::DoSomethingElse {
+                how_many,
+            },
+        ) =&gt; {
+            // ...
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>When representing events as an enum truly isn't feasible, sometimes <a href="/patterns/visitor.html">double
+dispatch</a> can be used instead. Otherwise it may be
+necessary to use the <code>Any</code> trait or to define an <code>Event</code> trait that exposes a
+type identifier that an be used for safe downcasting (via <code>Any</code>) or unsafe
+downcasting behind a safe interface.<sup class="footnote-reference" id="fr-safe-event-handler-1"><a href="#footnote-safe-event-handler">1</a></sup></p>
+<h2 id="library-support-for-reflection-via-macros"><a class="header" href="#library-support-for-reflection-via-macros">Library support for reflection via macros</a></h2>
+<p>Some of the use cases of RTTI can be achieved by using one of the third-party
+reflection libraries. These libraries implement reflection by providing macros
+for deriving traits to support common reflection operations.</p>
+<p>One commonly used <a href="/etc/libraries.html">library</a> for reflection at the time of
+writing is <a href="https://docs.rs/bevy_reflect/latest/bevy_reflect/">bevy_reflect</a>.
+The crate has extensive documentation, including examples of usage.</p>
+<p>This approach to reflection essentially makes it opt-in, so that software that
+does not use reflection does not have to pay the performance price for it. The
+cost of the opt-in approach is ease of use.</p>
+<hr>
+<ol class="footnote-definition"><li id="footnote-safe-event-handler">
+<p>Such an interface usually involves providing individual
+event handling functions for specific types, rather than a single large
+event handling function, so that the underlying implementation can managing
+the enforcement of the invariants required to make the casting safe. <a href="#fr-safe-event-handler-1">↩</a></p>
+</li>
+</ol>
+
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=RTTI and dynamic_cast">Click here to leave us feedback about this page.</a>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../idioms/overloading.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../idioms/object_identity.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../idioms/overloading.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../idioms/object_identity.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../telemetry/dist/telemetry.iife.js"></script>
+
+
+    </div>
+    </body>
+</html>
