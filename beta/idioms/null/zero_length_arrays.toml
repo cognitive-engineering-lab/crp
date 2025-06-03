@@ -67,16 +67,4 @@ fn main() {
 }
 ```
 """
-context = """
-An even more idiomatic implementation would be to use the
-[`fill`](https://doc.rust-lang.org/std/primitive.slice.html#method.fill) method
-on the slice type.
-
-```rust
-fn main() {
-    let mut x: [i32; 0] = [];
-    x.fill(5);
-}
-```
-"""
 id = "b1f64fba-b6d1-445e-85fb-08a1dfd29fc2"

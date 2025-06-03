@@ -175,15 +175,16 @@ struct Triangle {
   Triangle(double base, double height)
       : base(base), height(height) {}
 
-  // NOT virtual: it will be used with static dispatch
-  double area() {
+  // NOT virtual: it will be used with static
+  // dispatch
+  double area() const {
     return 0.5 * base * height;
   }
 };
 
 // Generic function using interface
 template &lt;class T&gt;
-double twiceArea(T &amp;shape) {
+double twiceArea(const T &amp;shape) {
   return shape.area() * 2;
 }
 
@@ -259,47 +260,49 @@ compiler in order to achieve static dispatch.</p>
 partially) modeled with a strict application of <a href="https://en.cppreference.com/w/cpp/language/constraints">C++
 concepts</a>.</p>
 <p>The usual way to apply concepts is still structural and does not model Rust's
-approach: it only requires that a method with specific properties be present on
-the type.</p>
+approach: it only requires that a specific method can be called, producing a
+specific type.</p>
 <pre><code class="language-cpp">#include &lt;concepts&gt;
 
 template &lt;typename T&gt;
-concept shape = requires(T t) {
+concept shape = requires(const T &amp;t) {
   { t.area() } -&gt; std::same_as&lt;double&gt;;
 };
 
 template &lt;shape T&gt;
-double twiceArea(T shape) {
-  return shape.area() * 2;
+double twiceArea(const T &amp;shape) {
+  return shape.area() * 2.0;
 }
 </code></pre>
 <p>A closer equivalent to the above Rust program in C++ is to use a combination of
 abstract classes and concepts.</p>
 <pre><code class="language-cpp">#include &lt;concepts&gt;
+#include &lt;iostream&gt;
 
 struct Shape {
   Shape() {}
   virtual ~Shape() {}
-  virtual double area() = 0;
+  virtual double area() const = 0;
 };
 
 template &lt;typename T&gt;
 concept shape = std::derived_from&lt;T, Shape&gt;;
 
-struct Triangle : Shape {
+struct Triangle : public Shape {
   double base;
   double height;
 
-  Triangle(double base, double height) : base(base), height(height) {}
+  Triangle(double base, double height)
+      : base(base), height(height) {}
 
-  // still NOT virtual: will be used static dispatch
-  double area() override {
+  // still will be used with static dispatch
+  double area() const override {
     return 0.5 * base * height;
   }
 };
 
 template &lt;shape T&gt;
-double twiceArea(T shape) {
+double twiceArea(const T &amp;shape) {
   return shape.area() * 2;
 }
 
@@ -326,7 +329,7 @@ template &lt;typename T&gt;
 concept shape = std::derived_from&lt;T, Shape&gt;;
 
 template &lt;shape T&gt;
-double twiceArea(T shape) {
+double twiceArea(const T &amp;shape) {
   // note the call to a method not defined in Shape
   return shape.volume() * 2;
 }
@@ -471,7 +474,7 @@ fn store&lt;'s, S: Shape + 's&gt;(x: S, data: &amp;mut Box&lt;dyn Shape + 's&gt;
     *data = Box::new(x);
 }
 <span class="boring">}</span></code></pre></pre>
-<div class="quiz-placeholder" data-quiz-name="&quot;concepts&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust needs to know that the type of `Scaled::shape` supports the `area` method,\nso a trait bound on the type parameter is necessary. Trait implementations are\nall or nothing, so the requirement applies to the whole implementation, not the\nindividual method.\n&quot;,&quot;id&quot;:&quot;3cb5759b-5fe0-491e-ac87-4ba455b26e8f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T: Shape&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64\n    where\n        T: Shape,\n    {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T: Shape&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Consider the following C++ program.\n\n```cpp\ntemplate&lt;typename T&gt;\nstruct Scaled {\n\tdouble scale;\n\tT shape;\n\n\tdouble area() const {\n\t\treturn scale * shape.area();\n\t}\n};\n\ntemplate &lt;typename T&gt;\nvoid printArea(T &amp;shape) {\n\tstd::cout &lt;&lt; shape.area() &lt;&lt; std::endl;\n}\n```\n\nWhich of the following snippets represents the most idiomatic translation of the\n`Scaled` template class into Rust?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;concepts&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust needs to know that the type of `Scaled::shape` supports the `area` method,\nso a trait bound on the type parameter is necessary. Trait implementations are\nall or nothing, so the requirement applies to the whole implementation, not the\nindividual method.\n&quot;,&quot;id&quot;:&quot;3cb5759b-5fe0-491e-ac87-4ba455b26e8f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T: Shape&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64\n    where\n        T: Shape,\n    {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T: Shape&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Consider the following C++ program.\n\n```cpp\ntemplate&lt;typename T&gt;\nstruct Scaled {\n\tdouble scale;\n\tT shape;\n\n\tdouble area() const {\n\t\treturn scale * shape.area();\n\t}\n};\n\ntemplate &lt;typename T&gt;\nvoid printArea(const T &amp;shape) {\n\tstd::cout &lt;&lt; shape.area() &lt;&lt; std::endl;\n}\n```\n\nWhich of the following snippets represents the most idiomatic translation of the\n`Scaled` template class into Rust?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 
                         <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Concepts, interfaces, and static dispatch">Click here to leave us feedback about this page.</a>

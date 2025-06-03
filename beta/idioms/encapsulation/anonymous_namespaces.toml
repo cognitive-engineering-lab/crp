@@ -96,14 +96,14 @@ function?
 pub fn red() {}
 fn orange() {}
 
-mod other_colors {
+pub mod other_colors {
     pub fn green() {}
     fn blue() {}
 }
 
 // b.rs
-pub fn indigo() {};
-pub fn violet() {};
+pub fn indigo() {}
+pub fn violet() {}
 
 // main.rs
 mod a;

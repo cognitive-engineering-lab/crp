@@ -188,12 +188,12 @@ a method that does not have a <code>self</code> parameter), which returns a valu
 type.</p>
 <div class="comparison">
 <pre><code class="language-cpp"><span class="boring">#include &lt;thread&gt;
-</span><span class="boring">unsigned int cpu_count() { 
+</span><span class="boring">unsigned int cpu_count() {
 </span><span class="boring">    return std::thread::hardware_concurrency();
 </span><span class="boring">}
 </span><span class="boring">
 </span>class ThreadPool {
-  unsigned int num_threads;  
+  unsigned int num_threads;
 
 public:
   ThreadPool() : num_threads(cpu_count()) {}
@@ -219,7 +219,7 @@ impl ThreadPool {
     }
 
     fn with_threads(nt: usize) -&gt; Self {
-        Self { num_threads: nt } 
+        Self { num_threads: nt }
     }
 }
 
@@ -261,8 +261,8 @@ creates a new value based on another one, taking ownership of it in order to do
 so.</p>
 <h2 id="storage-allocation-vs-initialization"><a class="header" href="#storage-allocation-vs-initialization">Storage allocation vs initialization</a></h2>
 <p>In Rust, the actual construction of a structure or enum value occurs where the
-structure construction syntax <code>ThreadPool { ... }</code> is, after the evaluation of the
-expressions for the fields.</p>
+structure construction syntax (e.g., <code>ThreadPool { ... }</code>) is, after the
+evaluation of the expressions for the fields (e.g., <code>cpu_count()</code>).</p>
 <p>A significant implication of this difference is that storage is not allocated
 for a struct in Rust at the point where the constructor method (such as
 <code>ThreadPool::with_threads</code>) is called, and in fact is not allocated until after the
@@ -271,9 +271,10 @@ of the language — the optimizer may still avoid the copy). Therefore there is 
 straightforward way in Rust to translate patterns such as a class which stores a pointer to
 itself upon construction (in Rust, this requires tools like <a href="https://doc.rust-lang.org/std/pin/struct.Pin.html"><code>Pin</code></a> and <a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a>).</p>
 <h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
-<p>In C++, the primary way constructors can indicate failure is by throwing exceptions. In Rust, because constructors are normal static methods, fallible constructors
-can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code> (akin to
-<code>std::optional</code>).</p>
+<p>In C++, the primary way constructors can indicate failure is by throwing
+exceptions. In Rust, because constructors are normal static methods, fallible
+constructors can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code>
+(akin to <code>std::optional</code>).<sup class="footnote-reference" id="fr-NonZero-1"><a href="#footnote-NonZero">1</a></sup></p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;stdexcept&gt;
@@ -284,7 +285,8 @@ class ThreadPool {
 public:
   ThreadPool(unsigned int nt) : num_threads(nt) {
     if (num_threads == 0) {
-      throw std::domain_error("Cannot have zero threads");
+      throw std::domain_error(
+          "Cannot have zero threads");
     }
   }
 };
@@ -292,6 +294,7 @@ public:
 int main() {
   try {
     ThreadPool p(0);
+    // use p here
   } catch (const std::domain_error &amp;e) {
     std::cout &lt;&lt; e.what() &lt;&lt; std::endl;
   }
@@ -301,10 +304,17 @@ int main() {
     num_threads: usize,
 }
 
+#[derive(Debug)]
+enum ThreadPoolError {
+    ZeroThreads,
+}
+
 impl ThreadPool {
-    fn with_threads(nt: usize) -&gt; Result&lt;Self, String&gt; {
+    fn with_threads(
+        nt: usize,
+    ) -&gt; Result&lt;Self, ThreadPoolError&gt; {
         if nt == 0 {
-            Err("Cannot have zero threads".to_string())
+            Err(ThreadPoolError::ZeroThreads)
         } else {
             Ok(Self { num_threads: nt })
         }
@@ -313,14 +323,21 @@ impl ThreadPool {
 
 fn main() {
     match ThreadPool::with_threads(0) {
-        Err(err) =&gt; println!("{err}"),        
-        Ok(p) =&gt; { /* ... */ }
+        Err(err) =&gt; println!("{:?}", err),
+        Ok(p) =&gt; {
+            // use p here
+        }
     }
 }</code></pre></pre>
 </div>
 <p>See <a href="idioms//idioms/exceptions.html">the chapter on exceptions</a> for more information on
 how C++ exceptions and exception handling translate to Rust.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
+<hr>
+<ol class="footnote-definition"><li id="footnote-NonZero">
+<p>An alternative approach here would be to use <code>NonZero&lt;usize&gt;</code> as the
+type so that the error case wasn't possible in the first place. <a href="#fr-NonZero-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
 <p>C++ has a special concept of default constructors to support several scenarios
 in which they are implicitly called.
 Rust does not have the same notion of a default constructor. The most similar mechanism is the <a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code>
@@ -357,6 +374,9 @@ impl Default for Person {
 default constructor in C++), then the type should provide
 <a href="https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits">both</a>
 a <code>new</code> method that takes no arguments and an implementation of <code>Default</code>.</p>
+<p>Because <code>Default</code> is a normal trait, the default constructor defined in the
+example can be invoked using the usual syntax for invoking a static trait
+method, e.g., <code>Default::default()</code>.</p>
 <h2 id="implicit-initialization-of-class-members"><a class="header" href="#implicit-initialization-of-class-members">Implicit initialization of class members</a></h2>
 <p>In C++, if a member is not explicitly initialized by a constructor, then it is
 default-initialized. When the type of the member is a class, the
@@ -525,7 +545,8 @@ fn main() {
     // ...
 }</code></pre></pre>
 </div>
-<p>In Rust, the vector can also be constructed from an iterator.</p>
+<p>In Rust, the vector can also be constructed <a href="https://doc.rust-lang.org/book/ch13-02-iterators.html#methods-that-produce-other-iterators">from an
+iterator</a>.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
 struct Person {
     age: i32,
@@ -577,7 +598,7 @@ fn main() {
 </div>
 <h2 id="implicit-initialization-of-the-base-class-object"><a class="header" href="#implicit-initialization-of-the-base-class-object">Implicit initialization of the base class object</a></h2>
 <p>In C++, the default constructor is used to initialize the base class object if
-it no other constructor is specified.</p>
+no other constructor is specified.</p>
 <pre><code class="language-cpp">class Base {
   int x;
 
@@ -647,7 +668,7 @@ void go(std::optional&lt;std::string&gt; x) {
 construct the default, as opposed to only constructing the default when the
 <code>std::optional</code> is <code>std::nullopt</code>. The equivalent requires using
 <code>std::optional::or_else</code>.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;default_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust does not have implicit default initialization like C++ does. Variables must\nbe explicitly initialized before use, or the program will fail to compile.\n&quot;,&quot;id&quot;:&quot;5019323d-1534-4c70-a8e7-b015f87be228&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `w` is not explicitly initialized before it is used.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Widget` does not implement the `Default` trait.\n&quot;,&quot;It does not compile because `Widget` does not implement a `new` method.\n&quot;,&quot;It does not compile because `Widget` does not implement both the `Default`\ntrait and a `new` method.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\nstruct Widget {\n    color: String,\n}\n\nfn main() {\n    let w: Widget;\n    println!(\&quot;{}\&quot;, w.color);\n}\n```\n&quot;}},{&quot;context&quot;:&quot;When there is a reasonable default value, it is most idiomatic in Rust to\nprovide [both a `new` method and an implementation of the `Default`\ntrait.](https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits)\n&quot;,&quot;id&quot;:&quot;a436177e-821d-45d1-8e46-4fafc3d78cd3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2() : x(0.0), y(0.0) {}\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;default_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust does not have implicit default initialization like C++ does. Variables must\nbe explicitly initialized before use, or the program will fail to compile.\n&quot;,&quot;id&quot;:&quot;5019323d-1534-4c70-a8e7-b015f87be228&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `w` is not explicitly initialized before it is used.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Widget` does not implement the `Default` trait.\n&quot;,&quot;It does not compile because `Widget` does not implement a `new` method.\n&quot;,&quot;It does not compile because `Widget` does not implement both the `Default`\ntrait and a `new` method.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\nstruct Widget {\n    color: String,\n}\n\nfn main() {\n    let w: Widget;\n    println!(\&quot;{}\&quot;, w.color);\n}\n```\n&quot;}},{&quot;context&quot;:&quot;When there is a reasonable default value, it is most idiomatic in Rust to\nprovide [both a `new` method and an implementation of the `Default`\ntrait.](https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits)\n\nIn this case, an even more idiomatic implementation would be to [derive\n`Default`](https://doc.rust-lang.org/std/default/trait.Default.html#derivable)\nand use the derived method to implement new.\n&quot;,&quot;id&quot;:&quot;a436177e-821d-45d1-8e46-4fafc3d78cd3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2() : x(0.0), y(0.0) {}\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="copy-and-move-constructors"><a class="header" href="#copy-and-move-constructors">Copy and move constructors</a></h1>
 <p>In both C++ and Rust, one rarely has to write copy or move constructors (or
 their Rust equivalents) by hand. In C++ this is because the implicit definitions
@@ -681,8 +702,8 @@ struct Person {
   Person(Age age,
          std::string name,
          std::shared_ptr&lt;Person&gt; best_friend)
-      : age(age), name(name),
-        best_friend(best_friend) {}
+      : age(std::move(age)), name(std::move(name)),
+        best_friend(std::move(best_friend)) {}
 
   // copy and move constructors and destructor
   // implicitly declared and defined
@@ -711,7 +732,7 @@ equivalents</a> for more details.</p>
 <h2 id="user-defined-constructors"><a class="header" href="#user-defined-constructors">User-defined constructors</a></h2>
 <p>On the other hand, the following example requires a user-defined copy and move
 constructor because it manages a resource (a pointer acquired from a C library).
-The equivalent in Rust requires a custom implementation of the <code>Clone</code> trait.</p>
+The equivalent in Rust requires a custom implementation of the <code>Clone</code> trait.<sup class="footnote-reference" id="fr-deleter-1"><a href="#footnote-deleter">1</a></sup></p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;cstdlib&gt;
 #include &lt;cstring&gt;
@@ -879,8 +900,14 @@ should instead use a reference (<code>&amp;T</code> or <code>&amp;mut T</code>) 
 <a href="https://doc.rust-lang.org/std/rc/index.html"><code>Rc&lt;T&gt;</code></a>). These approaches
 correspond to passing by reference, or using a <code>std::unique_ptr</code> or
 <code>std::shared_ptr</code> in C++.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;copy_and_move_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;A type can only implement `Copy` if all of its fields implement `Copy`, just how\nin C++ a type is only trivially copyable if all of its members are. `Box` does\nnot implement `Copy`.\n&quot;,&quot;id&quot;:&quot;ec3c58d9-cb13-4f88-ac67-7c1d5baf46e2&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `Box` doesn't implement `Copy`, so `Copy` can't be\nimplemented for `BinaryTreeNode`.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Box` doesn't implement `Clone`, so `Clone` can't be\nderived for `BinaryTreeNode`.\n&quot;,&quot;It does not compile because only one of `Clone` or `Copy` can be implemented for\na type.\n&quot;,&quot;It does not compile because `Drop` is not implemented for `BinaryTreeNode`\neven though `Clone` is.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile?\n\n```rust\n#[derive(Clone, Copy)]\nstruct BinaryTreeNode {\n    value: i32,\n    left_child: Option&lt;Box&lt;BinaryTreeNode&gt;&gt;,\n    right_child: Option&lt;Box&lt;BinaryTreeNode&gt;&gt;,\n}\n```\n&quot;}},{&quot;context&quot;:&quot;While `Copy` requires `Clone`, it does not pose any constraints on the\nimplementation of clone. Even though the given implementation of `Clone` is most\ncertainly wrong, the program will still compile.\n&quot;,&quot;id&quot;:&quot;0a4bc647-44c9-4244-9dfc-3002d6abc069&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does compile, but implementing `Clone` in a way that doesn't match `Copy` is\na bad idea.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because only one of `Clone` or `Copy` can be implemented\nfor a type.\n&quot;,&quot;It does not compile because `Clone` must be derived in order to derive `Copy`.\n&quot;,&quot;It does not compile because `Drop` is not implemented for `Age` even though\n`Clone` is.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n#[derive(Copy)]\nstruct Age {\n    value: u32,\n}\n\nimpl Clone for Age {\n    fn clone(&amp;self) -&gt; Self {\n       Age {\n           value: 1 + self.value,\n       }\n    }\n}\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` implements a copy constructor which corresponds to the `Clone`\ntrait in Rust. It is also trivially copyable, which corresponds to implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;4636f71a-599b-46d3-a6e6-e0c35b344140&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n};\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` has a user-defined copy constructor which corresponds to the\n`Clone` trait in Rust. Despite being user-defined, it does exactly what the\ndefault trait would do. Because the implementation is user-defined, it prevents\nthe type from being trivially copyable, which corresponds to not implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;c8e3b4da-19a1-42e9-97d4-bbb61dcd5652&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2(Vec2&amp; other) : x(other.x), y(other.y) {};\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="rule-of-threefivezero"><a class="header" href="#rule-of-threefivezero">Rule of three/five/zero</a></h1>
+<div class="quiz-placeholder" data-quiz-name="&quot;copy_and_move_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;A type can only implement `Copy` if all of its fields implement `Copy`, just how\nin C++ a type is only trivially copyable if all of its members are. `Box` does\nnot implement `Copy`.\n&quot;,&quot;id&quot;:&quot;ec3c58d9-cb13-4f88-ac67-7c1d5baf46e2&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `Box` doesn't implement `Copy`, so `Copy` can't be\nimplemented for `BinaryTreeNode`.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Box` doesn't implement `Clone`, so `Clone` can't be\nderived for `BinaryTreeNode`.\n&quot;,&quot;It does not compile because only one of `Clone` or `Copy` can be implemented for\na type.\n&quot;,&quot;It does not compile because `Drop` is not implemented for `BinaryTreeNode`\neven though `Clone` is.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile?\n\n```rust\n#[derive(Clone, Copy)]\nstruct BinaryTreeNode {\n    value: i32,\n    left_child: Option&lt;Box&lt;BinaryTreeNode&gt;&gt;,\n    right_child: Option&lt;Box&lt;BinaryTreeNode&gt;&gt;,\n}\n```\n&quot;}},{&quot;context&quot;:&quot;While `Copy` requires `Clone`, it does not pose any constraints on the\nimplementation of clone. Even though the given implementation of `Clone` is most\ncertainly wrong, the program will still compile.\n&quot;,&quot;id&quot;:&quot;0a4bc647-44c9-4244-9dfc-3002d6abc069&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does compile, but implementing `Clone` in a way that doesn't match `Copy` is\na bad idea.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because only one of `Clone` or `Copy` can be implemented\nfor a type.\n&quot;,&quot;It does not compile because `Clone` must be derived in order to derive `Copy`.\n&quot;,&quot;It does not compile because `Drop` is not implemented for `Age` even though\n`Clone` is.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n#[derive(Copy)]\nstruct Age {\n    value: u32,\n}\n\nimpl Clone for Age {\n    fn clone(&amp;self) -&gt; Self {\n       Age {\n           value: 1 + self.value,\n       }\n    }\n}\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` implements a copy constructor which corresponds to the `Clone`\ntrait in Rust. It is also trivially copyable, which corresponds to implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;4636f71a-599b-46d3-a6e6-e0c35b344140&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n};\n```\n&quot;}},{&quot;context&quot;:&quot;The C++ `Vec2` has a user-defined copy constructor which corresponds to the\n`Clone` trait in Rust. Despite being user-defined, it does exactly what the\ndefault trait would do. Because the implementation is user-defined, it prevents\nthe type from being trivially copyable, which corresponds to not implementing\nthe `Copy` trait in Rust.\n&quot;,&quot;id&quot;:&quot;c8e3b4da-19a1-42e9-97d4-bbb61dcd5652&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n#[derive(Clone)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n#[derive(Clone, Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\n#[derive(Copy)]\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64,\n    pub y: f64,\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2(const Vec2 &amp;other) : x(other.x), y(other.y) {};\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><hr>
+<ol class="footnote-definition"><li id="footnote-deleter">
+<p>Another common approach to the C++ version of the example is to use
+the <code>Deleter</code> template argument for <code>std::unique_ptr</code>. The version shown in
+the example was chosen to make the correspondence to Rust version clearer. <a href="#fr-deleter-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="rule-of-threefivezero"><a class="header" href="#rule-of-threefivezero">Rule of three/five/zero</a></h1>
 <h2 id="rule-of-three"><a class="header" href="#rule-of-three">Rule of three</a></h2>
 <p>In C++ the rule of three is a rule of thumb that if a class has a user-defined
 destructor, copy constructor or copy assignment operator, it probably should
@@ -1106,7 +1133,7 @@ overall memory usage.</p>
     let v2 = vec![0u32; 100000];
     // ... use v2
 }</code></pre></pre>
-<div class="quiz-placeholder" data-quiz-name="&quot;destructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;The call to `passthrough` moves ownership of the value in `w` into the\nfunction's parameter, and then moves ownership back out again when it returns,\nso that `w2` ends up owning the value. None of those steps cause `drop` to be\ncalled because no initialized variable goes out of scope. When the ownership of\nthe value is moved from the `w` into the parameter, or from the `a` in the\n`passthrough` function to `w2`, `w` and `a` are left uninitialized.\n\nAt the end of `main`, `w2` is dropped first, since it is declared last. Then its\nmembers are dropped in order of declaration in the struct definition. Each field\nis completely destructed before the next field is, thus when the `Box` in field\n`boxed_sub` is dropped, it drops the value it owns before the value in `sub` is\ndropped. Finally `s3`, is dropped.\n\n`w`, `s2`, and `s1` are not dropepd because they are not initialized.\n&quot;,&quot;id&quot;:&quot;9132e738-cc0b-4ba5-a323-9200b99bcbc4&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;3\n1\n2\n4\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;struct SubWidget {\n    id: i32,\n}\n\nimpl Drop for SubWidget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nstruct Widget {\n    id: i32,\n    boxed_sub: Box&lt;SubWidget&gt;,\n    sub: SubWidget,\n}\n\nimpl Drop for Widget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nfn passthrough(a: Widget) -&gt; Widget {\n    a\n}\n\nfn accept(a: Widget) {}\n\nfn main() {\n    let s1 = Box::new(SubWidget { id: 1 });\n    let s2 = SubWidget { id: 2 };\n    let w = Widget {\n        id: 3,\n        sub: s2,\n        boxed_sub: s1,\n    };\n    let s3 = SubWidget { id: 4 };\n\n    let w2 = passthrough(w);\n}\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;destructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;The call to `passthrough` moves ownership of the value in `w` into the\nfunction's parameter, and then moves ownership back out again when it returns,\nso that `w2` ends up owning the value. None of those steps cause `drop` to be\ncalled because no initialized variable goes out of scope. When the ownership of\nthe value is moved from the `w` into the parameter, or from the `a` in the\n`passthrough` function to `w2`, `w` and `a` are left uninitialized.\n\nAt the end of `main`, `w2` is dropped first, since it is declared last. Then its\nmembers are dropped in order of declaration in the struct definition. Each field\nis completely destructed before the next field is, thus when the `Box` in field\n`boxed_sub` is dropped, it drops the value it owns before the value in `sub` is\ndropped. Finally `s3`, is dropped.\n\n`w`, `s2`, and `s1` are not dropped because they are not initialized.\n&quot;,&quot;id&quot;:&quot;9132e738-cc0b-4ba5-a323-9200b99bcbc4&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;3\n1\n2\n4\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;struct SubWidget {\n    id: i32,\n}\n\nimpl Drop for SubWidget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nstruct Widget {\n    id: i32,\n    boxed_sub: Box&lt;SubWidget&gt;,\n    sub: SubWidget,\n}\n\nimpl Drop for Widget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nfn passthrough(a: Widget) -&gt; Widget {\n    a\n}\n\nfn accept(a: Widget) {}\n\nfn main() {\n    let s1 = Box::new(SubWidget { id: 1 });\n    let s2 = SubWidget { id: 2 };\n    let w = Widget {\n        id: 3,\n        sub: s2,\n        boxed_sub: s1,\n    };\n    let s3 = SubWidget { id: 4 };\n\n    let w2 = passthrough(w);\n}\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="data-modeling"><a class="header" href="#data-modeling">Data modeling</a></h1>
 <p>In C++ the mechanisms available for data modeling are classes, enums, and
 unions.</p>
@@ -1123,7 +1150,7 @@ and how to achieve the same effects using Rust's features.</p>
 <p>In situations where one needs to model a fixed set of operations that clients
 will use, but the data that implements those operations are not fixed ahead of
 time, the approach in C++ and the approach in Rust are the same. In both cases
-interfaces that defines the required operations are defined. Concrete types,
+interfaces that define the required operations are defined. Concrete types,
 possibly defined by the client, implement those interfaces.</p>
 <p>This way of modeling data can make use of either
 <a href="idioms//idioms/data_modeling/abstract_classes.html">dynamic</a> or <a href="idioms//idioms/data_modeling/concepts.html">static
@@ -1356,8 +1383,8 @@ be forbidden in C++ because <code>Shape</code> is an abstract class.</p>
         height: 1.0,
     });
 
-    // Types like Option&lt;T&gt; the value of type T directly, and so also need to
-    // know the size of T.
+    // Types like Option&lt;T&gt; include the value of type T directly, and so also
+    // need to know the size of T.
     // let v: Option&lt;dyn Shape&gt; = Some(Triangle { base: 1.0, height: 1.0 });
 }
 
@@ -1458,15 +1485,16 @@ struct Triangle {
   Triangle(double base, double height)
       : base(base), height(height) {}
 
-  // NOT virtual: it will be used with static dispatch
-  double area() {
+  // NOT virtual: it will be used with static
+  // dispatch
+  double area() const {
     return 0.5 * base * height;
   }
 };
 
 // Generic function using interface
 template &lt;class T&gt;
-double twiceArea(T &amp;shape) {
+double twiceArea(const T &amp;shape) {
   return shape.area() * 2;
 }
 
@@ -1542,47 +1570,49 @@ compiler in order to achieve static dispatch.</p>
 partially) modeled with a strict application of <a href="https://en.cppreference.com/w/cpp/language/constraints">C++
 concepts</a>.</p>
 <p>The usual way to apply concepts is still structural and does not model Rust's
-approach: it only requires that a method with specific properties be present on
-the type.</p>
+approach: it only requires that a specific method can be called, producing a
+specific type.</p>
 <pre><code class="language-cpp">#include &lt;concepts&gt;
 
 template &lt;typename T&gt;
-concept shape = requires(T t) {
+concept shape = requires(const T &amp;t) {
   { t.area() } -&gt; std::same_as&lt;double&gt;;
 };
 
 template &lt;shape T&gt;
-double twiceArea(T shape) {
-  return shape.area() * 2;
+double twiceArea(const T &amp;shape) {
+  return shape.area() * 2.0;
 }
 </code></pre>
 <p>A closer equivalent to the above Rust program in C++ is to use a combination of
 abstract classes and concepts.</p>
 <pre><code class="language-cpp">#include &lt;concepts&gt;
+#include &lt;iostream&gt;
 
 struct Shape {
   Shape() {}
   virtual ~Shape() {}
-  virtual double area() = 0;
+  virtual double area() const = 0;
 };
 
 template &lt;typename T&gt;
 concept shape = std::derived_from&lt;T, Shape&gt;;
 
-struct Triangle : Shape {
+struct Triangle : public Shape {
   double base;
   double height;
 
-  Triangle(double base, double height) : base(base), height(height) {}
+  Triangle(double base, double height)
+      : base(base), height(height) {}
 
-  // still NOT virtual: will be used static dispatch
-  double area() override {
+  // still will be used with static dispatch
+  double area() const override {
     return 0.5 * base * height;
   }
 };
 
 template &lt;shape T&gt;
-double twiceArea(T shape) {
+double twiceArea(const T &amp;shape) {
   return shape.area() * 2;
 }
 
@@ -1609,7 +1639,7 @@ template &lt;typename T&gt;
 concept shape = std::derived_from&lt;T, Shape&gt;;
 
 template &lt;shape T&gt;
-double twiceArea(T shape) {
+double twiceArea(const T &amp;shape) {
   // note the call to a method not defined in Shape
   return shape.volume() * 2;
 }
@@ -1754,7 +1784,7 @@ fn store&lt;'s, S: Shape + 's&gt;(x: S, data: &amp;mut Box&lt;dyn Shape + 's&gt;
     *data = Box::new(x);
 }
 <span class="boring">}</span></code></pre></pre>
-<div class="quiz-placeholder" data-quiz-name="&quot;concepts&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust needs to know that the type of `Scaled::shape` supports the `area` method,\nso a trait bound on the type parameter is necessary. Trait implementations are\nall or nothing, so the requirement applies to the whole implementation, not the\nindividual method.\n&quot;,&quot;id&quot;:&quot;3cb5759b-5fe0-491e-ac87-4ba455b26e8f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T: Shape&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64\n    where\n        T: Shape,\n    {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T: Shape&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Consider the following C++ program.\n\n```cpp\ntemplate&lt;typename T&gt;\nstruct Scaled {\n\tdouble scale;\n\tT shape;\n\n\tdouble area() const {\n\t\treturn scale * shape.area();\n\t}\n};\n\ntemplate &lt;typename T&gt;\nvoid printArea(T &amp;shape) {\n\tstd::cout &lt;&lt; shape.area() &lt;&lt; std::endl;\n}\n```\n\nWhich of the following snippets represents the most idiomatic translation of the\n`Scaled` template class into Rust?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;concepts&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust needs to know that the type of `Scaled::shape` supports the `area` method,\nso a trait bound on the type parameter is necessary. Trait implementations are\nall or nothing, so the requirement applies to the whole implementation, not the\nindividual method.\n&quot;,&quot;id&quot;:&quot;3cb5759b-5fe0-491e-ac87-4ba455b26e8f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T: Shape&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64\n    where\n        T: Shape,\n    {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T: Shape&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Consider the following C++ program.\n\n```cpp\ntemplate&lt;typename T&gt;\nstruct Scaled {\n\tdouble scale;\n\tT shape;\n\n\tdouble area() const {\n\t\treturn scale * shape.area();\n\t}\n};\n\ntemplate &lt;typename T&gt;\nvoid printArea(const T &amp;shape) {\n\tstd::cout &lt;&lt; shape.area() &lt;&lt; std::endl;\n}\n```\n\nWhich of the following snippets represents the most idiomatic translation of the\n`Scaled` template class into Rust?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="enums"><a class="header" href="#enums">Enums</a></h1>
 <p>In C++, enums are often used to model a fixed set of alternatives, especially when
 each of those enumerators corresponds to a specific integer value, such as is needed
@@ -1819,10 +1849,9 @@ fn set_pin_mode(pin: Pin, mode: Mode) {
 same as a byte (like declaring the underlying type of an enum in C++). The enum
 values can then be freely converted to the underlying type with the <code>as</code>.</p>
 <p>In C++ the standard way to convert from an integer to an enum is a static cast.
-However, this <a href="https://eel.is/c++draft/expr.static.cast#10">requires that the user check the validity of the cast
-themselves</a>. Often the conversion
-is done by a function that checks that the value to convert is a valid enum
-value.</p>
+However, this <a href="https://eel.is/c++draft/expr.static.cast#9">requires that the user check the validity of the cast
+themselves</a>. Often the conversion is
+done by a function that checks that the value to convert is a valid enum value.</p>
 <p>In Rust the standard way to perform the conversion is to implement the <code>TryFrom</code>
 trait for the type and then use the <code>try_from</code> method or <code>try_into</code> method.</p>
 <div class="comparison">
@@ -2437,7 +2466,10 @@ fn main() {
             Shape::Triangle { base, .. } =&gt; {
                 total_base += base;
             }
-            _ =&gt; unsafe {
+            _ =&gt;
+            // SAFETY: get_triangles is guaranteed to produce triangles, so
+            // other cases aren't reachable.
+            unsafe {
                 unreachable_unchecked();
             },
         }
@@ -2495,8 +2527,8 @@ int main() {
 
     fn reset_device(&amp;mut self) {
         println!("Resetting device...");
-        self.power_on();
         self.power_off();
+        self.power_on();
     }
 }
 
@@ -2547,12 +2579,12 @@ in modern C++, inheritance hierarchies in Rust tend to be shallow. In situations
 with complex multiple inheritance, however, the diamond problem cannot arise in
 Rust because traits cannot override other traits implementations. Therefore, all
 paths to a common parent trait resolve to the same implementation.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;inheritance_and_reuse&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Unlike with a C++ parent class, the default method is not part of `BareLogger`,\neven when accessed statically via the trait.\n&quot;,&quot;id&quot;:&quot;2bc058d0-99e4-44e0-9abe-5497b713731e&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;a message\nan error\nanother message\nanother error\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;trait Logger {\n    fn log(&amp;self, message: &amp;str);\n\n    fn error(&amp;self, message: &amp;str) {\n        self.log(&amp;format!(\&quot;ERROR: {}\&quot;, message));\n    }\n}\n\nstruct BareLogger;\n\nimpl Logger for BareLogger {\n    fn log(&amp;self, message: &amp;str) {\n        println!(\&quot;{}\&quot;, message);\n    }\n\n    fn error(&amp;self, message: &amp;str) {\n        // Omits the ERROR: prefix\n        println!(\&quot;{}\&quot;, message)\n    }\n}\n\nfn main() {\n    let logger = BareLogger;\n    logger.log(\&quot;a message\&quot;);\n    logger.error(\&quot;an error\&quot;);\n    &lt;BareLogger as Logger&gt;::log(&amp;logger, \&quot;another message\&quot;);\n    &lt;BareLogger as Logger&gt;::error(&amp;logger, \&quot;another error\&quot;);\n}\n&quot;}},{&quot;context&quot;:&quot;A trait only defines an interface, with the ability to define default methods as\na convenience for when some methods on the trait can be defined in terms of\nothers.\n&quot;,&quot;id&quot;:&quot;78c03495-5d3d-4faf-8375-b9f338a377ff&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because in Rust traits cannot have fields.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile, because `health` isn't initialized when `Enemy` implements\n`Damageable`.\n&quot;,&quot;It does not compile, because `e.health` isn't initialized before using `e` in\n`main`.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile? If not, why not?\n\n```rust\ntrait Damageable {\n    health: u32;\n\n    fn take_damage(&amp;mut self, damage: u32) {\n        self.health = self.health.saturating_sub(damage);\n    }\n}\n\nimpl Damageable for Enemy {}\n\nfn main() {\n    let e = Enemy;\n    e.take_damage(10);\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;inheritance_and_reuse&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Unlike with a C++ parent class, the default method is not part of `BareLogger`,\neven when accessed statically via the trait.\n&quot;,&quot;id&quot;:&quot;2bc058d0-99e4-44e0-9abe-5497b713731e&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;a message\nan error\nanother message\nanother error\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;trait Logger {\n    fn log(&amp;self, message: &amp;str);\n\n    fn error(&amp;self, message: &amp;str) {\n        self.log(&amp;format!(\&quot;ERROR: {}\&quot;, message));\n    }\n}\n\nstruct BareLogger;\n\nimpl Logger for BareLogger {\n    fn log(&amp;self, message: &amp;str) {\n        println!(\&quot;{}\&quot;, message);\n    }\n\n    fn error(&amp;self, message: &amp;str) {\n        // Omits the ERROR: prefix\n        println!(\&quot;{}\&quot;, message)\n    }\n}\n\nfn main() {\n    let logger = BareLogger;\n    logger.log(\&quot;a message\&quot;);\n    logger.error(\&quot;an error\&quot;);\n    &lt;BareLogger as Logger&gt;::log(&amp;logger, \&quot;another message\&quot;);\n    &lt;BareLogger as Logger&gt;::error(&amp;logger, \&quot;another error\&quot;);\n}\n&quot;}},{&quot;context&quot;:&quot;A trait only defines an interface, with the ability to define default methods as\na convenience for when some methods on the trait can be defined in terms of\nothers.\n&quot;,&quot;id&quot;:&quot;78c03495-5d3d-4faf-8375-b9f338a377ff&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because in Rust traits cannot have fields.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile, because `health` isn't initialized when `Enemy` implements\n`Damageable`.\n&quot;,&quot;It does not compile, because `e.health` isn't initialized before using `e` in\n`main`.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile? If not, why not?\n\n```rust\ntrait Damageable {\n    health: u32;\n\n    fn take_damage(&amp;mut self, damage: u32) {\n        self.health = self.health.saturating_sub(damage);\n    }\n}\n\nstruct Enemy;\n\nimpl Damageable for Enemy {}\n\nfn main() {\n    let e = Enemy;\n    e.take_damage(10);\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="template-classes-functions-and-methods"><a class="header" href="#template-classes-functions-and-methods">Template classes, functions, and methods</a></h1>
-<p>The most common uses of templates in C++ are to define classes, methods, traits,
-or functions that work for any type (or at least for any type that provides
-certain methods). This use case is common in the STL for container classes (such
-as <code>&lt;vector&gt;</code>) and for the algorithms library (<code>&lt;algorithm&gt;</code>).</p>
+<p>The most common uses of templates in C++ are to define classes, methods, or
+functions that work for any type (or at least for any type that provides certain
+methods). This use case is common in the STL for container classes (such as
+<code>&lt;vector&gt;</code>) and for the algorithms library (<code>&lt;algorithm&gt;</code>).</p>
 <p>The following example defines a template for a directed graph represented as an
 adjacency list, where the graph is generic in the type of the labels on the
 nodes. Though the example shows a template class, the same comparisons with Rust
@@ -2570,7 +2602,7 @@ class DirectedGraph {
 public:
   size_t addNode(Label label) {
     adjacencies.push_back(std::vector&lt;size_t&gt;());
-    nodeLabels.push_back(label);
+    nodeLabels.push_back(std::move(label));
     return numNodes() - 1;
   }
 
@@ -2654,7 +2686,7 @@ class DirectedGraph {
 </span>public:
 <span class="boring">  size_t addNode(Label label) {
 </span><span class="boring">    adjacencies.push_back(std::vector&lt;size_t&gt;());
-</span><span class="boring">    nodeLabels.push_back(label);
+</span><span class="boring">    nodeLabels.push_back(std::move(label));
 </span><span class="boring">    return numNodes() - 1;
 </span><span class="boring">  }
 </span><span class="boring">
@@ -2937,8 +2969,8 @@ instantiates the generic structure with a concrete type.</p>
 
 template &lt;typename Label&gt;
 class DirectedGraph {
-  // The mistake is here: size_t should be Label
   std::vector&lt;std::vector&lt;size_t&gt;&gt; adjacencies;
+  // The mistake is here: size_t should be Label
   std::vector&lt;size_t&gt; nodeLabels;
 
 public:
@@ -2948,7 +2980,7 @@ public:
 
   size_t addNode(Label label) {
     adjacencies.push_back(std::vector&lt;size_t&gt;());
-    nodeLabels.push_back(label);
+    nodeLabels.push_back(std::move(label));
     return numNodes() - 1;
   }
 
@@ -2974,8 +3006,8 @@ BOOST_AUTO_TEST_CASE(test_add_node_float) {
 }
 </code></pre>
 <pre><code class="language-rust ignore">pub struct DirectedGraph&lt;Label&gt; {
-    // The mistake is here: size_t should be Label
     adjacencies: Vec&lt;Vec&lt;usize&gt;&gt;,
+    // The mistake is here: size_t should be Label
     node_labels: Vec&lt;usize&gt;,
 }
 
@@ -3032,7 +3064,7 @@ message useful for identifying the error.</p>
 <h2 id="lifetimes-parameters"><a class="header" href="#lifetimes-parameters">Lifetimes parameters</a></h2>
 <p>Rust's generics are also used for classes, methods, traits, and functions that
 are generic in the lifetimes of the references they manipulate. Unlike other
-type parameters, the using a function with different lifetimes does not cause
+type parameters, using a function with different lifetimes does not cause
 additional copies of the function to be generated in the compiled code, because
 lifetimes do not impact the runtime representation.</p>
 <p>The chapter on concepts includes <a href="idioms/data_modeling//idioms/data_modeling/concepts.html#generics-and-lifetimes">examples of how lifetimes interact with Rust's
@@ -3085,7 +3117,7 @@ void push_if_even(int n,
                   std::vector&lt;T&gt; &amp;collection,
                   T item) {
   if (n % 2 == 0) {
-    collection.push_back(item);
+    collection.push_back(std::move(item));
   }
 }
 
@@ -3175,7 +3207,7 @@ efficiency gains do not otherwise change the observable behavior of the code.</p
 <p><a href="https://doc.rust-lang.org/std/option/index.html#representation">The most common case is with the <code>Option</code>
 type</a>. When
 <code>Option</code> is used with a type where the compiler can tell that there are unused
-values, one f those unused values will be used to represent the <code>None</code> case, so
+values, one of those unused values will be used to represent the <code>None</code> case, so
 that <code>Option&lt;T&gt;</code> will not require an extra word of memory to indicate the
 discriminant of the enum.</p>
 <p>This optimization is applied to reference types (<code>&amp;</code> and <code>&amp;mut</code>), since
@@ -3205,7 +3237,7 @@ having reached the end of valid data in an iterator.</p>
 <h2 id="nullptr"><a class="header" href="#nullptr"><code>nullptr</code></a></h2>
 <p>Many designs in C++ borrow the convention from C of using a null pointer as a
 sentinel value for a method that returns owned pointers. For example, a method
-that parses a large structure may produce <code>std::nullptr</code> in the case of failure.</p>
+that parses a large structure may produce <code>nullptr</code> in the case of failure.</p>
 <p>A similar situation in Rust would make use of the type
 <code>Option&lt;Box&lt;LargeStructure&gt;&gt;</code>.</p>
 <div class="comparison">
@@ -3242,10 +3274,10 @@ fn parse(
 <span class="boring">}</span></code></pre></pre>
 </div>
 <p>The <code>Box&lt;T&gt;</code> type has the same meaning as <code>std::unique_ptr&lt;T&gt;</code> in terms of being
-an uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
-it cannot be null. Rust's <code>Option&lt;T&gt;</code> is like <code>std::optional&lt;T&gt;</code> in C++, except
-that it can be used with pointers and references. In <a href="idioms/null//idioms/data_modeling/template_specialization.html#niche-optimization">those cases (and in some
-other
+a uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
+it cannot be null. Rust's <code>Option&lt;T&gt;</code> (which is similar to <code>std::optional&lt;T&gt;</code> in
+C++) can represent optional pointers when used in conjunction with <code>Box&lt;T&gt;</code>, as
+in <code>Optional&lt;Box&lt;T&gt;&gt;</code>. In <a href="idioms/null//idioms/data_modeling/template_specialization.html#niche-optimization">those cases (and in some other
 cases)</a> the
 compiler optimizes the representation to be the same size as <code>Box&lt;T&gt;</code> by
 leveraging the fact that <code>Box</code> cannot be null.</p>
@@ -3257,7 +3289,7 @@ make the reason for the failure available at runtime.</p>
 an otherwise unused or unlikely integer value as a sentinel value, such as <code>0</code>
 or <code>INT_MAX</code>.</p>
 <p>In Rust, the <code>Option</code> type is used for this purpose. In cases where the zero
-value really is not possible to produce, as with the gcd algorithm above, the
+value really is not possible to produce, as with the GCD algorithm below, the
 type <code>NonZero&lt;T&gt;</code> can be used to indicate that fact. As with <code>Option&lt;Box&lt;T&gt;&gt;</code>,
 the compiler optimizes the representation to make use of the unused value (in
 this case <code>0</code>) to represent the <code>None</code> case to ensure that the representation of
@@ -3468,7 +3500,7 @@ fn main() {
     assert!(sum2 == 0);
 }</code></pre></pre>
 </div>
-<div class="quiz-placeholder" data-quiz-name="&quot;zero_length_arrays&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;An even more idiomatic implementation would be to use the\n[`fill`](https://doc.rust-lang.org/std/primitive.slice.html#method.fill) method\non the slice type.\n\n```rust\nfn main() {\n    let mut x: [i32; 0] = [];\n    x.fill(5);\n}\n```\n&quot;,&quot;id&quot;:&quot;b1f64fba-b6d1-445e-85fb-08a1dfd29fc2&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nfn fill_from(arr: &amp;mut [i32], mut val: i32) {\n    for x in arr {\n        *x = val;\n        val += 1;\n    }\n}\n\nfn main() {\n    let mut x = [];\n    fill_from(&amp;mut x, 5);\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn fill_from(size: usize, arr: &amp;mut [i32], mut val: i32) {\n    for i in 0..size {\n        arr[i] = val;\n        val += 1;\n    }\n}\n\nfn main() {\n    let mut x = [];\n    fill_from(0, &amp;mut x, 5);\n}\n```\n&quot;,&quot;```rust\nfn fill_from(size: usize, opt_arr: Option&lt;&amp;mut [i32]&gt;, mut val: i32) {\n    if let Some(arr) = opt_arr {\n        for i in 0..size {\n            arr[i] = val;\n            val += 1;\n        }\n    }\n}\n\nfn main() {\n    fill_from(0, None, 5);\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\n#include &lt;cstddef&gt;\n\nvoid fillFrom(std::size_t len, int arr[], int val) {\n  for (std::size_t i; i &lt; len; i++) {\n    arr[i] = val;\n    val++;\n  }\n}\n\nint main() {\n  fill(0, nullptr, 5);\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;zero_length_arrays&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;b1f64fba-b6d1-445e-85fb-08a1dfd29fc2&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nfn fill_from(arr: &amp;mut [i32], mut val: i32) {\n    for x in arr {\n        *x = val;\n        val += 1;\n    }\n}\n\nfn main() {\n    let mut x = [];\n    fill_from(&amp;mut x, 5);\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn fill_from(size: usize, arr: &amp;mut [i32], mut val: i32) {\n    for i in 0..size {\n        arr[i] = val;\n        val += 1;\n    }\n}\n\nfn main() {\n    let mut x = [];\n    fill_from(0, &amp;mut x, 5);\n}\n```\n&quot;,&quot;```rust\nfn fill_from(size: usize, opt_arr: Option&lt;&amp;mut [i32]&gt;, mut val: i32) {\n    if let Some(arr) = opt_arr {\n        for i in 0..size {\n            arr[i] = val;\n            val += 1;\n        }\n    }\n}\n\nfn main() {\n    fill_from(0, None, 5);\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\n#include &lt;cstddef&gt;\n\nvoid fillFrom(std::size_t len, int arr[], int val) {\n  for (std::size_t i; i &lt; len; i++) {\n    arr[i] = val;\n    val++;\n  }\n}\n\nint main() {\n  fill(0, nullptr, 5);\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="encapsulation"><a class="header" href="#encapsulation">Encapsulation</a></h1>
 <p>In C++ the encapsulation boundary is the class. In Rust the encapsulation
 boundary is the module, which may contain several types along with standalone
@@ -3638,7 +3670,7 @@ C++ programs.</p>
 <p>Rust provides <a href="https://doc.rust-lang.org/reference/abi.html#the-no_mangle-attribute"><code>#[unsafe(no_mangle)]</code></a> to bypass name mangling
 in order to produce functions that can be easily
 referred to from C or C++. This can also cause undefined behavior due to name collision.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;anonymous_namespaces&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;4ed5c1ed-81e3-448d-b20a-8f0eac301489&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n// colors.rs\npub fn red() {}\nfn blue() {}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// colors.rs\nmod colors {\n    pub fn red() {}\n    fn blue() {}\n}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;,&quot;```rust\n// colors.rs\nmod colors {\n    fn red() {}\n\n    mod {\n        fn blue() {}\n    }\n}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is an idiomatic translation of the following C++ program?\n\n```cpp\n// colors.h\nnamespace colors {\n  void red();\n}\n\n// colors.cc\n#include \&quot;colors.h\&quot;\n\nnamespace colors {\n  void red() {}\n\n  namespace {\n    void blue() {}\n  }\n}\n\n// main.cc\n#include \&quot;colors.h\&quot;\n\nusing namespace colors;\n\nint main() {}\n```\n&quot;}},{&quot;context&quot;:&quot;Even if in C++ you wouldn't use namespaces to structure the program, in Rust\nsplitting programs into separate files also means splitting them into separate\nmodules.\n&quot;,&quot;id&quot;:&quot;eb1bde49-9ca5-4e8d-b6f3-d49c95393dfb&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;red&quot;,&quot;a::red&quot;,&quot;violet&quot;,&quot;b::violet&quot;,&quot;other_colors::green&quot;,&quot;a::other_colors::green&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;orange&quot;,&quot;green&quot;,&quot;indigo&quot;,&quot;a::green&quot;],&quot;prompt&quot;:&quot;In the following Rust program, which items would be visible within the `main`\nfunction?\n\n```rust\n// a.rs\npub fn red() {}\nfn orange() {}\n\nmod other_colors {\n    pub fn green() {}\n    fn blue() {}\n}\n\n// b.rs\npub fn indigo() {};\npub fn violet() {};\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::violet;\n\nfn main() {\n   // What is visible here?\n}\n```\n&quot;}},{&quot;context&quot;:&quot;Lack of `pub` is like putting it in an anonymous namespace in terms of\nvisibility outside of the defining module.\n\n`mod` is not `#include`. `mod` defines a module, and using items from the module\nrequires either importing or qualification.\n\nResolving ambiguous items works the same as it does with C++ namespaces.\nAmbiguous use is the error, not having conflicting names in scope.\n&quot;,&quot;id&quot;:&quot;b3c2c70b-26b7-4396-8f8a-0e21541896cf&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    a::go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nfn main() {\n    a::go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\nfn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following Rust programs compile?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;anonymous_namespaces&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;4ed5c1ed-81e3-448d-b20a-8f0eac301489&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n// colors.rs\npub fn red() {}\nfn blue() {}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// colors.rs\nmod colors {\n    pub fn red() {}\n    fn blue() {}\n}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;,&quot;```rust\n// colors.rs\nmod colors {\n    fn red() {}\n\n    mod {\n        fn blue() {}\n    }\n}\n\n// main.rs\nmod colors;\n\nuse colors::*;\n\nfn main() {}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is an idiomatic translation of the following C++ program?\n\n```cpp\n// colors.h\nnamespace colors {\n  void red();\n}\n\n// colors.cc\n#include \&quot;colors.h\&quot;\n\nnamespace colors {\n  void red() {}\n\n  namespace {\n    void blue() {}\n  }\n}\n\n// main.cc\n#include \&quot;colors.h\&quot;\n\nusing namespace colors;\n\nint main() {}\n```\n&quot;}},{&quot;context&quot;:&quot;Even if in C++ you wouldn't use namespaces to structure the program, in Rust\nsplitting programs into separate files also means splitting them into separate\nmodules.\n&quot;,&quot;id&quot;:&quot;eb1bde49-9ca5-4e8d-b6f3-d49c95393dfb&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;red&quot;,&quot;a::red&quot;,&quot;violet&quot;,&quot;b::violet&quot;,&quot;other_colors::green&quot;,&quot;a::other_colors::green&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;orange&quot;,&quot;green&quot;,&quot;indigo&quot;,&quot;a::green&quot;],&quot;prompt&quot;:&quot;In the following Rust program, which items would be visible within the `main`\nfunction?\n\n```rust\n// a.rs\npub fn red() {}\nfn orange() {}\n\npub mod other_colors {\n    pub fn green() {}\n    fn blue() {}\n}\n\n// b.rs\npub fn indigo() {}\npub fn violet() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::violet;\n\nfn main() {\n   // What is visible here?\n}\n```\n&quot;}},{&quot;context&quot;:&quot;Lack of `pub` is like putting it in an anonymous namespace in terms of\nvisibility outside of the defining module.\n\n`mod` is not `#include`. `mod` defines a module, and using items from the module\nrequires either importing or qualification.\n\nResolving ambiguous items works the same as it does with C++ namespaces.\nAmbiguous use is the error, not having conflicting names in scope.\n&quot;,&quot;id&quot;:&quot;b3c2c70b-26b7-4396-8f8a-0e21541896cf&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    a::go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nfn main() {\n    a::go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\npub fn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\nfn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nuse a::*;\nuse b::*;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;,&quot;```rust\n// a.rs\npub fn go() {}\n\n// b.rs\nfn go() {}\n\n// main.rs\nmod a;\nmod b;\n\nfn main() {\n    go();\n    println!(\&quot;{}\&quot;, 4);\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following Rust programs compile?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="private-members-and-friends"><a class="header" href="#private-members-and-friends">Private members and friends</a></h1>
 <h2 id="private-members"><a class="header" href="#private-members">Private members</a></h2>
 <p>In C++ the unit of encapsulation is the class. Access specifiers (<code>private</code>,
@@ -3665,10 +3697,10 @@ public:
   // so this has to be a member function.
   static void example() {
     Person alice{"Alice", 42};
-    std::ctout &lt;&lt; alice.name &lt;&lt; cout::endl;
+    std::cout &lt;&lt; alice.name &lt;&lt; std::endl;
     // The private field is visible here, within
     // the class.
-    std::ctout &lt;&lt; alice.age &lt;&lt; cout::endl;
+    std::cout &lt;&lt; alice.age &lt;&lt; std::endl;
   }
 };
 
@@ -4433,13 +4465,11 @@ handling logic.</p>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="setter-and-getter-methods"><a class="header" href="#setter-and-getter-methods">Setter and getter methods</a></h1>
 <p>Setters and getters work similarly in C++ and Rust, but are used less frequently
 in Rust.</p>
-<p>It would <a href="https://docs.rs/bevy/0.16.0/bevy/math/struct.Vec2.html">not be
-unusual</a> to see the
-following representation of a two-dimensional vector in C++, which hides its
-implementation and provides setters and getters to access the fields. This
-choice would typically be made in case a representation change (such as using
-polar instead of rectangular coordinates) needed to be made later without
-breaking clients.</p>
+<p>It would not be unusual to see the following representation of a two-dimensional
+vector in C++, which hides its implementation and provides setters and getters
+to access the fields. This choice would typically be made in case a
+representation change (such as using polar instead of rectangular coordinates)
+needed to be made later without breaking clients.</p>
 <p>On the other hand, in Rust such a type would almost always be defined with
 public fields.</p>
 <div class="comparison">
@@ -4605,7 +4635,7 @@ cause the error case.</p>
 <p>It is possible to convert between the two types.</p>
 <pre><pre class="playground"><code class="language-rust">fn main() {
     let r: Result&lt;i32, &amp;'static str&gt; =
-        None.ok_or("my errror message");
+        None.ok_or("my error message");
     let r2: Result&lt;i32, &amp;'static str&gt; =
         None.ok_or_else(|| "expensive error message");
     let o: Option&lt;i32&gt; = r.ok();
@@ -5128,7 +5158,7 @@ types in Rust.</p>
 <tr><td>Shared owner, dynamic storage, immutable, not thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><code>std::rc::Rc&lt;T&gt;</code></td></tr>
 <tr><td>Shared owner, dynamic storage, immutable, thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><code>std::sync::Arc&lt;T&gt;</code></td></tr>
 <tr><td>Shared owner, dynamic storage, mutable, not thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><a href="https://doc.rust-lang.org/book/ch15-05-interior-mutability.html#having-multiple-owners-of-mutable-data-by-combining-rct-and-refcellt"><code>std::rc::Rc&lt;std::cell::RefCell&lt;T&gt;&gt;</code></a></td></tr>
-<tr><td>Shared owner, dynamic storage, mutable, thread-safe</td><td><code>std::shared_ptr&lt;std::mutex&lt;T&gt;&gt;</code></td><td><a href="https://doc.rust-lang.org/book/ch16-03-shared-state.html"><code>std::sync::Arc&lt;std::mutex::Mutex&lt;T&gt;&gt;</code></a></td></tr>
+<tr><td>Shared owner, dynamic storage, mutable, thread-safe</td><td><code>std::shared_ptrM&lt;T&gt;</code> with a <code>std::mutex</code></td><td><a href="https://doc.rust-lang.org/book/ch16-03-shared-state.html"><code>std::sync::Arc&lt;std::mutex::Mutex&lt;T&gt;&gt;</code></a></td></tr>
 <tr><td>Const reference</td><td><code>const &amp;T</code></td><td><code>&amp;T</code></td></tr>
 <tr><td>Mutable reference</td><td><code>&amp;T</code></td><td><code>&amp;mut T</code></td></tr>
 <tr><td>Const observer pointer</td><td><code>const *T</code></td><td><code>&amp;T</code></td></tr>
@@ -5179,10 +5209,10 @@ when defining a function that does not modify the length of a vector and does
 not need to statically know the number of elements in an array, it is more
 idiomatic to take a parameter as <code>&amp;[T]</code> or <code>&amp;mut [T]</code> than as a reference to the
 owned type.</p>
-<p>In C++ it is better to take begin and end iterators than a <code>span</code> when possible,
-since iterators are more general. The same is true with Rust and taking a
-generic type that implements <code>IntoIter&lt;&amp;T&gt;</code> or <code>IntoIter&lt;&amp;mut T&gt;</code> instead of
-<code>&amp;[T]</code>.</p>
+<p>In C++ it is better to take begin and end iterators or a range than a <code>span</code>
+when possible, since iterators are more general. The same is true with Rust and
+taking a generic type that implements <code>IntoIter&lt;&amp;T&gt;</code> or <code>IntoIter&lt;&amp;mut T&gt;</code>
+instead of <code>&amp;[T]</code>.</p>
 <div class="comparison">
 <pre><code class="language-c++">#include &lt;iterator&gt;
 #include &lt;vector&gt;

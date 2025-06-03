@@ -167,12 +167,12 @@ a method that does not have a <code>self</code> parameter), which returns a valu
 type.</p>
 <div class="comparison">
 <pre><code class="language-cpp"><span class="boring">#include &lt;thread&gt;
-</span><span class="boring">unsigned int cpu_count() { 
+</span><span class="boring">unsigned int cpu_count() {
 </span><span class="boring">    return std::thread::hardware_concurrency();
 </span><span class="boring">}
 </span><span class="boring">
 </span>class ThreadPool {
-  unsigned int num_threads;  
+  unsigned int num_threads;
 
 public:
   ThreadPool() : num_threads(cpu_count()) {}
@@ -198,7 +198,7 @@ impl ThreadPool {
     }
 
     fn with_threads(nt: usize) -&gt; Self {
-        Self { num_threads: nt } 
+        Self { num_threads: nt }
     }
 }
 
@@ -240,8 +240,8 @@ creates a new value based on another one, taking ownership of it in order to do
 so.</p>
 <h2 id="storage-allocation-vs-initialization"><a class="header" href="#storage-allocation-vs-initialization">Storage allocation vs initialization</a></h2>
 <p>In Rust, the actual construction of a structure or enum value occurs where the
-structure construction syntax <code>ThreadPool { ... }</code> is, after the evaluation of the
-expressions for the fields.</p>
+structure construction syntax (e.g., <code>ThreadPool { ... }</code>) is, after the
+evaluation of the expressions for the fields (e.g., <code>cpu_count()</code>).</p>
 <p>A significant implication of this difference is that storage is not allocated
 for a struct in Rust at the point where the constructor method (such as
 <code>ThreadPool::with_threads</code>) is called, and in fact is not allocated until after the
@@ -250,9 +250,10 @@ of the language — the optimizer may still avoid the copy). Therefore there is 
 straightforward way in Rust to translate patterns such as a class which stores a pointer to
 itself upon construction (in Rust, this requires tools like <a href="https://doc.rust-lang.org/std/pin/struct.Pin.html"><code>Pin</code></a> and <a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a>).</p>
 <h2 id="fallible-constructors"><a class="header" href="#fallible-constructors">Fallible constructors</a></h2>
-<p>In C++, the primary way constructors can indicate failure is by throwing exceptions. In Rust, because constructors are normal static methods, fallible constructors
-can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code> (akin to
-<code>std::optional</code>).</p>
+<p>In C++, the primary way constructors can indicate failure is by throwing
+exceptions. In Rust, because constructors are normal static methods, fallible
+constructors can instead return <code>Result</code> (akin to <code>std::expected</code>) or <code>Option</code>
+(akin to <code>std::optional</code>).<sup class="footnote-reference" id="fr-NonZero-1"><a href="#footnote-NonZero">1</a></sup></p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;iostream&gt;
 #include &lt;stdexcept&gt;
@@ -263,7 +264,8 @@ class ThreadPool {
 public:
   ThreadPool(unsigned int nt) : num_threads(nt) {
     if (num_threads == 0) {
-      throw std::domain_error("Cannot have zero threads");
+      throw std::domain_error(
+          "Cannot have zero threads");
     }
   }
 };
@@ -271,6 +273,7 @@ public:
 int main() {
   try {
     ThreadPool p(0);
+    // use p here
   } catch (const std::domain_error &amp;e) {
     std::cout &lt;&lt; e.what() &lt;&lt; std::endl;
   }
@@ -280,10 +283,17 @@ int main() {
     num_threads: usize,
 }
 
+#[derive(Debug)]
+enum ThreadPoolError {
+    ZeroThreads,
+}
+
 impl ThreadPool {
-    fn with_threads(nt: usize) -&gt; Result&lt;Self, String&gt; {
+    fn with_threads(
+        nt: usize,
+    ) -&gt; Result&lt;Self, ThreadPoolError&gt; {
         if nt == 0 {
-            Err("Cannot have zero threads".to_string())
+            Err(ThreadPoolError::ZeroThreads)
         } else {
             Ok(Self { num_threads: nt })
         }
@@ -292,14 +302,21 @@ impl ThreadPool {
 
 fn main() {
     match ThreadPool::with_threads(0) {
-        Err(err) =&gt; println!("{err}"),        
-        Ok(p) =&gt; { /* ... */ }
+        Err(err) =&gt; println!("{:?}", err),
+        Ok(p) =&gt; {
+            // use p here
+        }
     }
 }</code></pre></pre>
 </div>
 <p>See <a href="/idioms/exceptions.html">the chapter on exceptions</a> for more information on
 how C++ exceptions and exception handling translate to Rust.</p>
-
+<hr>
+<ol class="footnote-definition"><li id="footnote-NonZero">
+<p>An alternative approach here would be to use <code>NonZero&lt;usize&gt;</code> as the
+type so that the error case wasn't possible in the first place. <a href="#fr-NonZero-1">↩</a></p>
+</li>
+</ol>
 
                         <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Constructors">Click here to leave us feedback about this page.</a>
                     </main>

@@ -162,7 +162,7 @@ having reached the end of valid data in an iterator.</p>
 <h2 id="nullptr"><a class="header" href="#nullptr"><code>nullptr</code></a></h2>
 <p>Many designs in C++ borrow the convention from C of using a null pointer as a
 sentinel value for a method that returns owned pointers. For example, a method
-that parses a large structure may produce <code>std::nullptr</code> in the case of failure.</p>
+that parses a large structure may produce <code>nullptr</code> in the case of failure.</p>
 <p>A similar situation in Rust would make use of the type
 <code>Option&lt;Box&lt;LargeStructure&gt;&gt;</code>.</p>
 <div class="comparison">
@@ -199,10 +199,10 @@ fn parse(
 <span class="boring">}</span></code></pre></pre>
 </div>
 <p>The <code>Box&lt;T&gt;</code> type has the same meaning as <code>std::unique_ptr&lt;T&gt;</code> in terms of being
-an uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
-it cannot be null. Rust's <code>Option&lt;T&gt;</code> is like <code>std::optional&lt;T&gt;</code> in C++, except
-that it can be used with pointers and references. In <a href="/idioms/data_modeling/template_specialization.html#niche-optimization">those cases (and in some
-other
+a uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
+it cannot be null. Rust's <code>Option&lt;T&gt;</code> (which is similar to <code>std::optional&lt;T&gt;</code> in
+C++) can represent optional pointers when used in conjunction with <code>Box&lt;T&gt;</code>, as
+in <code>Optional&lt;Box&lt;T&gt;&gt;</code>. In <a href="/idioms/data_modeling/template_specialization.html#niche-optimization">those cases (and in some other
 cases)</a> the
 compiler optimizes the representation to be the same size as <code>Box&lt;T&gt;</code> by
 leveraging the fact that <code>Box</code> cannot be null.</p>
@@ -214,7 +214,7 @@ make the reason for the failure available at runtime.</p>
 an otherwise unused or unlikely integer value as a sentinel value, such as <code>0</code>
 or <code>INT_MAX</code>.</p>
 <p>In Rust, the <code>Option</code> type is used for this purpose. In cases where the zero
-value really is not possible to produce, as with the gcd algorithm above, the
+value really is not possible to produce, as with the GCD algorithm below, the
 type <code>NonZero&lt;T&gt;</code> can be used to indicate that fact. As with <code>Option&lt;Box&lt;T&gt;&gt;</code>,
 the compiler optimizes the representation to make use of the unused value (in
 this case <code>0</code>) to represent the <code>None</code> case to ensure that the representation of

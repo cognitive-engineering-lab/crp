@@ -194,7 +194,7 @@ cause the error case.</p>
 <p>It is possible to convert between the two types.</p>
 <pre><pre class="playground"><code class="language-rust">fn main() {
     let r: Result&lt;i32, &amp;'static str&gt; =
-        None.ok_or("my errror message");
+        None.ok_or("my error message");
     let r2: Result&lt;i32, &amp;'static str&gt; =
         None.ok_or_else(|| "expensive error message");
     let o: Option&lt;i32&gt; = r.ok();

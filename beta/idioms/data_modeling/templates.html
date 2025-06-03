@@ -157,10 +157,10 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="template-classes-functions-and-methods"><a class="header" href="#template-classes-functions-and-methods">Template classes, functions, and methods</a></h1>
-<p>The most common uses of templates in C++ are to define classes, methods, traits,
-or functions that work for any type (or at least for any type that provides
-certain methods). This use case is common in the STL for container classes (such
-as <code>&lt;vector&gt;</code>) and for the algorithms library (<code>&lt;algorithm&gt;</code>).</p>
+<p>The most common uses of templates in C++ are to define classes, methods, or
+functions that work for any type (or at least for any type that provides certain
+methods). This use case is common in the STL for container classes (such as
+<code>&lt;vector&gt;</code>) and for the algorithms library (<code>&lt;algorithm&gt;</code>).</p>
 <p>The following example defines a template for a directed graph represented as an
 adjacency list, where the graph is generic in the type of the labels on the
 nodes. Though the example shows a template class, the same comparisons with Rust
@@ -178,7 +178,7 @@ class DirectedGraph {
 public:
   size_t addNode(Label label) {
     adjacencies.push_back(std::vector&lt;size_t&gt;());
-    nodeLabels.push_back(label);
+    nodeLabels.push_back(std::move(label));
     return numNodes() - 1;
   }
 
@@ -262,7 +262,7 @@ class DirectedGraph {
 </span>public:
 <span class="boring">  size_t addNode(Label label) {
 </span><span class="boring">    adjacencies.push_back(std::vector&lt;size_t&gt;());
-</span><span class="boring">    nodeLabels.push_back(label);
+</span><span class="boring">    nodeLabels.push_back(std::move(label));
 </span><span class="boring">    return numNodes() - 1;
 </span><span class="boring">  }
 </span><span class="boring">
@@ -545,8 +545,8 @@ instantiates the generic structure with a concrete type.</p>
 
 template &lt;typename Label&gt;
 class DirectedGraph {
-  // The mistake is here: size_t should be Label
   std::vector&lt;std::vector&lt;size_t&gt;&gt; adjacencies;
+  // The mistake is here: size_t should be Label
   std::vector&lt;size_t&gt; nodeLabels;
 
 public:
@@ -556,7 +556,7 @@ public:
 
   size_t addNode(Label label) {
     adjacencies.push_back(std::vector&lt;size_t&gt;());
-    nodeLabels.push_back(label);
+    nodeLabels.push_back(std::move(label));
     return numNodes() - 1;
   }
 
@@ -582,8 +582,8 @@ BOOST_AUTO_TEST_CASE(test_add_node_float) {
 }
 </code></pre>
 <pre><code class="language-rust ignore">pub struct DirectedGraph&lt;Label&gt; {
-    // The mistake is here: size_t should be Label
     adjacencies: Vec&lt;Vec&lt;usize&gt;&gt;,
+    // The mistake is here: size_t should be Label
     node_labels: Vec&lt;usize&gt;,
 }
 
@@ -640,7 +640,7 @@ message useful for identifying the error.</p>
 <h2 id="lifetimes-parameters"><a class="header" href="#lifetimes-parameters">Lifetimes parameters</a></h2>
 <p>Rust's generics are also used for classes, methods, traits, and functions that
 are generic in the lifetimes of the references they manipulate. Unlike other
-type parameters, the using a function with different lifetimes does not cause
+type parameters, using a function with different lifetimes does not cause
 additional copies of the function to be generated in the compiled code, because
 lifetimes do not impact the runtime representation.</p>
 <p>The chapter on concepts includes <a href="/idioms/data_modeling/concepts.html#generics-and-lifetimes">examples of how lifetimes interact with Rust's

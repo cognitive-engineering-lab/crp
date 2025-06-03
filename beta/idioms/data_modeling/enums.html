@@ -220,10 +220,9 @@ fn set_pin_mode(pin: Pin, mode: Mode) {
 same as a byte (like declaring the underlying type of an enum in C++). The enum
 values can then be freely converted to the underlying type with the <code>as</code>.</p>
 <p>In C++ the standard way to convert from an integer to an enum is a static cast.
-However, this <a href="https://eel.is/c++draft/expr.static.cast#10">requires that the user check the validity of the cast
-themselves</a>. Often the conversion
-is done by a function that checks that the value to convert is a valid enum
-value.</p>
+However, this <a href="https://eel.is/c++draft/expr.static.cast#9">requires that the user check the validity of the cast
+themselves</a>. Often the conversion is
+done by a function that checks that the value to convert is a valid enum value.</p>
 <p>In Rust the standard way to perform the conversion is to implement the <code>TryFrom</code>
 trait for the type and then use the <code>try_from</code> method or <code>try_into</code> method.</p>
 <div class="comparison">
