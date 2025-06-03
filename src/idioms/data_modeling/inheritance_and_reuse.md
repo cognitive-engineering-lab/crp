@@ -56,8 +56,8 @@ trait Device {
 
     fn reset_device(&mut self) {
         println!("Resetting device...");
-        self.power_on();
         self.power_off();
+        self.power_on();
     }
 }
 
