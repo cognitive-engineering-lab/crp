@@ -67,6 +67,6 @@ is completely destructed before the next field is, thus when the `Box` in field
 `boxed_sub` is dropped, it drops the value it owns before the value in `sub` is
 dropped. Finally `s3`, is dropped.
 
-`w`, `s2`, and `s1` are not dropepd because they are not initialized.
+`w`, `s2`, and `s1` are not dropped because they are not initialized.
 """
 id = "9132e738-cc0b-4ba5-a323-9200b99bcbc4"
