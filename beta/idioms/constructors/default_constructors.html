@@ -283,6 +283,8 @@ impl Student {
     }
 }
 <span class="boring">}</span></code></pre></pre>
+<p>The performance of the struct update syntax [is up to the
+optimizer]((https://godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:'1',fontScale:14,fontUsePx:'0',j:1,lang:rust,selection:(endColumn:1,endLineNumber:5,positionColumn:1,positionLineNumber:5,selectionStartColumn:1,selectionStartLineNumber:5,startColumn:1,startLineNumber:5),source:'struct+Person+%7B%0A++++age:+i32,%0A++++name:+String,%0A%7D%0A%0A%23%5Bno_mangle%5D%0Apub+fn+go(x:+Person)+-%3E+Person+%7B%0A++++Person+%7B+age:+42,+..x+%7D%0A%7D%0A%0A%23%5Bno_mangle%5D%0Apub+fn+go2(mut+x:+Person)+-%3E+Person+%7B%0A++++x.age+%3D+42%3B%0A++++x%0A%7D'),l:'5',n:'0',o:'Rust+source+%231',t:'0')),k:50,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:compiler,i:(compiler:r1870,filters:(b:'0',binary:'1',binaryObject:'1',commentOnly:'0',debugCalls:'1',demangle:'0',directives:'0',execute:'1',intel:'0',libraryCode:'0',trim:'1',verboseDemangling:'0'),flagsViewOpen:'1',fontScale:14,fontUsePx:'0',j:1,lang:rust,libs:!(),options:'-C+opt-level%3D2',overrides:!(),selection:(endColumn:1,endLineNumber:1,positionColumn:1,positionLineNumber:1,selectionStartColumn:1,selectionStartLineNumber:1,startColumn:1,startLineNumber:1),source:1),l:'5',n:'0',o:'+rustc+1.87.0+(Editor+%231)',t:'0')),k:50,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',n:'0',o:'',t:'0')),version:4)).</p>
 <h2 id="implicit-initialization-of-array-values"><a class="header" href="#implicit-initialization-of-array-values">Implicit initialization of array values</a></h2>
 <p>In C++, arrays without explicit initialization are default-initialized using the
 default constructors.</p>
@@ -307,7 +309,7 @@ struct Person {
 
 fn main() {
     // std::array::from_fn provides the index to the callback
-    let people: [Person; 3] = 
+    let people: [Person; 3] =
         std::array::from_fn(|_| Default::default());
     // ...
 }</code></pre></pre>
@@ -353,7 +355,7 @@ struct Person {
 }
 
 fn main() {
-    let people_arr: [Person; 3] = 
+    let people_arr: [Person; 3] =
         std::array::from_fn(|_| Default::default());
     let people: Vec&lt;Person&gt; = Vec::from(people_arr);
     // ...
@@ -453,16 +455,34 @@ Rust is <code>Option&lt;Box&lt;Person&gt;&gt;</code>, for which the <code>Defaul
 <p><a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_default"><code>Option::unwrap_or_default</code></a>
 makes use of <code>Default</code>, which makes getting a default value when the <code>Option</code>
 does not contain a value more convenient.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;optional&gt;
+#include &lt;string&gt;
+
+void go(std::optional&lt;std::string&gt; x) {
+  std::string a =
+      x.or_else([]() {
+         return std::make_optional&lt;std::string&gt;();
+       }).value();
+  // if x was nullopt, then a is ""
+
+  // ...
+}
+</code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>fn go(x: Option&lt;i32&gt;) {
-    let a: i32 = x.unwrap_or_default();
-    // if x was None, then a is 0
+</span>fn go(x: Option&lt;String&gt;) {
+    let a: String = x.unwrap_or_default();
+    // if x was None, then a is ""
 
     // ...
 }
 <span class="boring">}</span></code></pre></pre>
-<p>In C++, <code>std::optional</code> does not have an equivalent method.</p>
+</div>
+<p>In C++ <code>std::optional::value_or</code> is not equivalent, because it would always
+construct the default, as opposed to only constructing the default when the
+<code>std::optional</code> is <code>std::nullopt</code>. The equivalent requires using
+<code>std::optional::or_else</code>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;default_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust does not have implicit default initialization like C++ does. Variables must\nbe explicitly initialized before use, or the program will fail to compile.\n&quot;,&quot;id&quot;:&quot;5019323d-1534-4c70-a8e7-b015f87be228&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `w` is not explicitly initialized before it is used.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Widget` does not implement the `Default` trait.\n&quot;,&quot;It does not compile because `Widget` does not implement a `new` method.\n&quot;,&quot;It does not compile because `Widget` does not implement both the `Default`\ntrait and a `new` method.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\nstruct Widget {\n    color: String,\n}\n\nfn main() {\n    let w: Widget;\n    println!(\&quot;{}\&quot;, w.color);\n}\n```\n&quot;}},{&quot;context&quot;:&quot;When there is a reasonable default value, it is most idiomatic in Rust to\nprovide [both a `new` method and an implementation of the `Default`\ntrait.](https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits)\n&quot;,&quot;id&quot;:&quot;a436177e-821d-45d1-8e46-4fafc3d78cd3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2() : x(0.0), y(0.0) {}\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 

@@ -212,6 +212,9 @@ struct Person {
     best_friend: Rc&lt;Person&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
+<p>One point to note about the previous example is that <code>std::shared_ptr</code> and <code>Rc</code>
+differ slightly in terms of thread safety. See the chapter on <a href="/idioms/type_equivalents.html#pointers">type
+equivalents</a> for more details.</p>
 </div>
 <h2 id="user-defined-constructors"><a class="header" href="#user-defined-constructors">User-defined constructors</a></h2>
 <p>On the other hand, the following example requires a user-defined copy and move

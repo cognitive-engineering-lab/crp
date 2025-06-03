@@ -182,13 +182,25 @@ literals</a>.</p>
 <tr><td><code>int32_t</code></td><td><code>i32</code></td></tr>
 <tr><td><code>int64_t</code></td><td><code>i64</code></td></tr>
 <tr><td><code>size_t</code></td><td><code>usize</code></td></tr>
-<tr><td></td><td><code>isize</code></td></tr>
+<tr><td><code>ptrdiff_t</code></td><td><code>isize</code></td></tr>
 </tbody></table>
 </div>
-<p>In C++ <code>size_t</code> is conventionally used only for sizes and offsets. The same is
-true in Rust for <code>usize</code>, which is the pointer-sized integer type. The <code>isize</code>
-type is the signed equivalent of <code>usize</code> and has no direct equivalent in C++.
-The <code>isize</code> type is typically only used to represent pointer offsets.</p>
+<p>In C++ <code>size_t</code> is conventionally used only indexing, sizes, and offsets. The
+same is true in Rust for <code>usize</code>, which is the pointer-sized unsigned integer
+type. The pointer-sized signed integer type <code>isize</code> follows similar conventions.</p>
+<p>Some primitive C++ and POSIX types (such as <code>ssize_t</code> and <code>off_t</code> as return
+types) do not map to <code>isize</code> because the failure case is representing using
+<code>std::io::Result</code> instead of using a negative number as a <a href="/idioms/null/sentinel_values.html">sentinel
+value</a>. Others (such as <code>fpos_t</code> or <code>off_t</code> as
+a parameter type) are represented as a plain <code>u64</code> or have a more explicit
+representation in Rust.</p>
+<div class="table-wrapper"><table><thead><tr><th>C++ type</th><th>Rust type</th></tr></thead><tbody>
+<tr><td>POSIX <code>ssize_t</code></td><td><a href="https://doc.rust-lang.org/std/io/type.Result.html"><code>std::io::Result&lt;u64&gt;</code></a></td></tr>
+<tr><td>POSIX <code>off_t</code> (as argument)</td><td><code>u64</code></td></tr>
+<tr><td>POSIX <code>off_t</code>(as return value)</td><td><a href="https://doc.rust-lang.org/std/io/type.Result.html"><code>std::io::Result&lt;u64&gt;</code></a></td></tr>
+<tr><td><code>fpos_t</code></td><td><a href="https://doc.rust-lang.org/std/io/enum.SeekFrom.html"><code>std::io::SeekFrom</code></a></td></tr>
+</tbody></table>
+</div>
 <h3 id="floating-point-types"><a class="header" href="#floating-point-types">Floating point types</a></h3>
 <p>As with integer types in C++, the floating point types <code>float</code>, <code>double</code>, and
 <code>long double</code> have implementation defined widths. C++23 introduced types

@@ -170,14 +170,14 @@ at the end of the value's lifetime.</p>
 destructor when the variable that owns the value goes out of scope. Unlike in
 C++, the drop method cannot be called manually. Instead the automatic "drop
 glue" implicitly calls the destructors of fields.</p>
-<h2 id="lifetimes-and-destructors"><a class="header" href="#lifetimes-and-destructors">Lifetimes and destructors</a></h2>
+<h2 id="lifetimes-destructors-and-destruction-order"><a class="header" href="#lifetimes-destructors-and-destruction-order">Lifetimes, destructors, and destruction order</a></h2>
 <p>C++ destructors are called in reverse order of construction when variables go
 out of scope, or for dynamically allocated objects, when they are deleted. This
 includes destructors of moved-from objects.</p>
-<p>In Rust, the drop order is similar to that of C++ (reverse order of
-declaration). If additional specific details about the drop order are needed
-(e.g., for writing unsafe code), the full rules for the drop order are described
-in <a href="https://doc.rust-lang.org/reference/destructors.html">the language
+<p>In Rust, the drop order for items going out of scope is similar to that of C++
+(reverse order of declaration). If additional specific details about the drop
+order are needed (e.g., for writing unsafe code), the full rules for the drop
+order are described in <a href="https://doc.rust-lang.org/reference/destructors.html">the language
 reference</a>. However,
 moving an object in Rust does not leave a moved-from object on which a
 destructor will be called.</p>
@@ -257,6 +257,62 @@ no additional object remaining, and so there is no additional <code>Drop::drop</
 (which in the C++ example prints <code>0</code>).</p>
 <p>Rust's drop methods do run when leaving scope due to a panic, though not if the
 panic occurs in a destructor that was called in response to an initial panic.</p>
+<p>The drop order of fields in Rust is essentially the reverse of that of
+non-static class members in C++. Again, the specific details of what happens in
+a Rust destructor are given in <a href="https://doc.rust-lang.org/reference/destructors.html#r-destructors.operation">the language
+reference</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+struct Part {
+  std::string name;
+
+  ~Part() {
+    std::cout &lt;&lt; "Dropped " &lt;&lt; name &lt;&lt; std::endl;
+  }
+};
+
+struct Widget {
+  Part part1;
+  Part part2;
+  Part part3;
+};
+
+int main() {
+  Widget w{"1", "2", "3"};
+  // Prints:
+  // 3
+  // 2
+  // 1
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">struct Part(&amp;'static str);
+
+impl Drop for Part {
+    fn drop(&amp;mut self) {
+        println!("{}", self.0);
+    }
+}
+
+struct Widget {
+    part1: Part,
+    part2: Part,
+    part3: Part,
+}
+
+fn main() {
+    let w = Widget {
+        part1: Part("1"),
+        part2: Part("2"),
+        part3: Part("3"),
+    };
+    // Prints:
+    // 1
+    // 2
+    // 3
+}</code></pre></pre>
+</div>
 <h2 id="early-cleanup-and-explicitly-destroying-values"><a class="header" href="#early-cleanup-and-explicitly-destroying-values">Early cleanup and explicitly destroying values</a></h2>
 <p>In C++ you can explicitly destroy an object. This is mainly useful for
 situations where placement new has been used to allocate the object at a
