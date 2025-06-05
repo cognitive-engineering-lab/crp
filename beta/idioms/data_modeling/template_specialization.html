@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../../favicon.svg">
         <link rel="shortcut icon" href="../../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -170,11 +177,11 @@ a trait for the interface against which it operates. This enables clients to
 select their choice of representation for data by using any concrete type that
 implements the interface.</p>
 <p>This is more practical to do in Rust than in C++, because generics not being a
-general metaprogramming facility means that <a href="/idioms/data_modeling/templates.html#a-note-on-type-checking-and-type-errors">generic entities can be type
+general metaprogramming facility means that <a href="./templates.html#a-note-on-type-checking-and-type-errors">generic entities can be type
 checked
 locally</a>,
 making them easier to define. It is more common to do in Rust than in C++
-because Rust does not have <a href="/idioms/data_modeling/inheritance_and_reuse.html">implementation
+because Rust does not have <a href="./inheritance_and_reuse.html">implementation
 inheritance</a>, so there is a
 sharper line between interface and implementation than there is in C++.</p>
 <p>The following example shows how a Rust function can be implemented so that
@@ -326,6 +333,15 @@ observation pointers in C++.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

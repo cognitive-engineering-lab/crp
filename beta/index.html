@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="favicon.svg">
         <link rel="shortcut icon" href="favicon.png">
@@ -130,6 +134,9 @@
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -161,7 +168,7 @@
 <p>The book can be read front-to-back, but it is designed to be used random-access.
 When you are writing Rust code and think, "I know how to do this in C++ but not Rust," then
 look for the corresponding chapter in this book.</p>
-<p>This book was hand-written by expert C++ and Rust programmers to provide accurate information with a tasteful degree of detail. No text in this book was written by AI.</p>
+<p>This book was hand-written by expert C++ and Rust programmers at Brown University's <a href="https://cel.cs.brown.edu/">Cognitive Engineering Lab</a>. Our goal is to provide accurate information with a tasteful degree of detail. No text in this book was written by AI.</p>
 <p>If you would like updates on when we add new chapters to this book, you can <a href="https://forms.gle/rcrdZihmT81LWy6F6">drop your email here</a>.</p>
 <h2 id="other-resources"><a class="header" href="#other-resources">Other resources</a></h2>
 <p>If you have zero Rust experience, you might consider first reading <a href="https://rust-book.cs.brown.edu/">The Rust Programming
@@ -171,9 +178,7 @@ a complement to <a href="https://docs.rust-embedded.org/book/">The Embedded Rust
 <p>Compared to resources like the <a href="https://doc.rust-lang.org/nomicon/">Rustonomicon</a> and <a href="https://rust-unofficial.github.io/too-many-lists/">Learn Rust With Entirely Too Many Linked Lists</a>, this book is less about "Rust behind the scenes" and more about explicitly describing how Rust works in terms of C++.</p>
 <h2 id="feedback-on-this-book"><a class="header" href="#feedback-on-this-book">Feedback on this book</a></h2>
 <p>At the bottom of every page there is a link
-to a form where you can submit feedback. Whether you've found a mistake or just
-want to let us know which topic you'd like us to cover next, use the form to
-send us a message.</p>
+to a form where you can submit feedback: typos, factual errors, or any other issues you spot.</p>
 <p>If you answer the quizzes at the end of each chapter, we will save your
 responses anonymously for research purposes.</p>
 
@@ -203,6 +208,15 @@ responses anonymously for research purposes.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

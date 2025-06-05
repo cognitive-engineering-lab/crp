@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../../favicon.svg">
         <link rel="shortcut icon" href="../../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -227,10 +234,10 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>Note that in the Rust example, the definition of the trait and the struct have
-not changed from the example in the chapter on <a href="/idioms/data_modeling/abstract_classes.html">virtual methods and dynamic
+not changed from the example in the chapter on <a href="./abstract_classes.html">virtual methods and dynamic
 dispatch</a>. Even so, this example
 does use static dispatch. This is the result of a design trade-off in Rust
-around the representation of vtables and vptrs which is <a href="/idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">described later in that
+around the representation of vtables and vptrs which is <a href="./abstract_classes.html#vtables-and-rust-trait-object-types">described later in that
 chapter</a>.</p>
 <p>The difference between Rust and C++ in the above examples arises from Rust being
 nominally typed (types must opt in to supporting a specific interface, merely
@@ -391,7 +398,7 @@ void store(S s, std::unique_ptr&lt;Shape&gt; data) {
 }
 </code></pre>
 <p>Rust checks the bounds on lifetimes of references contained within type
-parameters. <a href="/idioms/data_modeling/abstract_classes.html#trait-objects-and-lifetimes">Just as with trait object
+parameters. <a href="./abstract_classes.html#trait-objects-and-lifetimes">Just as with trait object
 types</a>,
 these bounds are usually inferred according to the <a href="https://doc.rust-lang.org/reference/lifetime-elision.html">lifetime elision
 rules</a>. When they
@@ -508,6 +515,15 @@ fn store&lt;'s, S: Shape + 's&gt;(x: S, data: &amp;mut Box&lt;dyn Shape + 's&gt;
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -219,7 +226,7 @@ or array-specific functionality is needed.</p>
 <p>Unlike in C++ where the conversion from arrays to pointers is built into the
 language, this is actually a general mechanism provided by the <a href="https://doc.rust-lang.org/std/ops/trait.Deref.html"><code>Deref</code>
 trait</a>, which provides one
-kind of <a href="/idioms/user-defined_conversions.html">user-defined conversion</a>.</p>
+kind of <a href="./user-defined_conversions.html">user-defined conversion</a>.</p>
 <h2 id="function-to-pointer"><a class="header" href="#function-to-pointer">Function to pointer</a></h2>
 <p>In C++ functions and static member functions are automatically converted to
 function pointers.</p>
@@ -400,7 +407,7 @@ bug and producing unexpected behavior.</p>
 <p>In Rust the conversion requires the use of the <code>as</code> operator, and providing
 <code>From</code> and <code>TryFrom</code> implementations to move back and forth between the enum and
 its representation type is recommended. Examples and additional details are
-given in the <a href="/idioms/data_modeling/enums.html">chapter on enums</a>.</p>
+given in the <a href="./data_modeling/enums.html">chapter on enums</a>.</p>
 <h2 id="qualification-conversion"><a class="header" href="#qualification-conversion">Qualification conversion</a></h2>
 <p>In C++ qualification conversions enable the use of const (or volatile) values
 where the const (or volatile) qualifier is not expected.</p>
@@ -537,7 +544,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <h2 id="user-defined-conversions"><a class="header" href="#user-defined-conversions">User-defined conversions</a></h2>
-<p>User-defined conversions are covered in a <a href="/idioms/user-defined_conversions.html">separate
+<p>User-defined conversions are covered in a <a href="./user-defined_conversions.html">separate
 chapter</a>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;promotions_and_conversions&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;98badbec-d894-490a-929b-327021cda0c3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nuse std::convert::TryInto;\n\nfn main() {\n    let x = 4294967296i64;\n\n    match TryInto::&lt;i32&gt;::try_into(x) {\n        Ok(y) =&gt; {\n            // ...\n        }\n        Err(err) =&gt; {\n            // ...\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn main() {\n    let x = 4294967296i64;\n    if Into::&lt;i64&gt;::into(i32::MIN) &lt; x\n        &amp;&amp; x &lt; Into::&lt;i64&gt;::into(i32::MAX)\n    {\n        let y = x as i32;\n        // ...\n    } else {\n        // ...\n    }\n}\n```\n&quot;,&quot;```rust\nfn main() {\n    let x = 4294967296i64;\n    let y = x as i32;\n    if y as i64 == x {\n        // ...\n    } else {\n        // ...\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which Rust program is the most idiomatic translation of the following C++\nprogram?\n\n```cpp\n#include &lt;cstdint&gt;\n#include &lt;limits&gt;\n\nint main() {\n  int64_t x(4294967296);\n\n  if (std::numeric_limits&lt;int32_t&gt;::min() &lt; x &amp;&amp;\n      x &lt; std::numeric_limits&lt;int32_t&gt;::max()) {\n    int32_t y(x);\n    // ...\n  } else {\n    // ...\n  }\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css">
@@ -573,6 +580,15 @@ chapter</a>.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../../favicon.svg">
         <link rel="shortcut icon" href="../../favicon.png">
@@ -129,6 +133,9 @@
                     <div class="right-buttons">
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
                     </div>
@@ -250,7 +257,7 @@ fn main() {
 </div>
 <h2 id="handling-errors"><a class="header" href="#handling-errors">Handling errors</a></h2>
 <p>In C++, the only way to handle exceptions is <code>catch</code>. In Rust, all of the
-features for dealing with <a href="/idioms/data_modeling/tagged_unions.html">tagged
+features for dealing with <a href="../data_modeling/tagged_unions.html">tagged
 unions</a> can be used with <code>Result</code> and
 <code>Option</code>. The most approach depends on the intention of the program.</p>
 <p>The basic way of handling an error indicated by a <code>Result</code> in Rust is by using
@@ -808,6 +815,15 @@ are given on the main documentation page for each crate.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

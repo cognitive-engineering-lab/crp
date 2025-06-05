@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../../favicon.svg">
         <link rel="shortcut icon" href="../../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -159,7 +166,7 @@
                         <h1 id="inheritance-and-implementation-reuse"><a class="header" href="#inheritance-and-implementation-reuse">Inheritance and implementation reuse</a></h1>
 <p>Rust does not have inheritance and so the primary means of reuse of
 implementations in Rust are composition, aggregation, and
-<a href="/idioms/data_modeling/templates.html">generics</a>.</p>
+<a href="./templates.html">generics</a>.</p>
 <p>However, Rust traits do have support for default methods which resemble one
 simple case of using inheritance for reuse of implementations. For example, in
 the following example two virtual methods are used to support a method whose
@@ -242,9 +249,9 @@ fn main() {
 <p>In practice, the <code>resetDevice()</code> method in the <code>Device</code> class might be made
 non-virtual in C++ if it is not expected that it will be overridden. In order to
 make it align with the Rust example, we have made it virtual here, since Rust
-traits can be used either for <a href="/idioms/data_modeling/abstract_classes.html">dynamic
-dispatch</a> or <a href="/idioms/data_modeling/concepts.html">static
-dispatch</a> (with <a href="/idioms/data_modeling/abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
+traits can be used either for <a href="./abstract_classes.html">dynamic
+dispatch</a> or <a href="./concepts.html">static
+dispatch</a> (with <a href="./abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
 static dispatch
 case</a>).</p>
 <p>Rust traits differ from abstract classes in few more ways. For example,
@@ -293,6 +300,15 @@ paths to a common parent trait resolve to the same implementation.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

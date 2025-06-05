@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -208,7 +215,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>In Rust, typically the primary constructor for a type is named <code>new</code>, especially if it
-takes no arguments. (See the chapter on <a href="constructors/default_constructors.html">default
+takes no arguments. (See the chapter on <a href="./constructors/default_constructors.html">default
 constructors</a>.) Constructors based on
 some specific property of the value are usually named <code>with_&lt;something&gt;</code>, e.g.,
 <code>ThreadPool::with_threads</code>. See the <a href="https://rust-lang.github.io/api-guidelines/naming.html">naming
@@ -309,7 +316,7 @@ fn main() {
     }
 }</code></pre></pre>
 </div>
-<p>See <a href="/idioms/exceptions.html">the chapter on exceptions</a> for more information on
+<p>See <a href="./exceptions.html">the chapter on exceptions</a> for more information on
 how C++ exceptions and exception handling translate to Rust.</p>
 <hr>
 <ol class="footnote-definition"><li id="footnote-NonZero">
@@ -349,6 +356,15 @@ type so that the error case wasn't possible in the first place. <a href="#fr-Non
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -190,7 +197,7 @@ same is true in Rust for <code>usize</code>, which is the pointer-sized unsigned
 type. The pointer-sized signed integer type <code>isize</code> follows similar conventions.</p>
 <p>Some primitive C++ and POSIX types (such as <code>ssize_t</code> and <code>off_t</code> as return
 types) do not map to <code>isize</code> because the failure case is representing using
-<code>std::io::Result</code> instead of using a negative number as a <a href="/idioms/null/sentinel_values.html">sentinel
+<code>std::io::Result</code> instead of using a negative number as a <a href="./null/sentinel_values.html">sentinel
 value</a>. Others (such as <code>fpos_t</code> or <code>off_t</code> as
 a parameter type) are represented as a plain <code>u64</code> or have a more explicit
 representation in Rust.</p>
@@ -222,7 +229,7 @@ Rust</a>.</p>
 represent raw memory. In Rust, arrays (<code>[u8; N]</code>), vectors (<code>Vec&lt;u8&gt;</code>), or
 slices (<code>&amp;[u8]</code>) of <code>u8</code> are used to accomplish the same goal. However,
 accessing the underlying memory of another Rust value in that way requires
-unsafe Rust. There are <a href="/etc/libraries.html">libraries</a> for creating safe wrappers
+unsafe Rust. There are <a href="../etc/libraries.html">libraries</a> for creating safe wrappers
 around that kind of access for purposes such as serialization or interacting
 with hardware.</p>
 <h3 id="character-and-string-types"><a class="header" href="#character-and-string-types">Character and string types</a></h3>
@@ -268,7 +275,7 @@ encoding
 <tr><td>representing bytes</td><td>vectors, arrays, or slices of <code>u8</code></td></tr>
 <tr><td>interacting with OS</td><td><code>OsString</code> and <code>&amp;OsStr</code></td></tr>
 <tr><td>representing UTF-8</td><td><code>String</code></td></tr>
-<tr><td>representing UTF-16</td><td>use <a href="/etc/libraries.html">a library</a></td></tr>
+<tr><td>representing UTF-16</td><td>use <a href="../etc/libraries.html">a library</a></td></tr>
 </tbody></table>
 </div>
 <h3 id="boolean-types"><a class="header" href="#boolean-types">Boolean types</a></h3>
@@ -352,8 +359,8 @@ the compiler will prevent the incorrect use of the shared owner types.</p>
 <p>Unlike with C++ references, Rust can have references-to-references. Rust
 references are more like observer pointers than they are like C++ references.</p>
 <h3 id="void-1"><a class="header" href="#void-1"><code>void*</code></a></h3>
-<p>Rust does not have anything directly analogous to <code>void*</code> in C++. The <a href="/idioms/RTTI.html">chapter
-on <code>RTTI</code></a> covers some use cases where the goal is dynamic
+<p>Rust does not have anything directly analogous to <code>void*</code> in C++. The upcoming chapter
+on <code>RTTI</code><!--LINKME--> will cover some use cases where the goal is dynamic
 typing. The <a href="https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs">FFI chapter of the
 Rustonomicon</a>
 covers some use cases where the goal is interoperability with C programs that
@@ -382,7 +389,7 @@ comparison function used, the types require that the key types implement the
 with different hash or comparison functions, one must use a wrapper type with a
 different implementation of the required trait.</p>
 <p>Some C++ container types provided by the STL have no equivalent in Rust. Many of
-those have equivalents available in third-party <a href="/etc/libraries.html">libraries</a>.</p>
+those have equivalents available in third-party <a href="../etc/libraries.html">libraries</a>.</p>
 <p>One significant different in the use of these types between C++ in Rust is with
 the <code>Vec&lt;T&gt;</code> and array <code>[T; N]</code> types, from which slice references <code>&amp;[T]</code> or
 <code>&amp;mut [T]</code> to part or all of the data can be cheaply created. For this reason,
@@ -457,6 +464,15 @@ fn main() {
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

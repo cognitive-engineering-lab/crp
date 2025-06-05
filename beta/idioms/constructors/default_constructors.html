@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../../favicon.svg">
         <link rel="shortcut icon" href="../../favicon.png">
@@ -129,6 +133,9 @@
                     <div class="right-buttons">
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
                     </div>
@@ -318,7 +325,7 @@ fn main() {
     // ...
 }</code></pre></pre>
 </div>
-<p>If the type happens to be <a href="/idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">trivially
+<p>If the type happens to be <a href="./copy_and_move_constructors.html#trivially-copyable-types">trivially
 copyable</a>,
 then a shorthand can be used.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy, Default)]
@@ -377,7 +384,7 @@ fn main() {
     // ...
 }</code></pre></pre>
 <p>If the type implements the <code>Clone</code> trait, then the array can be constructed
-using the <code>vec!</code> macro. See the chapter on <a href="/idioms/constructors/copy_and_move_constructors.html">copy
+using the <code>vec!</code> macro. See the chapter on <a href="./copy_and_move_constructors.html">copy
 constructors</a> for more
 details on <code>Clone</code>.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
@@ -433,7 +440,7 @@ public:
 };
 </code></pre>
 <p>Since Rust does not have inheritance, there is no equivalent to this case.
-See the chapter on <a href="/idioms/data_modeling/inheritance_and_reuse.html">implementation
+See the chapter on <a href="../data_modeling/inheritance_and_reuse.html">implementation
 reuse</a> or the section on <a href="https://doc.rust-lang.org/book/ch10-02-traits.html">traits
 in the Rust book</a> for
 alternatives.</p>
@@ -522,6 +529,15 @@ construct the default, as opposed to only constructing the default when the
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

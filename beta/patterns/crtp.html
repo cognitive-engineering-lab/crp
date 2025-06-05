@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -161,7 +168,7 @@
 pattern</a> is used to make the
 concrete type of the derived class available in the definition of methods
 defined in the base class.</p>
-<h1 id="sharing-implementations-with-static-polymorphism"><a class="header" href="#sharing-implementations-with-static-polymorphism">Sharing implementations with static polymorphism</a></h1>
+<h2 id="sharing-implementations-with-static-polymorphism"><a class="header" href="#sharing-implementations-with-static-polymorphism">Sharing implementations with static polymorphism</a></h2>
 <p>The basic use of the CRTP is for reducing redundancy in implementations that
 make use of static polymorphism. In this use case, the <code>this</code> pointer is cast to
 the type provided by the template parameter so that methods from the derived
@@ -255,12 +262,12 @@ fn main() {
 </div>
 <p>The reason why nothing additional needs to be done for the default method to
 invoke area statically in Rust is that calls to methods on <code>self</code> are always
-resolved statically in Rust. This is possible because <a href="/idioms/data_modeling/inheritance_and_reuse.html">Rust does not have
+resolved statically in Rust. This is possible because <a href="../idioms/data_modeling/inheritance_and_reuse.html">Rust does not have
 inheritance between concrete
 types</a>. Despite being defined in
 the trait, the default method is actually implemented as part of the
 implementing struct.</p>
-<h1 id="method-chaining"><a class="header" href="#method-chaining">Method chaining</a></h1>
+<h2 id="method-chaining"><a class="header" href="#method-chaining">Method chaining</a></h2>
 <p>Another common use for the CRTP is for implementing method chaining when an
 implementation of a method to be chained is provided by a base class.</p>
 <p>In C++ the template parameter is used to ensure that the type returned from the
@@ -374,7 +381,7 @@ fn main() {
     println!("{}", x.0)
 }</code></pre></pre>
 </div>
-<p>Again, the reason why <code>Self</code> can refer to the implementing type is that <a href="/idioms/data_modeling/inheritance_and_reuse.html">Rust
+<p>Again, the reason why <code>Self</code> can refer to the implementing type is that <a href="../idioms/data_modeling/inheritance_and_reuse.html">Rust
 does not have inheritance between concrete
 types</a>. This contrasts with C++
 where a value may be used at any number of types which are concrete, and so it
@@ -413,6 +420,15 @@ would not be clear which type something like <code>Self</code> should refer to.<
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

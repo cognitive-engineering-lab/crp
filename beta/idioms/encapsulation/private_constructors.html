@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../../favicon.svg">
         <link rel="shortcut icon" href="../../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -159,7 +166,7 @@
                         <h1 id="private-constructors"><a class="header" href="#private-constructors">Private constructors</a></h1>
 <p>In C++ constructors for classes can be made private by declaring them private,
 or by defining a class using <code>class</code> and using the default private visibility.</p>
-<p>In Rust, constructors (the actual constructors, not <a href="/idioms/constructors.html">"constructor
+<p>In Rust, constructors (the actual constructors, not <a href="../constructors.html">"constructor
 methods"</a>) for structs are visible from wherever the
 type and all fields are visible. To achieve similar visibility restrictions as
 in the C++ example, an additional private field needs to be added to the struct
@@ -530,6 +537,15 @@ handling logic.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

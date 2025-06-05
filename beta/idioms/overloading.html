@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -190,7 +197,7 @@ int twice(int x) {
 <p>In practice, an example like the above would also likely be implemented in a
 more structured way even in C++, using templates.</p>
 <p>When phrased this way, the example can be translated to Rust, with the notable
-addition of <a href="/idioms/data_modeling/concepts.html">requiring a trait bound on the
+addition of <a href="./data_modeling/concepts.html">requiring a trait bound on the
 type</a>.</p>
 <div class="comparison">
 <pre><code class="language-cpp">template &lt;typename T&gt;
@@ -329,7 +336,7 @@ fn main() {
 }</code></pre></pre>
 </div>
 <p>Additionally, sometimes it is best to provide trait implementations for various
-combinations of reference types, especially for types that implement the <a href="/idioms/constructors/copy_and_move_constructors.html"><code>Copy trait</code></a>, since they are
+combinations of reference types, especially for types that implement the <a href="./constructors/copy_and_move_constructors.html"><code>Copy trait</code></a>, since they are
 likely to want to be used either with or without taking a reference. For the
 example above, that involve defining four implementations.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy)]
@@ -528,6 +535,15 @@ functions which should take any type convertible to a specific type.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

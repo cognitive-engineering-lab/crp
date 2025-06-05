@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../../favicon.svg">
         <link rel="shortcut icon" href="../../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -239,7 +246,7 @@ fn main() {
     // println!("{}", alice.age);
 }</code></pre></pre>
 </div>
-<p>In the Rust example, the <a href="/idioms/encapsulation/private_constructors.html">constructor for <code>Person</code> is
+<p>In the Rust example, the <a href="./private_constructors.html">constructor for <code>Person</code> is
 private</a> because one of the
 fields is private.</p>
 <h2 id="friends"><a class="header" href="#friends">Friends</a></h2>
@@ -589,8 +596,8 @@ mod test {
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>Testing in Rust is described in more detail in the <a href="/etc/unit_tests.html">chapter on unit
-testing</a>.</p>
+<!-- Testing in Rust is described in more detail in the [chapter on unit
+testing](/etc/unit_tests.md). -->
 <h2 id="visibility-of-methods-on-rust-traits"><a class="header" href="#visibility-of-methods-on-rust-traits">Visibility of methods on Rust traits</a></h2>
 <p>Because traits in Rust are intended for the definition of interfaces, the
 methods for some type that are declared by a trait are visible whenever both the
@@ -639,6 +646,15 @@ pattern</a>.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

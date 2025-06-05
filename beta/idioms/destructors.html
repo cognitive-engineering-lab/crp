@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -161,7 +168,7 @@
 function <code>~T()</code>. To achieve the equivalent in Rust, the <a href="https://doc.rust-lang.org/std/ops/trait.Drop.html"><code>Drop</code>
 trait</a> is implemented for a
 type.</p>
-<p>For an example, see <a href="/idioms/constructors/copy_and_move_constructors.html#user-defined-constructors">the chapter on copy and move
+<p>For an example, see <a href="./constructors/copy_and_move_constructors.html#user-defined-constructors">the chapter on copy and move
 constructors</a>.</p>
 <p><code>Drop</code> implementations play the same role as destructors in C++ for types that
 manage resources. That is, they enable cleanup of resources owned by the value
@@ -326,7 +333,7 @@ the object must be structured so that the variable goes out of scope at the
 desired time.</p>
 <p>In Rust, values can be dropped early for early cleanup by using
 <a href="https://doc.rust-lang.org/std/mem/fn.drop.html"><code>std::mem::drop</code></a>. This works
-because (<a href="/idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">for non-<code>Copy</code>
+because (<a href="./constructors/copy_and_move_constructors.html#trivially-copyable-types">for non-<code>Copy</code>
 types</a>)
 ownership of the object is actually transferred to <code>std::mem::drop</code> function,
 and so <code>Drop::drop</code> is called at the end of <code>std::mem::drop</code> when the lifetime
@@ -380,6 +387,15 @@ overall memory usage.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

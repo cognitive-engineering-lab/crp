@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../../favicon.svg">
         <link rel="shortcut icon" href="../../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -214,7 +221,7 @@ help with avoiding programming errors.</p>
 the program, and produces a significantly faster binary for that version.</p>
 <p>In situations where the performance of memory allocation is a concern (such as
 when it is necessary to reuse entire buffers in memory), the trade-offs may be
-different. That situation is discussed in the chapter on <a href="/idioms/out_params/pre-allocated_buffers.html">pre-allocated
+different. That situation is discussed in the chapter on <a href="./pre-allocated_buffers.html">pre-allocated
 buffers</a>.</p>
 <h2 id="similarities-with-idiomatic-c-since-c11"><a class="header" href="#similarities-with-idiomatic-c-since-c11">Similarities with idiomatic C++ since C++11</a></h2>
 <p>In C++11 and later, <code>std::pair</code> and <code>std::tuple</code> are available for returning
@@ -268,6 +275,15 @@ values.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

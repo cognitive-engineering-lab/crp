@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -175,7 +182,7 @@ time, the approach in C++ and the approach in Rust are the same. In both cases
 interfaces that define the required operations are defined. Concrete types,
 possibly defined by the client, implement those interfaces.</p>
 <p>This way of modeling data can make use of either
-<a href="/idioms/data_modeling/abstract_classes.html">dynamic</a> or <a href="/idioms/data_modeling/concepts.html">static
+<a href="./data_modeling/abstract_classes.html">dynamic</a> or <a href="./data_modeling/concepts.html">static
 dispatch</a>, each of which is covered in its
 own section.</p>
 <h2 id="fixed-data-varying-operations"><a class="header" href="#fixed-data-varying-operations">Fixed data, varying operations</a></h2>
@@ -184,19 +191,19 @@ data must support vary, there are a few approaches in C++. Which approaches are
 available to use depend on the version of the standard in use.</p>
 <p>In older versions of the standard, one might use manually defined tagged unions.
 In newer versions, <code>std::variant</code> is available to improve the safety and
-ergonomics of tagged unions. <a href="/idioms/data_modeling/tagged_unions.html">Both of these approaches map to the same approach
+ergonomics of tagged unions. <a href="./data_modeling/tagged_unions.html">Both of these approaches map to the same approach
 in Rust</a>.</p>
 <p>Additionally, despite it not being strictly necessary to model a fixed set of
 variants, the visitor pattern is sometimes used for this situation, especially
 when using versions of the C++ standard before the introduction of
 <code>std::variant</code>. In most of these cases the idiomatic Rust solution is the same
 as what one would do when converting a C++ solution that uses tagged unions. The
-chapter on the <a href="/patterns/visitor.html">visitor pattern</a> describes when to use a
+chapter on the visitor pattern<!-- LINKME --> describes when to use a
 Rust version of the visitor pattern or when to use Rust's enums (which are
 closer to <code>std::variant</code> than to C++ enums) to model the data.</p>
 <h2 id="varying-data-and-operations"><a class="header" href="#varying-data-and-operations">Varying data and operations</a></h2>
-<p>When both data and operations may be extended by a client, the <a href="/patterns/visitor.html">visitor pattern
-is used in both C++ and in Rust</a>.</p>
+<p>When both data and operations may be extended by a client, the visitor pattern
+is used in both C++ and in Rust<!-- LINKME -->.</p>
 
 
                         <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Data modeling">Click here to leave us feedback about this page.</a>
@@ -230,6 +237,15 @@ is used in both C++ and in Rust</a>.</p>
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>

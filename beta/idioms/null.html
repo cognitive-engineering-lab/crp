@@ -8,9 +8,13 @@
 
         <!-- Custom HTML head -->
 
-        <meta name="description" content="">
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -130,6 +134,9 @@
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -160,7 +167,7 @@
 <p>This section covers idiomatic uses of <code>nullptr</code> in C++ and how to achieve the
 same results in Rust.</p>
 <p>Some uses of <code>nullptr</code> in C++ don't arise in the first place in Rust because of
-other language differences. For example, <a href="/idioms/null/moved_members.html">moved objects don't leave anything
+other language differences. For example, <a href="./null/moved_members.html">moved objects don't leave anything
 behind that needs to be destroyed</a>. Therefore
 there is no need to use <code>nullptr</code> as a placeholder for a moved pointer that can
 have <code>delete</code> or <code>free</code> called on it.</p>
@@ -203,6 +210,15 @@ for when <code>Option</code> is used with a reference (<code>&amp;</code> or <co
         </div>
 
 
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
 
 
         <script>
