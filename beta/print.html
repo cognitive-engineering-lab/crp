@@ -882,7 +882,8 @@ implicitly copies and then moves.</p>
 <p>For situations where something like a user-defined copy assignment could avoid
 allocations, the <code>Clone</code> trait has an additional method called <code>clone_from</code>. The
 method is automatically defined, but can be overridden when implementing the
-<code>Clone</code> trait to provide an efficient implementation.</p>
+<code>Clone</code> trait to provide an efficient implementation. The default implementation
+is the same as calling <code>Clone::clone</code> and performing a normal assignment.</p>
 <p>The method is not used for normal assignments, but can be explicitly used in
 situations where the performance of the assignment is significant and would be
 improved by using the more efficient implementation, if one is defined. The
@@ -1669,22 +1670,43 @@ fn twice_area&lt;T: Shape&gt;(shape: &amp;T) -&gt; f64 {
 would be useful but hard to implement correctly, Rust generics are freely used.</p>
 <h2 id="required-traits-and-ergonomics"><a class="header" href="#required-traits-and-ergonomics">Required traits and ergonomics</a></h2>
 <p>In the above examples, the function requiring a trait was defined like the following.</p>
+<div class="comparison">
+<pre><code class="language-cpp">template &lt;shape T&gt;
+double twiceArea(const T &amp;shape) {
+  return 2.0 * shape.area();
+}
+</code></pre>
 <pre><code class="language-rust ignore">fn twice_area&lt;T: Shape&gt;(shape: &amp;T) -&gt; f64 {
     2.0 * shape.area()
 }</code></pre>
-<p>This is a commonly used shorthand for the following:</p>
+</div>
+<p>This is a commonly used shorthand for the following.</p>
+<div class="comparison">
+<pre><code class="language-cpp">template &lt;typename T&gt;
+  requires shape&lt;T&gt;
+double twiceArea(const T &amp;shape) {
+  return 2.0 * shape.area();
+}
+</code></pre>
 <pre><code class="language-rust ignore">fn twice_area&lt;T&gt;(shape: &amp;T) -&gt; f64
 where
     T: Shape,
 {
     2.0 * shape.area()
 }</code></pre>
+</div>
 <p>The more verbose form is preferred when there are many type parameters or those
 type parameters must implement many traits. An even shorter-hand available in some
-cases is the <code>impl</code> keyword:</p>
+cases is the <code>impl</code> keyword.</p>
+<div class="comparison">
+<pre><code class="language-cpp">double twiceArea(const shape auto &amp;shape) {
+  return 2.0 * shape.area();
+}
+</code></pre>
 <pre><code class="language-rust ignore">fn twice_area(shape: &amp;impl Shape) -&gt; f64 {
     2.0 * shape.area()
 }</code></pre>
+</div>
 <h2 id="generics-and-lifetimes"><a class="header" href="#generics-and-lifetimes">Generics and lifetimes</a></h2>
 <p>When defining a template in C++ that makes use of a type template parameter, the
 lifetimes of references stored within objects of that type must be tracked

@@ -370,7 +370,8 @@ implicitly copies and then moves.</p>
 <p>For situations where something like a user-defined copy assignment could avoid
 allocations, the <code>Clone</code> trait has an additional method called <code>clone_from</code>. The
 method is automatically defined, but can be overridden when implementing the
-<code>Clone</code> trait to provide an efficient implementation.</p>
+<code>Clone</code> trait to provide an efficient implementation. The default implementation
+is the same as calling <code>Clone::clone</code> and performing a normal assignment.</p>
 <p>The method is not used for normal assignments, but can be explicitly used in
 situations where the performance of the assignment is significant and would be
 improved by using the more efficient implementation, if one is defined. The
