@@ -30,12 +30,12 @@
   - [Setter and getter methods](./idioms/encapsulation/setters_and_getters.md)
 - [Exceptions and error handling](./idioms/exceptions.md)
   - [Expected errors](./idioms/exceptions/expected_errors.md)
-  - [Errors indicating bugs]()
+  - [Errors indicating bugs](./idioms/exceptions/bugs.md)
 - [Type equivalents](./idioms/type_equivalents.md)
 - [Type promotions and conversions](./idioms/promotions_and_conversions.md)
 - [User-defined conversions](./idioms/user-defined_conversions.md)
 - [Overloading](./idioms/overloading.md)
-- [RTTI]()
+- [RTTI and `dynamic_cast`](./idioms/rtti.md)
 - [Iterators]()
 - [Function objects, lambdas, and closures]()
 - [Object identity](./idioms/object_identity.md)
@@ -51,6 +51,7 @@
 
 # Patterns
 
+- [Adapter pattern]()
 - [Visitor pattern and double dispatch]()
 - [Curiously recurring template pattern (CRTP)](./patterns/crtp.md)
 - [Pointer-to-implementation (PImpl)]()

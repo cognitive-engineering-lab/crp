@@ -19,23 +19,36 @@ to use, [it is common to default to `i32`, which is the type that Rust defaults
 to for integer
 literals](https://doc.rust-lang.org/book/ch03-02-data-types.html#integer-types).
 
-| C++ type   | Rust type |
-|------------|-----------|
-| `uint8_t`  | `u8`      |
-| `uint16_t` | `u16`     |
-| `uint32_t` | `u32`     |
-| `uint64_t` | `u64`     |
-| `int8_t`   | `i8`      |
-| `int16_t`  | `i16`     |
-| `int32_t`  | `i32`     |
-| `int64_t`  | `i64`     |
-| `size_t`   | `usize`   |
-|            | `isize`   |
+| C++ type    | Rust type |
+|-------------|-----------|
+| `uint8_t`   | `u8`      |
+| `uint16_t`  | `u16`     |
+| `uint32_t`  | `u32`     |
+| `uint64_t`  | `u64`     |
+| `int8_t`    | `i8`      |
+| `int16_t`   | `i16`     |
+| `int32_t`   | `i32`     |
+| `int64_t`   | `i64`     |
+| `size_t`    | `usize`   |
+| `ptrdiff_t` | `isize`   |
 
-In C++ `size_t` is conventionally used only for sizes and offsets. The same is
-true in Rust for `usize`, which is the pointer-sized integer type. The `isize`
-type is the signed equivalent of `usize` and has no direct equivalent in C++.
-The `isize` type is typically only used to represent pointer offsets.
+In C++ `size_t` is conventionally used only indexing, sizes, and offsets. The
+same is true in Rust for `usize`, which is the pointer-sized unsigned integer
+type. The pointer-sized signed integer type `isize` follows similar conventions.
+
+Some primitive C++ and POSIX types (such as `ssize_t` and `off_t` as return
+types) do not map to `isize` because the failure case is representing using
+`std::io::Result` instead of using a negative number as a [sentinel
+value](./null/sentinel_values.md). Others (such as `fpos_t` or `off_t` as
+a parameter type) are represented as a plain `u64` or have a more explicit
+representation in Rust.
+
+| C++ type                       | Rust type                                                                   |
+|--------------------------------|-----------------------------------------------------------------------------|
+| POSIX `ssize_t`                | [`std::io::Result<u64>`](https://doc.rust-lang.org/std/io/type.Result.html) |
+| POSIX `off_t` (as argument)    | `u64`                                                                       |
+| POSIX `off_t`(as return value) | [`std::io::Result<u64>`](https://doc.rust-lang.org/std/io/type.Result.html) |
+| `fpos_t`                       | [`std::io::SeekFrom`](https://doc.rust-lang.org/std/io/enum.SeekFrom.html)  |
 
 ### Floating point types
 
@@ -197,18 +210,18 @@ handling when a type is `void`.
 The following table maps the ownership-managing classes from C++ to equivalents
 types in Rust.
 
-| Use                                                       | C++ type                         | Rust type                                                                                                                                                                    |
-|-----------------------------------------------------------|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Owned                                                     | `T`                              | `T`                                                                                                                                                                          |
-| Single owner, dynamic storage                             | `std::unique_ptr<T>`             | `Box<T>`                                                                                                                                                                     |
-| Shared owner, dynamic storage, immutable, not thread-safe | `std::shared_ptr<T>`             | `std::rc::Rc<T>`                                                                                                                                                             |
-| Shared owner, dynamic storage, immutable, thread-safe     | `std::shared_ptr<T>`             | `std::sync::Arc<T>`                                                                                                                                                          |
-| Shared owner, dynamic storage, mutable, not thread-safe   | `std::shared_ptr<T>`             | [`std::rc::Rc<std::cell::RefCell<T>>`](https://doc.rust-lang.org/book/ch15-05-interior-mutability.html#having-multiple-owners-of-mutable-data-by-combining-rct-and-refcellt) |
-| Shared owner, dynamic storage, mutable, thread-safe       | `std::shared_ptr<std::mutex<T>>` | [`std::sync::Arc<std::mutex::Mutex<T>>`](https://doc.rust-lang.org/book/ch16-03-shared-state.html)                                                                           |
-| Const reference                                           | `const &T`                       | `&T`                                                                                                                                                                         |
-| Mutable reference                                         | `&T`                             | `&mut T`                                                                                                                                                                     |
-| Const observer pointer                                    | `const *T`                       | `&T`                                                                                                                                                                         |
-| Mutable observer pointer                                  | `*T`                             | `&mut T`                                                                                                                                                                     |
+| Use                                                       | C++ type                                  | Rust type                                                                                                                                                                    |
+|-----------------------------------------------------------|-------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Owned                                                     | `T`                                       | `T`                                                                                                                                                                          |
+| Single owner, dynamic storage                             | `std::unique_ptr<T>`                      | `Box<T>`                                                                                                                                                                     |
+| Shared owner, dynamic storage, immutable, not thread-safe | `std::shared_ptr<T>`                      | `std::rc::Rc<T>`                                                                                                                                                             |
+| Shared owner, dynamic storage, immutable, thread-safe     | `std::shared_ptr<T>`                      | `std::sync::Arc<T>`                                                                                                                                                          |
+| Shared owner, dynamic storage, mutable, not thread-safe   | `std::shared_ptr<T>`                      | [`std::rc::Rc<std::cell::RefCell<T>>`](https://doc.rust-lang.org/book/ch15-05-interior-mutability.html#having-multiple-owners-of-mutable-data-by-combining-rct-and-refcellt) |
+| Shared owner, dynamic storage, mutable, thread-safe       | `std::shared_ptrM<T>` with a `std::mutex` | [`std::sync::Arc<std::mutex::Mutex<T>>`](https://doc.rust-lang.org/book/ch16-03-shared-state.html)                                                                           |
+| Const reference                                           | `const &T`                                | `&T`                                                                                                                                                                         |
+| Mutable reference                                         | `&T`                                      | `&mut T`                                                                                                                                                                     |
+| Const observer pointer                                    | `const *T`                                | `&T`                                                                                                                                                                         |
+| Mutable observer pointer                                  | `*T`                                      | `&mut T`                                                                                                                                                                     |
 
 In C++, the thread safety of `std::shared_ptr` is more nuanced than it appears
 in this table (e.g., some uses may require `std::atomic`). However, in safe Rust
@@ -263,10 +276,10 @@ not need to statically know the number of elements in an array, it is more
 idiomatic to take a parameter as `&[T]` or `&mut [T]` than as a reference to the
 owned type.
 
-In C++ it is better to take begin and end iterators than a `span` when possible,
-since iterators are more general. The same is true with Rust and taking a
-generic type that implements `IntoIter<&T>` or `IntoIter<&mut T>` instead of
-`&[T]`.
+In C++ it is better to take begin and end iterators or a range than a `span`
+when possible, since iterators are more general. The same is true with Rust and
+taking a generic type that implements `IntoIter<&T>` or `IntoIter<&mut T>`
+instead of `&[T]`.
 
 <div class="comparison">
 

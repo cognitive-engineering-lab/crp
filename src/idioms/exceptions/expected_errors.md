@@ -372,6 +372,10 @@ fn main() -> Result<(), InterestingError> {
 Running this program produces the output `Error: InterestingError { message:
 "oops", other_interesting_value: 9001 }` with an exit code of `1`.
 
+Result is not the only return type supported for `main`. See the [`Termination`
+trait](https://doc.rust-lang.org/std/process/trait.Termination.html) for more
+information.
+
 ## Limitations to forcing error handling with `Result`
 
 Returning `Result` or `Option` does not give the usual benefits when used with
@@ -416,3 +420,309 @@ help: use `let _ = ...` to ignore the resulting value
 should be annotated with the `#[must_use]` attribute. For example, the `get`
 method on slices returns `Option` and is [annotated as
 `#[must_use]`](https://doc.rust-lang.org/src/core/slice/mod.rs.html#592-595).
+
+## Designing and implementing error types
+
+One challenge to handling errors in Rust compared to C++ is that because error
+propagation in Rust is explicit, error values from different subsystems need to
+be combined into a single type in order to be propagated further up the stack.
+In C++, this requires no special effort.
+
+The following example shows how such an error type is implemented manually.
+Later examples show how the
+[thiserror](https://docs.rs/thiserror/latest/thiserror/) and
+[anyhow](https://docs.rs/anyhow/latest/anyhow/) crates can be used to reduce the
+verbosity of the implementation.
+
+<div class="comparison">
+
+```cpp
+#include <exception>
+
+struct ErrorA : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowA() {}
+
+struct ErrorB : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowB() {}
+
+void process() {
+  mightThrowA();
+  mightThrowB();
+}
+```
+
+```rust
+use std::error::Error;
+use std::fmt::Display;
+use std::fmt::Formatter;
+
+#[derive(Debug)]
+struct ErrorA;
+
+impl Display for ErrorA {
+    fn fmt(
+        &self,
+        fmt: &mut Formatter<'_>,
+    ) -> Result<(), std::fmt::Error> {
+        write!(fmt, "ErrorA produced")
+    }
+}
+
+impl Error for ErrorA {}
+
+fn might_throw_A() -> Result<(), ErrorA> {
+    Ok(())
+}
+
+#[derive(Debug)]
+struct ErrorB;
+
+impl Display for ErrorB {
+    fn fmt(
+        &self,
+        fmt: &mut Formatter<'_>,
+    ) -> Result<(), std::fmt::Error> {
+        write!(fmt, "ErrorB produced")
+    }
+}
+
+impl Error for ErrorB {}
+
+fn might_throw_B() -> Result<(), ErrorB> {
+    Ok(())
+}
+
+// This extra structure is needed to combine the errors
+#[derive(Debug)]
+enum ErrorAOrB {
+    ErrorA(ErrorA),
+    ErrorB(ErrorB),
+}
+
+impl Display for ErrorAOrB {
+    fn fmt(
+        &self,
+        fmt: &mut Formatter<'_>,
+    ) -> Result<(), std::fmt::Error> {
+        match self {
+            Self::ErrorA(err) => err.fmt(fmt),
+            Self::ErrorB(err) => err.fmt(fmt),
+        }
+    }
+}
+
+impl Error for ErrorAOrB {}
+
+impl From<ErrorA> for ErrorAOrB {
+    fn from(err: ErrorA) -> Self {
+        Self::ErrorA(err)
+    }
+}
+
+impl From<ErrorB> for ErrorAOrB {
+    fn from(err: ErrorB) -> Self {
+        Self::ErrorB(err)
+    }
+}
+
+fn process() -> Result<(), ErrorAOrB> {
+    // the ? operator uses the From instance
+    might_throw_A()?;
+    might_throw_B()?;
+    Ok(())
+}
+```
+
+</div>
+
+The following example uses the
+[thiserror](https://docs.rs/thiserror/latest/thiserror/) crate to implement the
+same thing as in the above example. The C++ version shown for comparison is the
+same as in the previous example.
+
+<div class="comparison">
+
+```cpp
+#include <exception>
+
+struct ErrorA : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowA() {}
+
+struct ErrorB : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowB() {}
+
+void process() {
+  mightThrowA();
+  mightThrowB();
+}
+```
+
+```rust,ignore,mdbook-runnable
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+#[error("ErrorA was produced")]
+struct ErrorA;
+
+fn might_throw_A() -> Result<(), ErrorA> {
+    Ok(())
+}
+
+#[derive(Debug, Error)]
+#[error("ErrorB was produced")]
+struct ErrorB;
+
+fn might_throw_B() -> Result<(), ErrorB> {
+    Ok(())
+}
+
+#[derive(Debug, Error)]
+enum ErrorAOrB {
+    #[error("error from source A")]
+    ErrorA(#[from] ErrorA),
+    #[error("error from source B")]
+    ErrorB(#[from] ErrorB),
+}
+
+fn process() -> Result<(), ErrorAOrB> {
+    might_throw_A()?;
+    might_throw_B()?;
+    Ok(())
+}
+```
+
+</div>
+
+## Error types for applications
+
+When implementing an application (as opposed to a library), it is often the case
+that the specific type of error isn't as significant as the ability to easily
+propagate them without the verbosity of the above example. For those cases, the
+[anyhow](https://crates.io/crates/anyhow) crate provides mechanisms for
+combining errors into a single error type, as well as the ability to produce
+one-off errors. Since the errors types used in conjunction with anyhow still
+need to implement the `std::error::Error` trait, anyhow is often used in
+conjunction with thiserror.
+
+Discriminating based on the type of the error, as one would do with `catch` in
+C++, can be done with one of the [`downcast`
+methods](https://docs.rs/anyhow/latest/anyhow/struct.Error.html#method.downcast).
+
+<div class="comparison">
+
+```cpp
+#include <exception>
+
+struct ErrorA : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowA() {}
+
+struct ErrorB : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowB() {}
+
+void process() {
+  mightThrowA();
+  mightThrowB();
+}
+
+int main() {
+  try {
+    process();
+  } catch (ErrorA &err) {
+    // handle ErrorA
+  } catch (ErrorB &err) {
+    // handle ErrorB
+  }
+}
+```
+
+```rust,ignore,mdbook-runnable
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+#[error("ErrorA was produced")]
+struct ErrorA;
+
+fn might_throw_A() -> Result<(), ErrorA> {
+    Ok(())
+}
+
+#[derive(Debug, Error)]
+#[error("ErrorB was produced")]
+struct ErrorB;
+
+fn might_throw_B() -> Result<(), ErrorB> {
+    Ok(())
+}
+
+fn process() -> anyhow::Result<()> {
+    might_throw_A()?;
+    might_throw_B()?;
+    Ok(())
+}
+
+fn main() {
+    if let Err(err) = process() {
+        if let Some(errA) =
+            err.downcast_ref::<ErrorA>()
+        {
+            // handle ErrorA
+        } else if let Some(errB) =
+            err.downcast_ref::<ErrorB>()
+        {
+            // handle ErrorB
+        }
+    }
+}
+```
+
+</div>
+
+## Backtraces
+
+Backtraces can be manually included with errors by defining a field with the
+type [`Backtrace`](https://doc.rust-lang.org/std/backtrace/index.html). The
+backtrace can be captured using the [`Backtrace::capture`
+method](https://doc.rust-lang.org/std/backtrace/struct.Backtrace.html#method.capture).
+The [module documentation](https://doc.rust-lang.org/std/backtrace/index.html)
+describes the configuration required to enable backtraces.
+
+Both [thiserror](https://docs.rs/thiserror/latest/thiserror/) and
+[anyhow](https://docs.rs/anyhow/latest/anyhow/) have support for conveniently
+adding backtrace information to errors. Instructions for including backtraces
+are given on the main documentation page for each crate.

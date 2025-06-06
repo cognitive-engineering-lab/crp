@@ -20,7 +20,7 @@ and how to achieve the same effects using Rust's features.
 In situations where one needs to model a fixed set of operations that clients
 will use, but the data that implements those operations are not fixed ahead of
 time, the approach in C++ and the approach in Rust are the same. In both cases
-interfaces that defines the required operations are defined. Concrete types,
+interfaces that define the required operations are defined. Concrete types,
 possibly defined by the client, implement those interfaces.
 
 This way of modeling data can make use of either

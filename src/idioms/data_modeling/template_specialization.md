@@ -43,7 +43,7 @@ void push_if_even(int n,
                   std::vector<T> &collection,
                   T item) {
   if (n % 2 == 0) {
-    collection.push_back(item);
+    collection.push_back(std::move(item));
   }
 }
 
@@ -150,7 +150,7 @@ efficiency gains do not otherwise change the observable behavior of the code.
 [The most common case is with the `Option`
 type](https://doc.rust-lang.org/std/option/index.html#representation). When
 `Option` is used with a type where the compiler can tell that there are unused
-values, one f those unused values will be used to represent the `None` case, so
+values, one of those unused values will be used to represent the `None` case, so
 that `Option<T>` will not require an extra word of memory to indicate the
 discriminant of the enum.
 

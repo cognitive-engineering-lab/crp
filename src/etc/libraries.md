@@ -13,14 +13,15 @@ repository created from the in-code documentation of those crates called
 
 ## Some specific alternatives
 
-| C++ library                   | Rust alternative                                            |
-|-------------------------------|-------------------------------------------------------------|
-| STL UTF-16 and UTF-32 strings | [widestring](https://docs.rs/widestring/latest/widestring/) |
-| STL random                    | [rand](https://github.com/rust-random/rand)                 |
-| STL regex                     | [regex](https://github.com/rust-lang/regex)                 |
+| C++ library                   | Rust alternative                                                        |
+|-------------------------------|-------------------------------------------------------------------------|
+| STL UTF-16 and UTF-32 strings | [widestring](https://docs.rs/widestring/latest/widestring/)             |
+| STL random                    | [rand](https://github.com/rust-random/rand)                             |
+| STL regex                     | [regex](https://github.com/rust-lang/regex)                             |
+| Reflection                    | [bevy\_reflect](https://docs.rs/bevy_reflect/latest/bevy_reflect/)      |
 | Boost.Test                    | [cargo test](https://doc.rust-lang.org/book/ch11-01-writing-tests.html) |
-| pybind11                      | [PyO3](https://pyo3.rs/)                                    |
-| OpenSSL                       | [rustls](https://github.com/rustls/rustls)                  |
+| pybind11                      | [PyO3](https://pyo3.rs/)                                                |
+| OpenSSL                       | [rustls](https://github.com/rustls/rustls)                              |
 <!-- | STL `multiset`                |                                                             |
 | STL `multimap`                |                                                             | -->
 

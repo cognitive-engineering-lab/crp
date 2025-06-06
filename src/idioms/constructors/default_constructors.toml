@@ -115,5 +115,9 @@ context = """
 When there is a reasonable default value, it is most idiomatic in Rust to
 provide [both a `new` method and an implementation of the `Default`
 trait.](https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits)
+
+In this case, an even more idiomatic implementation would be to [derive
+`Default`](https://doc.rust-lang.org/std/default/trait.Default.html#derivable)
+and use the derived method to implement new.
 """
 id = "a436177e-821d-45d1-8e46-4fafc3d78cd3"

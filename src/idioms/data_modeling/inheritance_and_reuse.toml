@@ -61,6 +61,8 @@ trait Damageable {
     }
 }
 
+struct Enemy;
+
 impl Damageable for Enemy {}
 
 fn main() {

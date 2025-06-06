@@ -7,7 +7,7 @@ having reached the end of valid data in an iterator.
 
 Many designs in C++ borrow the convention from C of using a null pointer as a
 sentinel value for a method that returns owned pointers. For example, a method
-that parses a large structure may produce `std::nullptr` in the case of failure.
+that parses a large structure may produce `nullptr` in the case of failure.
 
 A similar situation in Rust would make use of the type
 `Option<Box<LargeStructure>>`.
@@ -50,10 +50,10 @@ fn parse(
 </div>
 
 The `Box<T>` type has the same meaning as `std::unique_ptr<T>` in terms of being
-an uniquely owned pointer to some `T` on the heap, but unlike `std::unique_ptr`,
-it cannot be null. Rust's `Option<T>` is like `std::optional<T>` in C++, except
-that it can be used with pointers and references. In [those cases (and in some
-other
+a uniquely owned pointer to some `T` on the heap, but unlike `std::unique_ptr`,
+it cannot be null. Rust's `Option<T>` (which is similar to `std::optional<T>` in
+C++) can represent optional pointers when used in conjunction with `Box<T>`, as
+in `Optional<Box<T>>`. In [those cases (and in some other
 cases)](../data_modeling/template_specialization.md#niche-optimization) the
 compiler optimizes the representation to be the same size as `Box<T>` by
 leveraging the fact that `Box` cannot be null.
@@ -69,7 +69,7 @@ an otherwise unused or unlikely integer value as a sentinel value, such as `0`
 or `INT_MAX`.
 
 In Rust, the `Option` type is used for this purpose. In cases where the zero
-value really is not possible to produce, as with the gcd algorithm above, the
+value really is not possible to produce, as with the GCD algorithm below, the
 type `NonZero<T>` can be used to indicate that fact. As with `Option<Box<T>>`,
 the compiler optimizes the representation to make use of the unused value (in
 this case `0`) to represent the `None` case to ensure that the representation of

@@ -3,13 +3,11 @@
 Setters and getters work similarly in C++ and Rust, but are used less frequently
 in Rust.
 
-It would [not be
-unusual](https://docs.rs/bevy/0.16.0/bevy/math/struct.Vec2.html) to see the
-following representation of a two-dimensional vector in C++, which hides its
-implementation and provides setters and getters to access the fields. This
-choice would typically be made in case a representation change (such as using
-polar instead of rectangular coordinates) needed to be made later without
-breaking clients.
+It would not be unusual to see the following representation of a two-dimensional
+vector in C++, which hides its implementation and provides setters and getters
+to access the fields. This choice would typically be made in case a
+representation change (such as using polar instead of rectangular coordinates)
+needed to be made later without breaking clients.
 
 On the other hand, in Rust such a type would almost always be defined with
 public fields.

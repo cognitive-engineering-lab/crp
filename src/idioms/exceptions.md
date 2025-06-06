@@ -17,7 +17,7 @@ input), the function returns a
 due to a programming bug, the function panics. Undefined behavior can only occur
 if unchecked variants of functions are used with unsafe Rust.
 
-Many libraries in Rust will offer two versions of an API, one which returns a
+Some libraries in Rust will offer two versions of an API, one which returns a
 `Result` or `Option` type and one of which panics, so that the interpretation of
 the error (expected exceptional case or programmer bug) can be chosen by the
 caller.
@@ -44,7 +44,7 @@ It is possible to convert between the two types.
 ```rust
 fn main() {
     let r: Result<i32, &'static str> =
-        None.ok_or("my errror message");
+        None.ok_or("my error message");
     let r2: Result<i32, &'static str> =
         None.ok_or_else(|| "expensive error message");
     let o: Option<i32> = r.ok();

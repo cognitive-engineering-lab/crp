@@ -229,8 +229,8 @@ fn main() {
         height: 1.0,
     });
 
-    // Types like Option<T> the value of type T directly, and so also need to
-    // know the size of T.
+    // Types like Option<T> include the value of type T directly, and so also
+    // need to know the size of T.
     // let v: Option<dyn Shape> = Some(Triangle { base: 1.0, height: 1.0 });
 }
 

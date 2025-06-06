@@ -518,7 +518,10 @@ fn main() {
             Shape::Triangle { base, .. } => {
                 total_base += base;
             }
-            _ => unsafe {
+            _ =>
+            // SAFETY: get_triangles is guaranteed to produce triangles, so
+            // other cases aren't reachable.
+            unsafe {
                 unreachable_unchecked();
             },
         }

@@ -72,9 +72,8 @@ values can then be freely converted to the underlying type with the `as`.
 
 In C++ the standard way to convert from an integer to an enum is a static cast.
 However, this [requires that the user check the validity of the cast
-themselves](https://eel.is/c++draft/expr.static.cast#10). Often the conversion
-is done by a function that checks that the value to convert is a valid enum
-value.
+themselves](https://eel.is/c++draft/expr.static.cast#9). Often the conversion is
+done by a function that checks that the value to convert is a valid enum value.
 
 In Rust the standard way to perform the conversion is to implement the `TryFrom`
 trait for the type and then use the `try_from` method or `try_into` method.

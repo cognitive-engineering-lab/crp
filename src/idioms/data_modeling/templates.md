@@ -1,9 +1,9 @@
 # Template classes, functions, and methods
 
-The most common uses of templates in C++ are to define classes, methods, traits,
-or functions that work for any type (or at least for any type that provides
-certain methods). This use case is common in the STL for container classes (such
-as `<vector>`) and for the algorithms library (`<algorithm>`).
+The most common uses of templates in C++ are to define classes, methods, or
+functions that work for any type (or at least for any type that provides certain
+methods). This use case is common in the STL for container classes (such as
+`<vector>`) and for the algorithms library (`<algorithm>`).
 
 The following example defines a template for a directed graph represented as an
 adjacency list, where the graph is generic in the type of the labels on the
@@ -26,7 +26,7 @@ class DirectedGraph {
 public:
   size_t addNode(Label label) {
     adjacencies.push_back(std::vector<size_t>());
-    nodeLabels.push_back(label);
+    nodeLabels.push_back(std::move(label));
     return numNodes() - 1;
   }
 
@@ -117,7 +117,7 @@ $
 public:
 $  size_t addNode(Label label) {
 $    adjacencies.push_back(std::vector<size_t>());
-$    nodeLabels.push_back(label);
+$    nodeLabels.push_back(std::move(label));
 $    return numNodes() - 1;
 $  }
 $
@@ -427,8 +427,8 @@ instantiates the generic structure with a concrete type.
 
 template <typename Label>
 class DirectedGraph {
-  // The mistake is here: size_t should be Label
   std::vector<std::vector<size_t>> adjacencies;
+  // The mistake is here: size_t should be Label
   std::vector<size_t> nodeLabels;
 
 public:
@@ -438,7 +438,7 @@ public:
 
   size_t addNode(Label label) {
     adjacencies.push_back(std::vector<size_t>());
-    nodeLabels.push_back(label);
+    nodeLabels.push_back(std::move(label));
     return numNodes() - 1;
   }
 
@@ -466,8 +466,8 @@ BOOST_AUTO_TEST_CASE(test_add_node_float) {
 
 ```rust,ignore
 pub struct DirectedGraph<Label> {
-    // The mistake is here: size_t should be Label
     adjacencies: Vec<Vec<usize>>,
+    // The mistake is here: size_t should be Label
     node_labels: Vec<usize>,
 }
 
@@ -534,7 +534,7 @@ error[E0308]: mismatched types
 
 Rust's generics are also used for classes, methods, traits, and functions that
 are generic in the lifetimes of the references they manipulate. Unlike other
-type parameters, the using a function with different lifetimes does not cause
+type parameters, using a function with different lifetimes does not cause
 additional copies of the function to be generated in the compiled code, because
 lifetimes do not impact the runtime representation.
 

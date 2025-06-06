@@ -17,16 +17,16 @@ destructor when the variable that owns the value goes out of scope. Unlike in
 C++, the drop method cannot be called manually. Instead the automatic "drop
 glue" implicitly calls the destructors of fields.
 
-## Lifetimes and destructors
+## Lifetimes, destructors, and destruction order
 
 C++ destructors are called in reverse order of construction when variables go
 out of scope, or for dynamically allocated objects, when they are deleted. This
 includes destructors of moved-from objects.
 
-In Rust, the drop order is similar to that of C++ (reverse order of
-declaration). If additional specific details about the drop order are needed
-(e.g., for writing unsafe code), the full rules for the drop order are described
-in [the language
+In Rust, the drop order for items going out of scope is similar to that of C++
+(reverse order of declaration). If additional specific details about the drop
+order are needed (e.g., for writing unsafe code), the full rules for the drop
+order are described in [the language
 reference](https://doc.rust-lang.org/reference/destructors.html). However,
 moving an object in Rust does not leave a moved-from object on which a
 destructor will be called.
@@ -115,6 +115,70 @@ no additional object remaining, and so there is no additional `Drop::drop` call
 
 Rust's drop methods do run when leaving scope due to a panic, though not if the
 panic occurs in a destructor that was called in response to an initial panic.
+
+The drop order of fields in Rust is essentially the reverse of that of
+non-static class members in C++. Again, the specific details of what happens in
+a Rust destructor are given in [the language
+reference](https://doc.rust-lang.org/reference/destructors.html#r-destructors.operation).
+
+<div class="comparison">
+
+```cpp
+#include <iostream>
+#include <string>
+
+struct Part {
+  std::string name;
+
+  ~Part() {
+    std::cout << "Dropped " << name << std::endl;
+  }
+};
+
+struct Widget {
+  Part part1;
+  Part part2;
+  Part part3;
+};
+
+int main() {
+  Widget w{"1", "2", "3"};
+  // Prints:
+  // 3
+  // 2
+  // 1
+}
+```
+
+```rust
+struct Part(&'static str);
+
+impl Drop for Part {
+    fn drop(&mut self) {
+        println!("{}", self.0);
+    }
+}
+
+struct Widget {
+    part1: Part,
+    part2: Part,
+    part3: Part,
+}
+
+fn main() {
+    let w = Widget {
+        part1: Part("1"),
+        part2: Part("2"),
+        part3: Part("3"),
+    };
+    // Prints:
+    // 1
+    // 2
+    // 3
+}
+```
+
+</div>
 
 ## Early cleanup and explicitly destroying values
 

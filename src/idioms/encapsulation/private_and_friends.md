@@ -30,10 +30,10 @@ public:
   // so this has to be a member function.
   static void example() {
     Person alice{"Alice", 42};
-    std::ctout << alice.name << cout::endl;
+    std::cout << alice.name << std::endl;
     // The private field is visible here, within
     // the class.
-    std::ctout << alice.age << cout::endl;
+    std::cout << alice.age << std::endl;
   }
 };
 

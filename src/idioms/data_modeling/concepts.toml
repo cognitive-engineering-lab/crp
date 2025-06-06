@@ -15,7 +15,7 @@ struct Scaled {
 };
 
 template <typename T>
-void printArea(T &shape) {
+void printArea(const T &shape) {
 	std::cout << shape.area() << std::endl;
 }
 ```
