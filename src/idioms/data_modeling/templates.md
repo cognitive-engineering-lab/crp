@@ -354,7 +354,7 @@ impl<Label> DirectedGraph<Label> {
 ## `constexpr` template parameters
 
 Rust also supports the equivalent of constexpr template parameters. For example,
-one can define a generic function that returns an array consecutive integers
+one can define a generic function that returns an array of consecutive integers
 starting from a specific value and whose size is determined at compile time.
 
 <div class="comparison">
