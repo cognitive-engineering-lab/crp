@@ -447,9 +447,11 @@ int main() {
     Err("oops")
 }</code></pre>
 </div>
-<p>The result type must be unit <code>()</code> and the error type can be any type that
-implements the <a href="https://doc.rust-lang.org/std/fmt/trait.Debug.html"><code>Debug</code>
-trait</a>.</p>
+<p>In Rust, the <code>main</code> function can return any type that implements the <a href="https://doc.rust-lang.org/std/process/trait.Termination.html"><code>Termination</code>
+trait</a>, such as
+<code>()</code>, <code>Result</code>, and <a href="https://doc.rust-lang.org/std/process/struct.ExitCode.html"><code>ExitCode</code></a>.
+For example, <code>main</code> can return a result whose error type implements the <a href="https://doc.rust-lang.org/std/fmt/trait.Debug.html"><code>Debug</code>
+trait</a>:</p>
 <pre><pre class="playground"><code class="language-rust no_run">#[derive(Debug)]
 struct InterestingError {
     message: &amp;'static str,
@@ -463,9 +465,6 @@ fn main() -&gt; Result&lt;(), InterestingError&gt; {
     })
 }</code></pre></pre>
 <p>Running this program produces the output <code>Error: InterestingError { message: "oops", other_interesting_value: 9001 }</code> with an exit code of <code>1</code>.</p>
-<p>Result is not the only return type supported for <code>main</code>. See the <a href="https://doc.rust-lang.org/std/process/trait.Termination.html"><code>Termination</code>
-trait</a> for more
-information.</p>
 <h2 id="limitations-to-forcing-error-handling-with-result"><a class="header" href="#limitations-to-forcing-error-handling-with-result">Limitations to forcing error handling with <code>Result</code></a></h2>
 <p>Returning <code>Result</code> or <code>Option</code> does not give the usual benefits when used with
 APIs that pass pre-allocated buffers by mutable reference. This is because the
@@ -505,7 +504,7 @@ method on slices returns <code>Option</code> and is <a href="https://doc.rust-la
 <p>One challenge to handling errors in Rust compared to C++ is that because error
 propagation in Rust is explicit, error values from different subsystems need to
 be combined into a single type in order to be propagated further up the stack.
-In C++, this requires no special effort.</p>
+With C++ exceptions, this requires no special effort.</p>
 <p>The following example shows how such an error type is implemented manually.
 Later examples show how the
 <a href="https://docs.rs/thiserror/latest/thiserror/">thiserror</a> and

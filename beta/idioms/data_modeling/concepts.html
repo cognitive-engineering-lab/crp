@@ -359,7 +359,7 @@ fn twice_area&lt;T: Shape&gt;(shape: &amp;T) -&gt; f64 {
 <p>These additional static checks mean that in many situations where C++ templates
 would be useful but hard to implement correctly, Rust generics are freely used.</p>
 <h2 id="required-traits-and-ergonomics"><a class="header" href="#required-traits-and-ergonomics">Required traits and ergonomics</a></h2>
-<p>In the above examples, the function requiring a trait was defined like the following.</p>
+<p>In the above examples, the function requiring a trait was defined using a generic type <code>T</code> with a separate requirement that <code>T</code> is a <code>Shape</code>, like this:</p>
 <div class="comparison">
 <pre><code class="language-cpp">template &lt;shape T&gt;
 double twiceArea(const T &amp;shape) {
@@ -370,7 +370,7 @@ double twiceArea(const T &amp;shape) {
     2.0 * shape.area()
 }</code></pre>
 </div>
-<p>This is a commonly used shorthand for the following.</p>
+<p>These syntaxes are both common shorthands for <code>requires</code> clauses (C++) or <code>where</code> clauses (Rust):</p>
 <div class="comparison">
 <pre><code class="language-cpp">template &lt;typename T&gt;
   requires shape&lt;T&gt;

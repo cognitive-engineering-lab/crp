@@ -589,7 +589,9 @@ can be used to both avoid handling the case and to indicate to the compiler that
 the optimizer should assume that the case cannot be reached, so the discriminant
 check can be optimized away.</p>
 <p>Much like how in the C++ example accessing an inactive variant is undefined
-behavior, reaching <code>unreachable_unchecked</code> is also undefined behavior.</p>
+behavior, reaching <code>unreachable_unchecked</code> is also undefined behavior.
+As with any <code>unsafe</code>-based performance optimizations, you always should measure the performance impact
+of safety checks first, and only reach for unsafe code if absolutely necessary.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">enum Shape {
 </span><span class="boring">    Rectangle { width: f64, height: f64 },
 </span><span class="boring">    Triangle { base: f64, height: f64 },
@@ -627,17 +629,12 @@ behavior, reaching <code>unreachable_unchecked</code> is also undefined behavior
 fn main() {
     let mut total_base = 0.0;
     for triangle in get_triangles() {
-        match triangle {
-            Shape::Triangle { base, .. } =&gt; {
-                total_base += base;
-            }
-            _ =&gt;
+        let Shape::Triangle { base, .. } = triangle else {
             // SAFETY: get_triangles is guaranteed to produce triangles, so
             // other cases aren't reachable.
-            unsafe {
-                unreachable_unchecked();
-            },
-        }
+            unsafe { unreachable_unchecked() }
+        };
+        total_base += base;        
     }
 }</code></pre></pre>
 <div class="quiz-placeholder" data-quiz-name="&quot;tagged_unions&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;8019115c-c84b-4b79-a18d-d2e83ff984da&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nimpl MediaFile {\n    fn size(&amp;self) -&gt; usize {\n        match self {\n            MediaFile::Text { length, .. } =&gt; *length,\n            MediaFile::Image { height, width, .. }\n            | MediaFile::Video { height, width, .. } =&gt; height * width,\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nimpl MediaFile {\n    fn size(&amp;self) -&gt; usize {\n        match self {\n            MediaFile::Text { length, .. } =&gt; *length,\n            MediaFile::Image { height, width, .. } =&gt; // fallthrough\n            MediaFile::Video { height, width, .. } =&gt; height * width,\n        }\n    }\n}\n```\n&quot;,&quot;```rust\nimpl MediaFile {\n    fn size(&amp;self) -&gt; usize {\n        match self {\n            MediaFile::Text { length, .. } =&gt; *length,\n            _ =&gt; self.height * self.width,\n        }\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following Rust programs is the most idiomatic translation of the\ngiven C++ program?\n\n```c++\n#include &lt;chrono&gt;\n#include &lt;string&gt;\n\nenum class MediaType { Text, Image, Video };\n\nclass MediaFile {\npublic:\n  MediaType type;\n  union {\n    struct {\n      std::string language;\n      size_t length;\n    } text;\n    struct {\n      size_t height;\n      size_t width;\n    } image;\n    struct {\n      size_t height;\n      size_t width;\n      std::chrono::nanoseconds duration;\n    } video;\n  };\n\n  // constructors omitted for brevity\n\n  size_t size() const {\n    switch (type) {\n    case MediaType::Text:\n      return text.length;\n    case MediaType::Image:\n      return image.height * image.width;\n    case MediaType::Video:\n      return video.height * video.width;\n    }\n    // Should not reach here\n    return 0;\n  }\n};\n```\n\nAll of the Rust programs use this definition of `MediaFile`.\n\n```rust\nenum MediaFile {\n    Text {\n        language: String,\n        length: usize,\n    },\n    Image {\n        height: usize,\n        width: usize,\n    },\n    Video {\n        height: usize,\n        width: usize,\n        duration: std::time::Duration,\n    },\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>

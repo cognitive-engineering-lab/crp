@@ -165,13 +165,13 @@
                     <main>
                         <h1 id="errors-indicating-bugs"><a class="header" href="#errors-indicating-bugs">Errors indicating bugs</a></h1>
 <p>In C++, exceptions are sometimes used to indicate an error that is due to a
-programming bug. In many situations no exception is produced, and instead the
+programming bug. In many situations, no exception is produced, and instead the
 invalid use of an API is simply undefined behavior.</p>
 <p>In Rust, <code>panic!</code> is used for these kinds of errors, often via an
 <a href="https://doc.rust-lang.org/std/result/enum.Result.html#method.expect"><code>expect</code></a>
 or
 <a href="https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap"><code>unwrap</code></a>
-method on <code>Result</code> or <code>Option</code> or via <a href="#assert">assertions like <code>assert!</code></a>.
+method on <code>Result</code> or <code>Option</code> or via <a href="#assertions">assertions like <code>assert!</code></a>.
 While a panic in Rust may unwind the stack or abort a program, it is never
 undefined behavior.</p>
 <div class="comparison">
@@ -253,8 +253,6 @@ public:
 </code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span><span class="boring">use std::convert::TryInto;
-</span><span class="boring">
 </span>pub struct Widget&lt;T&gt; {
     parts: *const T,
     part_count: usize,
@@ -276,7 +274,7 @@ impl&lt;T: Copy&gt; Widget&lt;T&gt; {
             n,
             self.part_count
         );
-        let idx = n.try_into().expect(
+        let idx = isize::try_from(n).expect(
             "can't convert index to offset"
         );
         unsafe { self.parts.offset(idx).read() }
@@ -287,9 +285,9 @@ impl&lt;T: Copy&gt; Widget&lt;T&gt; {
 <p>The Rust <a href="https://doc.rust-lang.org/std/macro.debug_assert.html"><code>debug_assert!</code>
 macro</a> is more like
 <code>assert!</code> in C++, in that it can be turned off by a compilation configuration
-option, and so is useful for encoding logical invariants that are useful to
-check during development and testing, but that would be too expensive to check
-during production.</p>
+option, and so is useful for encoding logical invariants that should be
+checked during development and testing, but are too expensive to check
+in production.</p>
 <h3 id="other-assertion-macros"><a class="header" href="#other-assertion-macros">Other assertion macros</a></h3>
 <p>Rust has several other convenience assertion macros. The macros
 <a href="https://doc.rust-lang.org/std/macro.assert_eq.html"><code>assert_eq!</code></a> and
@@ -342,10 +340,10 @@ int &amp;first(std::array&lt;int, n&gt; arr) {
 </code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>fn first&lt;const n: usize&gt;(arr: [i32; n]) -&gt; i32 {
+</span>fn first&lt;const N: usize&gt;(arr: [i32; N]) -&gt; i32 {
     const {
         assert!(
-            n &gt;= 1,
+            N &gt;= 1,
             "array needs to have at last size 1!"
         )
     }
