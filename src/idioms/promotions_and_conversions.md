@@ -18,7 +18,7 @@ int main() {
   // and therefore may be assigned to.
   x = 42;
 
-  // x is converted to an lvalue when needed.
+  // x is converted to an rvalue when needed.
   int y = x + 1;
 }
 ```
