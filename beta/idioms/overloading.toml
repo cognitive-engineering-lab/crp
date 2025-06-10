@@ -1,0 +1,52 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Does this program compile? If not, why not?
+
+```rust
+trait Jump {
+    // Height above ground in meters
+    fn height(&self) -> f64;
+}
+
+trait Fly {
+    // Height above ground in meters
+    fn height(&self) -> f64;
+}
+
+struct Pigeon {}
+
+impl Pigeon {
+    // Head to tail in meters
+    fn height(&self) -> f64 {
+        0.3
+    }
+}
+
+impl Jump for Pigeon {
+    fn height(&self) -> f64 {
+        0.0
+    }
+}
+
+impl Fly for Pigeon {
+    fn height(&self) -> f64 {
+        5.0
+    }
+}
+```
+"""
+prompt.distractors = [
+"""
+It does not compile because `Pigeon` cannot have both an inherent method called
+`height` and implement a trait with a method called `height`.
+""",
+"""
+It does not compile because `Pigeon` cannot implement two traits that both have
+a method called `height`.
+""",
+]
+answer.answer = [
+"It compiles."
+]
+id = "8cebf373-6026-43ed-9364-9fda8ca7fdcd"
