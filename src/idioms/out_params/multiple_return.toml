@@ -13,6 +13,7 @@ void main() {}
 
 void splitAt(std::uint8_t *data,
              std::size_t dataSize,
+             std::size_t mid,
              uint8_t **left,
              std::size_t *leftSize,
              uint8_t **right,
