@@ -108,6 +108,8 @@ public:
 ```
 
 ```rust
+use std::convert::TryFrom;
+
 pub struct Widget<T> {
     parts: *const T,
     part_count: usize,
