@@ -649,9 +649,7 @@ void process() {
   mightThrowB();
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust ignore mdbook-runnable"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use thiserror::Error;
+<pre><code class="language-rust ignore">use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error("ErrorA was produced")]
@@ -681,8 +679,7 @@ fn process() -&gt; Result&lt;(), ErrorAOrB&gt; {
     might_throw_A()?;
     might_throw_B()?;
     Ok(())
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 </div>
 <h2 id="error-types-for-applications"><a class="header" href="#error-types-for-applications">Error types for applications</a></h2>
 <p>When implementing an application (as opposed to a library), it is often the case
@@ -732,7 +729,7 @@ int main() {
   }
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust ignore mdbook-runnable">use thiserror::Error;
+<pre><code class="language-rust ignore">use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error("ErrorA was produced")]
@@ -768,7 +765,7 @@ fn main() {
             // handle ErrorB
         }
     }
-}</code></pre></pre>
+}</code></pre>
 </div>
 <h2 id="backtraces"><a class="header" href="#backtraces">Backtraces</a></h2>
 <p>Backtraces can be manually included with errors by defining a field with the

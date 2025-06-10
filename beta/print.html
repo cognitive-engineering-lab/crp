@@ -5148,9 +5148,7 @@ void process() {
   mightThrowB();
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust ignore mdbook-runnable"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use thiserror::Error;
+<pre><code class="language-rust ignore">use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error("ErrorA was produced")]
@@ -5180,8 +5178,7 @@ fn process() -&gt; Result&lt;(), ErrorAOrB&gt; {
     might_throw_A()?;
     might_throw_B()?;
     Ok(())
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 </div>
 <h2 id="error-types-for-applications"><a class="header" href="#error-types-for-applications">Error types for applications</a></h2>
 <p>When implementing an application (as opposed to a library), it is often the case
@@ -5231,7 +5228,7 @@ int main() {
   }
 }
 </code></pre>
-<pre><pre class="playground"><code class="language-rust ignore mdbook-runnable">use thiserror::Error;
+<pre><code class="language-rust ignore">use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error("ErrorA was produced")]
@@ -5267,7 +5264,7 @@ fn main() {
             // handle ErrorB
         }
     }
-}</code></pre></pre>
+}</code></pre>
 </div>
 <h2 id="backtraces"><a class="header" href="#backtraces">Backtraces</a></h2>
 <p>Backtraces can be manually included with errors by defining a field with the
@@ -5282,7 +5279,7 @@ adding backtrace information to errors. Instructions for including backtraces
 are given on the main documentation page for each crate.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="errors-indicating-bugs"><a class="header" href="#errors-indicating-bugs">Errors indicating bugs</a></h1>
 <p>In C++, exceptions are sometimes used to indicate an error that is due to a
-programming bug. In many situations, no exception is produced, and instead the
+programming bug. In many situations no exception is produced, and instead the
 invalid use of an API is simply undefined behavior.</p>
 <p>In Rust, <code>panic!</code> is used for these kinds of errors, often via an
 <a href="https://doc.rust-lang.org/std/result/enum.Result.html#method.expect"><code>expect</code></a>
@@ -5352,18 +5349,18 @@ invariants.</p>
 template &lt;typename T&gt;
 class Widget {
   T *parts;
-  std::size_t part_count;
+  std::size_t partCount;
 
 public:
   // ... constructors ...
 
   /**
-   * @pre n must be smaller than part_count
+   * @pre n must be smaller than partCount
    */
-  T get_part(std::size_t n) {
+  T getPart(std::size_t n) {
     // Unlike in Rust, this can be disabled,
     // e.g., with -DNDEBUG.
-    assert(n &lt; part_count);
+    assert(n &lt; partCount);
     return *(parts + n);
   }
 };

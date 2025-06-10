@@ -165,7 +165,7 @@
                     <main>
                         <h1 id="errors-indicating-bugs"><a class="header" href="#errors-indicating-bugs">Errors indicating bugs</a></h1>
 <p>In C++, exceptions are sometimes used to indicate an error that is due to a
-programming bug. In many situations, no exception is produced, and instead the
+programming bug. In many situations no exception is produced, and instead the
 invalid use of an API is simply undefined behavior.</p>
 <p>In Rust, <code>panic!</code> is used for these kinds of errors, often via an
 <a href="https://doc.rust-lang.org/std/result/enum.Result.html#method.expect"><code>expect</code></a>
@@ -235,18 +235,18 @@ invariants.</p>
 template &lt;typename T&gt;
 class Widget {
   T *parts;
-  std::size_t part_count;
+  std::size_t partCount;
 
 public:
   // ... constructors ...
 
   /**
-   * @pre n must be smaller than part_count
+   * @pre n must be smaller than partCount
    */
-  T get_part(std::size_t n) {
+  T getPart(std::size_t n) {
     // Unlike in Rust, this can be disabled,
     // e.g., with -DNDEBUG.
-    assert(n &lt; part_count);
+    assert(n &lt; partCount);
     return *(parts + n);
   }
 };
