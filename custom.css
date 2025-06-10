@@ -60,3 +60,23 @@ html.coal, html.navy, html.ayu {
   font-size: 80%;
   margin-top: 2em;
 }
+
+summary:has(:only-child) > p {
+    display: inline;
+}
+
+summary {
+    cursor: pointer;
+}
+
+details > summary {
+    background-color: var(--table-alternate-bg);
+    padding-left: 0.8em;
+    margin-left: -0.2em;
+}
+
+details {
+    margin: 0.2em 0;
+    padding-left: 0.2em;
+    border-left: 5px solid var(--table-header-bg);
+}

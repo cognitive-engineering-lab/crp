@@ -37,7 +37,7 @@
 - [Overloading](./idioms/overloading.md)
 - [RTTI and `dynamic_cast`](./idioms/rtti.md)
 - [Iterators]()
-- [Function objects, lambdas, and closures]()
+- [Lambdas, closures,and function objects](./idioms/closures.md)
 - [Object identity](./idioms/object_identity.md)
 - [Out parameters](./idioms/out_params.md)
   - [Multiple return values](./idioms/out_params/multiple_return.md)
