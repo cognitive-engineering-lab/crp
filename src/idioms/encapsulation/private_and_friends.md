@@ -382,9 +382,8 @@ The second point contrasts with the use above involving `std::make_unique` which
 is able to forward to the underlying constructor without knowing about it at the
 point of the definition of `std::make_unique`. While the example below is not
 useful (because `alloc_thing` is not a useful helper), it does demonstrate what
-would types have to be defined in order to achieve the same effect as when using
+types would have to be defined in order to achieve the same effect as when using
 the idiom in C++.
-
 
 ## Friends and testing
 
