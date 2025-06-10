@@ -371,8 +371,8 @@ be forbidden in C++ because <code>Shape</code> is an abstract class.</p>
         height: 1.0,
     });
 
-    // Types like Option&lt;T&gt; the value of type T directly, and so also need to
-    // know the size of T.
+    // Types like Option&lt;T&gt; include the value of type T directly, and so also
+    // need to know the size of T.
     // let v: Option&lt;dyn Shape&gt; = Some(Triangle { base: 1.0, height: 1.0 });
 }
 

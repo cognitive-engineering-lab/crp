@@ -177,14 +177,14 @@ at the end of the value's lifetime.</p>
 destructor when the variable that owns the value goes out of scope. Unlike in
 C++, the drop method cannot be called manually. Instead the automatic "drop
 glue" implicitly calls the destructors of fields.</p>
-<h2 id="lifetimes-and-destructors"><a class="header" href="#lifetimes-and-destructors">Lifetimes and destructors</a></h2>
+<h2 id="lifetimes-destructors-and-destruction-order"><a class="header" href="#lifetimes-destructors-and-destruction-order">Lifetimes, destructors, and destruction order</a></h2>
 <p>C++ destructors are called in reverse order of construction when variables go
 out of scope, or for dynamically allocated objects, when they are deleted. This
 includes destructors of moved-from objects.</p>
-<p>In Rust, the drop order is similar to that of C++ (reverse order of
-declaration). If additional specific details about the drop order are needed
-(e.g., for writing unsafe code), the full rules for the drop order are described
-in <a href="https://doc.rust-lang.org/reference/destructors.html">the language
+<p>In Rust, the drop order for items going out of scope is similar to that of C++
+(reverse order of declaration). If additional specific details about the drop
+order are needed (e.g., for writing unsafe code), the full rules for the drop
+order are described in <a href="https://doc.rust-lang.org/reference/destructors.html">the language
 reference</a>. However,
 moving an object in Rust does not leave a moved-from object on which a
 destructor will be called.</p>
@@ -264,6 +264,62 @@ no additional object remaining, and so there is no additional <code>Drop::drop</
 (which in the C++ example prints <code>0</code>).</p>
 <p>Rust's drop methods do run when leaving scope due to a panic, though not if the
 panic occurs in a destructor that was called in response to an initial panic.</p>
+<p>The drop order of fields in Rust is essentially the reverse of that of
+non-static class members in C++. Again, the specific details of what happens in
+a Rust destructor are given in <a href="https://doc.rust-lang.org/reference/destructors.html#r-destructors.operation">the language
+reference</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+struct Part {
+  std::string name;
+
+  ~Part() {
+    std::cout &lt;&lt; "Dropped " &lt;&lt; name &lt;&lt; std::endl;
+  }
+};
+
+struct Widget {
+  Part part1;
+  Part part2;
+  Part part3;
+};
+
+int main() {
+  Widget w{"1", "2", "3"};
+  // Prints:
+  // 3
+  // 2
+  // 1
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">struct Part(&amp;'static str);
+
+impl Drop for Part {
+    fn drop(&amp;mut self) {
+        println!("{}", self.0);
+    }
+}
+
+struct Widget {
+    part1: Part,
+    part2: Part,
+    part3: Part,
+}
+
+fn main() {
+    let w = Widget {
+        part1: Part("1"),
+        part2: Part("2"),
+        part3: Part("3"),
+    };
+    // Prints:
+    // 1
+    // 2
+    // 3
+}</code></pre></pre>
+</div>
 <h2 id="early-cleanup-and-explicitly-destroying-values"><a class="header" href="#early-cleanup-and-explicitly-destroying-values">Early cleanup and explicitly destroying values</a></h2>
 <p>In C++ you can explicitly destroy an object. This is mainly useful for
 situations where placement new has been used to allocate the object at a
@@ -297,7 +353,7 @@ overall memory usage.</p>
     let v2 = vec![0u32; 100000];
     // ... use v2
 }</code></pre></pre>
-<div class="quiz-placeholder" data-quiz-name="&quot;destructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;The call to `passthrough` moves ownership of the value in `w` into the\nfunction's parameter, and then moves ownership back out again when it returns,\nso that `w2` ends up owning the value. None of those steps cause `drop` to be\ncalled because no initialized variable goes out of scope. When the ownership of\nthe value is moved from the `w` into the parameter, or from the `a` in the\n`passthrough` function to `w2`, `w` and `a` are left uninitialized.\n\nAt the end of `main`, `w2` is dropped first, since it is declared last. Then its\nmembers are dropped in order of declaration in the struct definition. Each field\nis completely destructed before the next field is, thus when the `Box` in field\n`boxed_sub` is dropped, it drops the value it owns before the value in `sub` is\ndropped. Finally `s3`, is dropped.\n\n`w`, `s2`, and `s1` are not dropepd because they are not initialized.\n&quot;,&quot;id&quot;:&quot;9132e738-cc0b-4ba5-a323-9200b99bcbc4&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;3\n1\n2\n4\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;struct SubWidget {\n    id: i32,\n}\n\nimpl Drop for SubWidget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nstruct Widget {\n    id: i32,\n    boxed_sub: Box&lt;SubWidget&gt;,\n    sub: SubWidget,\n}\n\nimpl Drop for Widget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nfn passthrough(a: Widget) -&gt; Widget {\n    a\n}\n\nfn accept(a: Widget) {}\n\nfn main() {\n    let s1 = Box::new(SubWidget { id: 1 });\n    let s2 = SubWidget { id: 2 };\n    let w = Widget {\n        id: 3,\n        sub: s2,\n        boxed_sub: s1,\n    };\n    let s3 = SubWidget { id: 4 };\n\n    let w2 = passthrough(w);\n}\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;destructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;The call to `passthrough` moves ownership of the value in `w` into the\nfunction's parameter, and then moves ownership back out again when it returns,\nso that `w2` ends up owning the value. None of those steps cause `drop` to be\ncalled because no initialized variable goes out of scope. When the ownership of\nthe value is moved from the `w` into the parameter, or from the `a` in the\n`passthrough` function to `w2`, `w` and `a` are left uninitialized.\n\nAt the end of `main`, `w2` is dropped first, since it is declared last. Then its\nmembers are dropped in order of declaration in the struct definition. Each field\nis completely destructed before the next field is, thus when the `Box` in field\n`boxed_sub` is dropped, it drops the value it owns before the value in `sub` is\ndropped. Finally `s3`, is dropped.\n\n`w`, `s2`, and `s1` are not dropped because they are not initialized.\n&quot;,&quot;id&quot;:&quot;9132e738-cc0b-4ba5-a323-9200b99bcbc4&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;3\n1\n2\n4\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;struct SubWidget {\n    id: i32,\n}\n\nimpl Drop for SubWidget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nstruct Widget {\n    id: i32,\n    boxed_sub: Box&lt;SubWidget&gt;,\n    sub: SubWidget,\n}\n\nimpl Drop for Widget {\n    // Prints the id and then sets it to 0\n    fn drop(&amp;mut self) {\n        println!(\&quot;{}\&quot;, self.id);\n        self.id = 0;\n    }\n}\n\nfn passthrough(a: Widget) -&gt; Widget {\n    a\n}\n\nfn accept(a: Widget) {}\n\nfn main() {\n    let s1 = Box::new(SubWidget { id: 1 });\n    let s2 = SubWidget { id: 2 };\n    let w = Widget {\n        id: 3,\n        sub: s2,\n        boxed_sub: s1,\n    };\n    let s3 = SubWidget { id: 4 };\n\n    let w2 = passthrough(w);\n}\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css">
 
                         <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Destructors and resource cleanup">Click here to leave us feedback about this page.</a>

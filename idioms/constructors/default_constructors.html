@@ -200,6 +200,9 @@ impl Default for Person {
 default constructor in C++), then the type should provide
 <a href="https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits">both</a>
 a <code>new</code> method that takes no arguments and an implementation of <code>Default</code>.</p>
+<p>Because <code>Default</code> is a normal trait, the default constructor defined in the
+example can be invoked using the usual syntax for invoking a static trait
+method, e.g., <code>Default::default()</code>.</p>
 <h2 id="implicit-initialization-of-class-members"><a class="header" href="#implicit-initialization-of-class-members">Implicit initialization of class members</a></h2>
 <p>In C++, if a member is not explicitly initialized by a constructor, then it is
 default-initialized. When the type of the member is a class, the
@@ -290,6 +293,7 @@ impl Student {
     }
 }
 <span class="boring">}</span></code></pre></pre>
+<p>The performance of the struct update syntax <a href="https://godbolt.org/#z:OYLghAFBqd5TKALEBjA9gEwKYFFMCWALugE4A0BIEAZgQDbYB2AhgLbYgDkAjF%2BTXRMiAZVQtGIHgBYBQogFUAztgAKAD24AGfgCsp5eiyahSAVyVFyKxqiIEh1ZpgDC6embZMQAJnLOAGQImbAA5TwAjbFIpAE5yAAd0JWIHJjcPL19E5NShIJDwtiiYnnibbDs0kSIWUiIMz28ea2xbeyEauqICsMjog0tuxqyWofreopKpAEprdDNSVE4uAFIfAGZVgFYAIRxSAgA3bAgAEWwaFjN6Ihmds9WtAEEEswiAaktzOw/VaKUQg%2BqwA7Lsns8PlCPixgJwPgQNn4IaDHi8UZsdvtosdThcrjc7g8IW9Pt8zL8amYcMJgWCIdCPgkAY4/iymOQGdCrkcyMRsAB9DD0MggD4AeQSHSYqw2LhqhxMstwnPRILRzwhBDYCXoHypNKIdPBL0ZpI%2BNCYHwA7sQkAKeXyiILhWQIK6YvqiIrgDMPgBaZX6to0Y1cxlQg3MI2gk2QiMJx2HZ1C9yi/XoDjutOkObhhPQgB0hfx11uIBAOAJtwg91NBdR%2BcbarOXDm9G42343i4OnI6G4ACULEbAYtlsDNnxyERtG25gBrEDbLSGbjSfhsZernt9gdcfhKECr2e9tvkOCwFAYHUMaKUag3hJ3mKkHgADhBq7otwB1Aic7kBEwR1AAntw07AawpCgeKES6JUp7TjeHDCOKTD0OBZ7kDgERmMALgSPQR68PwOBsMYwCSNhhCkIhuIkX22DqJUZjOhB/DBM6HbYfQBARKQYFuDggHetqHHkCcpARMk2AXBRJh8SYc5zDQRjAEoABqBDYNakrMBJgjCGIEicDIcjCMoaiaNh%2BgtEYynmJYhj8UekBzOgUppCR/ouB8nlEP6jAnPQspnD4/DoFJhw4G5tatO0aROEwrjuE0Uh%2BIEwR9MUAzvjkKTSiMzR%2BEkhVpJM/QxPlFRVJ0tT1MVGUJfR9XdJVuXVdYDUNGlox%2BOMPTZVMeVzGOSxme2nbdoB%2B4fE5RCoB8PCFp%2BhZaB8ED4MQZCThsPAzPwp46DMcxINgLAHNQi7bmuXAbuQu6Rdwh7HjOKlTVwEXkFu0jbOtWjSGU748NsPggz4IIAGyPbNL3vWecyXgg8AQNeWB4IQJAUFQtB3qwHCGfIJmSOZRmKCoGiAfofgOaYI4tXV3gQM4TUtFlhRVVILRlXk6R9c0BV8x10w8GMbStUwXSNQLgwS0z0tDZznXc91wyy2MPUiwMYtjQsE3cOsWx7AcuLnJcZZEtsGrmuSvz/KQgJWrG%2BawvCiLIi2KLopiJs4ic5vVlbNvvF83oUkaUa0i79ZQsyjusg7TuqvGUJJvyqYip6krSrK8piUqGwqii6re882q6l61LRmGsdMqHlo2naDosLyyYujm2ZZ2KCrBL6AZBiIIa16nEaMEabBsV8wIbGcwb0DQFZVpbtaynGBZfIW6cph6M9zyImanB69wbOvBZKE2pctuePFdrD2H7sOlhfPrE5G99x3zuQ52XQM8VLiuO6D0twbBBIWbY989zwyPCeFSF5EBozQJmZ8jAcaPmQS%2BEAb5PzfgYM6R2/5AJQTAhJYhME4IITsBJFC0Z0KYUArhfChF6DEQkuRSi1E%2By0XoicRi/BmKsXYqRSgwg2iAT4gJISGNRKHC3MIqSMkVDyQ4X3OBalYRaR0npZkPZpzkxJmZWQ5MrJU1stkOmWCGYSLih5LyQgfJ%2BQCkFbAIUwrfSitEGK2AbGM2lMlVKmRBYcxyqLIWRUNZhIqsNLm4tEptRloEuWcSpZa2iSrTW6tEkZImGk0WetxycB8J9O%2BT1%2BzcHmiOJaK01obS2ljXa79DoIxOmdC6V1/63R4g9Up%2B5XqwMRp9b6W5tjSELLEWI2x3xaA/NIEEH4QQ%2BD%2BpA56B5mlfyXDwLQq4eIbBmg/eGn9TqSQBElaQQA%3D%3D%3D">is up to the optimizer</a>.</p>
 <h2 id="implicit-initialization-of-array-values"><a class="header" href="#implicit-initialization-of-array-values">Implicit initialization of array values</a></h2>
 <p>In C++, arrays without explicit initialization are default-initialized using the
 default constructors.</p>
@@ -314,7 +318,7 @@ struct Person {
 
 fn main() {
     // std::array::from_fn provides the index to the callback
-    let people: [Person; 3] = 
+    let people: [Person; 3] =
         std::array::from_fn(|_| Default::default());
     // ...
 }</code></pre></pre>
@@ -360,13 +364,14 @@ struct Person {
 }
 
 fn main() {
-    let people_arr: [Person; 3] = 
+    let people_arr: [Person; 3] =
         std::array::from_fn(|_| Default::default());
     let people: Vec&lt;Person&gt; = Vec::from(people_arr);
     // ...
 }</code></pre></pre>
 </div>
-<p>In Rust, the vector can also be constructed from an iterator.</p>
+<p>In Rust, the vector can also be constructed <a href="https://doc.rust-lang.org/book/ch13-02-iterators.html#methods-that-produce-other-iterators">from an
+iterator</a>.</p>
 <pre><pre class="playground"><code class="language-rust">#[derive(Default)]
 struct Person {
     age: i32,
@@ -460,17 +465,35 @@ Rust is <code>Option&lt;Box&lt;Person&gt;&gt;</code>, for which the <code>Defaul
 <p><a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_default"><code>Option::unwrap_or_default</code></a>
 makes use of <code>Default</code>, which makes getting a default value when the <code>Option</code>
 does not contain a value more convenient.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;optional&gt;
+#include &lt;string&gt;
+
+void go(std::optional&lt;std::string&gt; x) {
+  std::string a =
+      x.or_else([]() {
+         return std::make_optional&lt;std::string&gt;();
+       }).value();
+  // if x was nullopt, then a is ""
+
+  // ...
+}
+</code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>fn go(x: Option&lt;i32&gt;) {
-    let a: i32 = x.unwrap_or_default();
-    // if x was None, then a is 0
+</span>fn go(x: Option&lt;String&gt;) {
+    let a: String = x.unwrap_or_default();
+    // if x was None, then a is ""
 
     // ...
 }
 <span class="boring">}</span></code></pre></pre>
-<p>In C++, <code>std::optional</code> does not have an equivalent method.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;default_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust does not have implicit default initialization like C++ does. Variables must\nbe explicitly initialized before use, or the program will fail to compile.\n&quot;,&quot;id&quot;:&quot;5019323d-1534-4c70-a8e7-b015f87be228&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `w` is not explicitly initialized before it is used.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Widget` does not implement the `Default` trait.\n&quot;,&quot;It does not compile because `Widget` does not implement a `new` method.\n&quot;,&quot;It does not compile because `Widget` does not implement both the `Default`\ntrait and a `new` method.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\nstruct Widget {\n    color: String,\n}\n\nfn main() {\n    let w: Widget;\n    println!(\&quot;{}\&quot;, w.color);\n}\n```\n&quot;}},{&quot;context&quot;:&quot;When there is a reasonable default value, it is most idiomatic in Rust to\nprovide [both a `new` method and an implementation of the `Default`\ntrait.](https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits)\n&quot;,&quot;id&quot;:&quot;a436177e-821d-45d1-8e46-4fafc3d78cd3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2() : x(0.0), y(0.0) {}\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+</div>
+<p>In C++ <code>std::optional::value_or</code> is not equivalent, because it would always
+construct the default, as opposed to only constructing the default when the
+<code>std::optional</code> is <code>std::nullopt</code>. The equivalent requires using
+<code>std::optional::or_else</code>.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;default_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust does not have implicit default initialization like C++ does. Variables must\nbe explicitly initialized before use, or the program will fail to compile.\n&quot;,&quot;id&quot;:&quot;5019323d-1534-4c70-a8e7-b015f87be228&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `w` is not explicitly initialized before it is used.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Widget` does not implement the `Default` trait.\n&quot;,&quot;It does not compile because `Widget` does not implement a `new` method.\n&quot;,&quot;It does not compile because `Widget` does not implement both the `Default`\ntrait and a `new` method.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\nstruct Widget {\n    color: String,\n}\n\nfn main() {\n    let w: Widget;\n    println!(\&quot;{}\&quot;, w.color);\n}\n```\n&quot;}},{&quot;context&quot;:&quot;When there is a reasonable default value, it is most idiomatic in Rust to\nprovide [both a `new` method and an implementation of the `Default`\ntrait.](https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits)\n\nIn this case, an even more idiomatic implementation would be to [derive\n`Default`](https://doc.rust-lang.org/std/default/trait.Default.html#derivable)\nand use the derived method to implement new.\n&quot;,&quot;id&quot;:&quot;a436177e-821d-45d1-8e46-4fafc3d78cd3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2() : x(0.0), y(0.0) {}\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
 
                         <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Default constructors">Click here to leave us feedback about this page.</a>

@@ -189,13 +189,25 @@ literals</a>.</p>
 <tr><td><code>int32_t</code></td><td><code>i32</code></td></tr>
 <tr><td><code>int64_t</code></td><td><code>i64</code></td></tr>
 <tr><td><code>size_t</code></td><td><code>usize</code></td></tr>
-<tr><td></td><td><code>isize</code></td></tr>
+<tr><td><code>ptrdiff_t</code></td><td><code>isize</code></td></tr>
 </tbody></table>
 </div>
-<p>In C++ <code>size_t</code> is conventionally used only for sizes and offsets. The same is
-true in Rust for <code>usize</code>, which is the pointer-sized integer type. The <code>isize</code>
-type is the signed equivalent of <code>usize</code> and has no direct equivalent in C++.
-The <code>isize</code> type is typically only used to represent pointer offsets.</p>
+<p>In C++ <code>size_t</code> is conventionally used only indexing, sizes, and offsets. The
+same is true in Rust for <code>usize</code>, which is the pointer-sized unsigned integer
+type. The pointer-sized signed integer type <code>isize</code> follows similar conventions.</p>
+<p>Some primitive C++ and POSIX types (such as <code>ssize_t</code> and <code>off_t</code> as return
+types) do not map to <code>isize</code> because the failure case is representing using
+<code>std::io::Result</code> instead of using a negative number as a <a href="./null/sentinel_values.html">sentinel
+value</a>. Others (such as <code>fpos_t</code> or <code>off_t</code> as
+a parameter type) are represented as a plain <code>u64</code> or have a more explicit
+representation in Rust.</p>
+<div class="table-wrapper"><table><thead><tr><th>C++ type</th><th>Rust type</th></tr></thead><tbody>
+<tr><td>POSIX <code>ssize_t</code></td><td><a href="https://doc.rust-lang.org/std/io/type.Result.html"><code>std::io::Result&lt;u64&gt;</code></a></td></tr>
+<tr><td>POSIX <code>off_t</code> (as argument)</td><td><code>u64</code></td></tr>
+<tr><td>POSIX <code>off_t</code>(as return value)</td><td><a href="https://doc.rust-lang.org/std/io/type.Result.html"><code>std::io::Result&lt;u64&gt;</code></a></td></tr>
+<tr><td><code>fpos_t</code></td><td><a href="https://doc.rust-lang.org/std/io/enum.SeekFrom.html"><code>std::io::SeekFrom</code></a></td></tr>
+</tbody></table>
+</div>
 <h3 id="floating-point-types"><a class="header" href="#floating-point-types">Floating point types</a></h3>
 <p>As with integer types in C++, the floating point types <code>float</code>, <code>double</code>, and
 <code>long double</code> have implementation defined widths. C++23 introduced types
@@ -334,7 +346,7 @@ types in Rust.</p>
 <tr><td>Shared owner, dynamic storage, immutable, not thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><code>std::rc::Rc&lt;T&gt;</code></td></tr>
 <tr><td>Shared owner, dynamic storage, immutable, thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><code>std::sync::Arc&lt;T&gt;</code></td></tr>
 <tr><td>Shared owner, dynamic storage, mutable, not thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><a href="https://doc.rust-lang.org/book/ch15-05-interior-mutability.html#having-multiple-owners-of-mutable-data-by-combining-rct-and-refcellt"><code>std::rc::Rc&lt;std::cell::RefCell&lt;T&gt;&gt;</code></a></td></tr>
-<tr><td>Shared owner, dynamic storage, mutable, thread-safe</td><td><code>std::shared_ptr&lt;std::mutex&lt;T&gt;&gt;</code></td><td><a href="https://doc.rust-lang.org/book/ch16-03-shared-state.html"><code>std::sync::Arc&lt;std::mutex::Mutex&lt;T&gt;&gt;</code></a></td></tr>
+<tr><td>Shared owner, dynamic storage, mutable, thread-safe</td><td><code>std::shared_ptrM&lt;T&gt;</code> with a <code>std::mutex</code></td><td><a href="https://doc.rust-lang.org/book/ch16-03-shared-state.html"><code>std::sync::Arc&lt;std::mutex::Mutex&lt;T&gt;&gt;</code></a></td></tr>
 <tr><td>Const reference</td><td><code>const &amp;T</code></td><td><code>&amp;T</code></td></tr>
 <tr><td>Mutable reference</td><td><code>&amp;T</code></td><td><code>&amp;mut T</code></td></tr>
 <tr><td>Const observer pointer</td><td><code>const *T</code></td><td><code>&amp;T</code></td></tr>
@@ -385,10 +397,10 @@ when defining a function that does not modify the length of a vector and does
 not need to statically know the number of elements in an array, it is more
 idiomatic to take a parameter as <code>&amp;[T]</code> or <code>&amp;mut [T]</code> than as a reference to the
 owned type.</p>
-<p>In C++ it is better to take begin and end iterators than a <code>span</code> when possible,
-since iterators are more general. The same is true with Rust and taking a
-generic type that implements <code>IntoIter&lt;&amp;T&gt;</code> or <code>IntoIter&lt;&amp;mut T&gt;</code> instead of
-<code>&amp;[T]</code>.</p>
+<p>In C++ it is better to take begin and end iterators or a range than a <code>span</code>
+when possible, since iterators are more general. The same is true with Rust and
+taking a generic type that implements <code>IntoIter&lt;&amp;T&gt;</code> or <code>IntoIter&lt;&amp;mut T&gt;</code>
+instead of <code>&amp;[T]</code>.</p>
 <div class="comparison">
 <pre><code class="language-c++">#include &lt;iterator&gt;
 #include &lt;vector&gt;
@@ -426,7 +438,7 @@ fn main() {
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../idioms/exceptions/expected_errors.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../idioms/exceptions/bugs.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -440,7 +452,7 @@ fn main() {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../idioms/exceptions/expected_errors.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../idioms/exceptions/bugs.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

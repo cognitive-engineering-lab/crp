@@ -189,10 +189,10 @@ public:
   // so this has to be a member function.
   static void example() {
     Person alice{"Alice", 42};
-    std::ctout &lt;&lt; alice.name &lt;&lt; cout::endl;
+    std::cout &lt;&lt; alice.name &lt;&lt; std::endl;
     // The private field is visible here, within
     // the class.
-    std::ctout &lt;&lt; alice.age &lt;&lt; cout::endl;
+    std::cout &lt;&lt; alice.age &lt;&lt; std::endl;
   }
 };
 

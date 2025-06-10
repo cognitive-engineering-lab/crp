@@ -159,7 +159,7 @@ struct Vec2 {
     double x;
     double y;
 
-    Vec2(Vec2& other) : x(other.x), y(other.y) {};
+    Vec2(const Vec2 &other) : x(other.x), y(other.y) {};
 };
 ```
 """
