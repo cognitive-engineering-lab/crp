@@ -253,7 +253,9 @@ public:
 </code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>pub struct Widget&lt;T&gt; {
+</span>use std::convert::TryFrom;
+
+pub struct Widget&lt;T&gt; {
     parts: *const T,
     part_count: usize,
 }
