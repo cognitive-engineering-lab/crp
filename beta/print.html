@@ -4042,7 +4042,7 @@ use a type.</li>
 is able to forward to the underlying constructor without knowing about it at the
 point of the definition of <code>std::make_unique</code>. While the example below is not
 useful (because <code>alloc_thing</code> is not a useful helper), it does demonstrate what
-would types have to be defined in order to achieve the same effect as when using
+types would have to be defined in order to achieve the same effect as when using
 the idiom in C++.</p>
 <h2 id="friends-and-testing"><a class="header" href="#friends-and-testing">Friends and testing</a></h2>
 <p>Another common use of friend declarations is to make the internals of a class
@@ -4477,7 +4477,7 @@ the wildcard when matching on the struct fields, making it so that adding
 additional fields to a struct is not breaking change (i.e., that it does not
 <a href="https://doc.rust-lang.org/cargo/reference/semver.html">require the increase of the major version component when using semantic
 versioning</a>).</p>
-<p>Applying the <code>#[non_exhasutive]</code> attribute to the enum itself makes it as if one
+<p>Applying the <code>#[non_exhaustive]</code> attribute to the enum itself makes it as if one
 of the variants were private, requiring a wildcard when matching on the variant
 itself. This has the same effect in terms of versioning as when used on a struct
 but is less advantageous. In most cases, code failing to compile when a new enum
@@ -5771,7 +5771,7 @@ when needed.</p>
   // and therefore may be assigned to.
   x = 42;
 
-  // x is converted to an lvalue when needed.
+  // x is converted to an rvalue when needed.
   int y = x + 1;
 }
 </code></pre>
@@ -7271,7 +7271,7 @@ int main() {
 </code></pre>
 <p>This more closely aligns with the normal Rust idiom for returning multiple
 values.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;multiple_return&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;17e30276-7ebe-499e-b8b0-4acfb815feaa&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub fn split_at(\n    data: &amp;[u8],\n    mid: usize,\n) -&gt; (&amp;[u8], &amp;[u8]);\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub fn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    left: &amp;mut &amp;[u8],\n    right: &amp;mut &amp;[u8],\n);\n```\n&quot;,&quot;```rust\nfn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    left: &amp;mut &amp;[u8],\n    right: &amp;mut &amp;[u8],\n) -&gt; (usize, usize);\n```\n&quot;,&quot;```rust\nfn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    remaining: &amp;mut &amp;[u8],\n) -&gt; &amp;[u8];\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic translation of this C++ function\nsignature into a Rust function signature?\n\n```cpp\nvoid main() {}\n```\n\n```cpp\n#include &lt;cstdint&gt;\n\nvoid splitAt(std::uint8_t *data,\n             std::size_t dataSize,\n             uint8_t **left,\n             std::size_t *leftSize,\n             uint8_t **right,\n             std::size_t *rightSize);\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;multiple_return&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;17e30276-7ebe-499e-b8b0-4acfb815feaa&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub fn split_at(\n    data: &amp;[u8],\n    mid: usize,\n) -&gt; (&amp;[u8], &amp;[u8]);\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub fn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    left: &amp;mut &amp;[u8],\n    right: &amp;mut &amp;[u8],\n);\n```\n&quot;,&quot;```rust\nfn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    left: &amp;mut &amp;[u8],\n    right: &amp;mut &amp;[u8],\n) -&gt; (usize, usize);\n```\n&quot;,&quot;```rust\nfn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    remaining: &amp;mut &amp;[u8],\n) -&gt; &amp;[u8];\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic translation of this C++ function\nsignature into a Rust function signature?\n\n```cpp\nvoid main() {}\n```\n\n```cpp\n#include &lt;cstdint&gt;\n\nvoid splitAt(std::uint8_t *data,\n             std::size_t dataSize,\n             std::size_t mid,\n             uint8_t **left,\n             std::size_t *leftSize,\n             uint8_t **right,\n             std::size_t *rightSize);\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="optional-return-values"><a class="header" href="#optional-return-values">Optional return values</a></h1>
 <p>One idiom in C++ for optionally producing a result from a method or function is
 to use a reference parameter along with a boolean or integer return value to
