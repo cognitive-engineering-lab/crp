@@ -42,7 +42,7 @@ All of the Rust options start with the following import and definitions.
 ```rust
 use std::convert::TryFrom;
 
-#[repr(i8)]
+#[repr(u8)]
 #[derive(Clone, Copy)]
 enum Color {
     Red,

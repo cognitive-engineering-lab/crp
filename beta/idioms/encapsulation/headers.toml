@@ -35,11 +35,11 @@ prompt.distractors = [
 ```rust
 // square.rsi
 pub struct Square {
-    width: f64;
+    pub width: f64;
 }
 
 impl Square {
-    fn area(&self) -> f64;
+    pub fn area(&self) -> f64;
 }
 
 // square.rs
@@ -67,12 +67,12 @@ fn main() {
 """
 ```rust
 // square.rs
-struct Square {
-    width: f64,
+pub struct Square {
+    pub width: f64,
 }
 
 impl Square {
-    fn area(&self) -> f64 {
+    pub fn area(&self) -> f64 {
         self.width * self.width
     }
 }
@@ -92,12 +92,12 @@ fn main() {
 ```rust
 // square.rs
 mod square {
-    struct Square {
-        width: f64,
+    pub struct Square {
+        pub width: f64,
     }
 
     impl Square {
-        fn area(&self) -> f64 {
+        pub fn area(&self) -> f64 {
             self.width * self.width
         }
     }
@@ -120,7 +120,7 @@ answer.answer = """
 ```rust
 // square.rs
 pub struct Square {
-    width: f64,
+    pub width: f64,
 }
 
 impl Square {
