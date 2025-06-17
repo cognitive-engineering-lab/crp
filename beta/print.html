@@ -7014,6 +7014,887 @@ event handling functions for specific types, rather than a single large
 event handling function, so that the underlying implementation can managing
 the enforcement of the invariants required to make the casting safe. <a href="#fr-safe-event-handler-1">↩</a></p>
 </li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="iterators-and-ranges"><a class="header" href="#iterators-and-ranges">Iterators and ranges</a></h1>
+<p>Rust iterators resemble C++
+<a href="https://en.cppreference.com/w/cpp/ranges.html">ranges</a> in that they represent
+iterable sequence and can be manipulated similarly to how ranges can be using
+range views. Since C++ ranges are defined using iterators and ranges were only
+introduced in C++20, this chapter compares Rust iterators with both C++
+iterators and with C++ ranges.</p>
+<p>Rust iterators are forward iterators, not <a href="idioms/iterators.html#bidirectional-and-random-access-iterators">bidirecitonal or random
+access</a>. The definition of the
+<code>Iterator</code> trait reflects this: all of its methods are based on a <code>next</code> method
+which returns either an <code>Option::Some</code> containing the next item in the iteration
+or <code>Option::None</code>.</p>
+<p>A Rust iterator also does not represent an index into a structure the way that a
+C++ iterator does when used with functions from the C++ STL algorithms library,
+such as <code>std::sort</code>.</p>
+<p>Whether Rust iterators are input iterators or input/output iterators depends on
+whether the iterated items are owned values (input), references (input), or
+mutable references (input/output). The type of the iterated values typically
+reflects whether the structure being iterated over is an owned value, reference,
+or mutable reference. Rust iterators cannot be output iterators only because the
+iterated values must always be initialized.</p>
+<p>In a sense, Rust's iterators are much more like C++23 generators (except that
+Rust <a href="https://github.com/rust-lang/rust/issues/43122">does not yet support
+coroutines</a>).</p>
+<h2 id="iterators-ranges-and-for-loops"><a class="header" href="#iterators-ranges-and-for-loops">Iterators, ranges, and <code>for</code> loops</a></h2>
+<p>In C++, anything that has <code>begin()</code> and <code>end()</code> methods to return iterators
+(i.e., anything that models the C++20 <code>range</code> concept) can be used with a for
+loop. In Rust, anything that implements the
+<a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html"><code>IntoIterator</code></a>
+trait can be used with a for loop. This includes iterators themselves, which
+implement the trait via a <a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html">blanket
+implementation</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+int main() {
+  std::vector&lt;int&gt; v{1, 2, 3};
+
+  // prints 1, 2, 3
+  for (auto &amp;x : v) {
+    std::cout &lt;&lt; x &lt;&lt; std::endl;
+    x = x + 1;
+  }
+
+  // prints 2, 3, 4
+  for (const auto &amp;x : v) {
+    std::cout &lt;&lt; x &lt;&lt; std::endl;
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = vec![1, 2, 3];
+
+    // prints 1, 2, 3
+    for x in &amp;mut v {
+        println!("{}", x);
+        *x = *x + 1;
+    }
+
+    // prints 2, 3, 4
+    for x in &amp;v {
+        println!("{}", x);
+    }
+}</code></pre></pre>
+</div>
+<p>In both C++ and Rust, iterators can be used for reading, writing, or both. In
+Rust the use of an iterator for writing depends on the type of the elements
+returned. In the case of <code>Vec&lt;i32&gt;</code> above, the <code>IntoIterator</code> trait implemented for
+<code>&amp;mut Vec&lt;i32&gt;</code> produces an iterator over mutable references <code>&amp;mut i32</code>, which
+enables modifying the values in the vector.<sup class="footnote-reference" id="fr-mut-iterator-safety-1"><a href="#footnote-mut-iterator-safety">1</a></sup></p>
+<h2 id="ranges-and-views"><a class="header" href="#ranges-and-views">Ranges and views</a></h2>
+<p>Just as the <a href="https://en.cppreference.com/w/cpp/ranges.html">C++ ranges library</a>
+provides many utility functions for defining pipelines to transform ranges, the
+Rust standard library defines many <a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.filter">iterator
+methods</a>
+transforming Rust iterators, including turning them back into collections like
+vectors.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;ranges&gt;
+#include &lt;vector&gt;
+
+using namespace std::views;
+using namespace std::ranges::views;
+
+int main() {
+<span class="boring">  // clang-format off
+</span>  // This example requires C++23
+  auto v =
+    iota(1)
+      | filter([](int n) { return n % 2 == 1; })
+      | transform([](int n) { return n + 3; })
+      | take(10)
+      | std::ranges::to&lt;std::vector&gt;();
+<span class="boring">  // clang-format on
+</span>
+  // use v...
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let v = (1..)
+        .filter(|i| i % 2 == 1)
+        .map(|i| i + 3)
+        .take(10)
+        .collect::&lt;Vec&lt;i32&gt;&gt;();
+
+    // use v...
+}</code></pre></pre>
+</div>
+<p>The Rust <code>collect</code> iterator method can convert the iterator into anything that
+implements <code>FromIterator</code>. If the type of <code>v</code> can be inferred from its later
+use, the type does not need to be specified in the call to <code>collect</code>.</p>
+<p>In both C++ and in Rust, the view or iterator could be used directly as the
+value to iterator over in a for loop, without first converting to something like
+a vector. Similarly, in both languages the construction of the values is done
+lazily.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;ranges&gt;
+#include &lt;iostream&gt;
+
+using namespace std::views;
+using namespace std::ranges::views;
+
+int main() {
+<span class="boring">  // clang-format off
+</span>    for (auto x :
+        iota(1)
+          | filter([](int n) { return n % 2 == 1; })
+          | transform([](int n) { return n + 3; })
+          | take(10)) {
+      std::cout&lt;&lt; x &lt;&lt; std::endl;
+    }
+<span class="boring">  // clang-format on
+</span>}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    for x in (1..)
+        .filter(|i| i % 2 == 1)
+        .map(|i| i + 3)
+        .take(10)
+    {
+        println!("{}", x);
+    }
+}</code></pre></pre>
+</div>
+<p>Additional useful methods on iterators are provided by the third-party
+<a href="https://docs.rs/itertools/latest/itertools/">itertools crate</a>.</p>
+<!-- TODO via [extension traits](../patterns/adapter.md) -->
+<h2 id="intoiterator-and-ownership"><a class="header" href="#intoiterator-and-ownership"><code>IntoIterator</code> and ownership</a></h2>
+<p>The <a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html"><code>IntoIterator</code>
+trait</a> can be
+implemented for a type <code>T</code> itself, a reference <code>&amp;T</code>, or a mutable reference
+<code>&amp;mut T</code>. The possible types of the iterated items depend on what type the trait
+is implemented for. If it is implemented for <code>&amp;mut T</code>, for example, typically
+the items will be mutable references to items still owned by the original
+structure. If the type is <code>T</code>, then the items will be the owned items that were
+in the original structure.<sup class="footnote-reference" id="fr-owned-items-references-1"><a href="#footnote-owned-items-references">2</a></sup></p>
+<p>Since the behavior depends on the type of the structure used in the for loop,
+which may be inferred and therefore not visible, this can lead to surprising
+compilation errors. In particular, iterating over a vector <code>v</code> instead of a
+reference to the vector <code>&amp;v</code> will consume the original vector, making it
+inaccessible.</p>
+<p>Iterating over a structure in C++ is most similar to calling <code>into_iter</code> on a
+mutable reference in Rust.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = vec![
+        String::from("a"),
+        String::from("b"),
+        String::from("c"),
+    ];
+
+    for x in &amp;v {
+        // x: &amp;String
+        println!("{}", x);
+    }
+
+    // since v was borrowed, not moved, it is still accessiable here.
+    println!("{:?}", v);
+
+    for x in &amp;mut v {
+        // x: &amp;mut String
+        x.push('!');
+    }
+
+    // since v was borrowed, not moved, it is still accessiable here.
+    // however, the content of v has been modified
+    println!("{:?}", v);
+
+    for x in v {
+        // x: String
+        // drops x at the end of each iteration
+    }
+
+    // v is no longer accessible, so this wouldn't compile
+    // println!("{:?}", v);
+}</code></pre></pre>
+<p>Most iterable types will also provide methods specifically for accessing the
+reference or mutable reference iterators. Conventionally, these are called
+<code>iter</code> and <code>iter_mut</code>. They are useful in situations where the iteration is not
+being immediately used with a for loop, but instead is used with other iterator
+methods, because of the relative precedence of the reference operator and of
+method invocation.</p>
+<h2 id="identifying-ranges-for-algorithms-to-operate-on"><a class="header" href="#identifying-ranges-for-algorithms-to-operate-on">Identifying ranges for algorithms to operate on</a></h2>
+<p>C++ uses iterators to identify regions of structures on which functions from the
+STL algorithms library should operate. Rust iterators do not serve that purpose.
+Instead, there are two common alternatives.</p>
+<p>The first is that operations which operate strictly on forward iterators just
+operate directly on the iterator. Identifying specific parts of an iterator for
+this purpose can be done using the <a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#provided-methods">iterator
+methods</a>,
+such as
+<a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take"><code>take</code></a> or
+<a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.filter"><code>filter</code></a>.
+Alternatively, for some types <a href="https://doc.rust-lang.org/book/ch04-03-slices.html">slices can be taken by indexing with a
+range</a> before converting to
+an iterator.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;algorithm&gt;
+#include &lt;vector&gt;
+
+int main() {
+  std::vector v{1, 2, 3, 4, 5, 6, 7, 8, 9};
+  auto begin = v.begin() + 2;
+  auto end = begin + 5;
+  bool b(std::any_of(begin, end, [](int n) {
+    return n % 2 == 0;
+  }));
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let v: Vec&lt;i32&gt; = (1..10).collect();
+    let b = v
+        .iter()
+        .skip(2)
+        .take(5)
+        .any(|n| n % 2 == 0);
+
+    // or
+
+    let b2 = v[3..7].iter().any(|n| n % 2 == 0);
+
+    // ...
+}</code></pre></pre>
+</div>
+<p>The second is that some of the algorithms operate on slices. For example, the
+<a href="https://doc.rust-lang.org/std/primitive.slice.html#method.sort">sort method</a> in
+the Rust standard library operates on slices. This is similar to if in C++, a
+function were to operate on a <code>std::span</code> instead of on an iterator. Many of the
+methods available on <code>Vec&lt;T&gt;</code> are actually defined on <code>&amp;[T]</code> and are made
+available on <code>Vec&lt;T&gt;</code> via <a href="https://doc.rust-lang.org/book/ch15-02-deref.html">deref
+coercion</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+int main() {
+  std::vector v{9, 8, 7, 6, 5, 4, 3, 2, 1};
+
+  for (auto n : v) {
+    std::cout &lt;&lt; n &lt;&lt; ",";
+  }
+  std::cout &lt;&lt; std::endl;
+
+  std::sort(v.begin(), v.end());
+
+  for (auto n : v) {
+    std::cout &lt;&lt; n &lt;&lt; ",";
+  }
+  std::cout &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v: Vec&lt;i32&gt; = (1..10).rev().collect();
+    println!("{:?}", v);
+
+    v.sort();
+
+    println!("{:?}", v);
+}</code></pre></pre>
+</div>
+<h2 id="iterator-invalidation"><a class="header" href="#iterator-invalidation">Iterator invalidation</a></h2>
+<p>In C++, operations sometimes only invalidate some iterators on a value, such as
+the <code>erase</code> method on <code>std::vector</code> only invaliding iterators to the erased
+element and those after it, but not the ones before it.</p>
+<p>In Rust the fact that iterators borrow the whole iterated value means that no
+operations modifying the value itself (such as erasing values from a vector) can
+be performed while iterating. Thus, there are no iterator invalidation rules to
+keep in mind while using Rust iterators.</p>
+<p>However, this also means that there are things that can be done with iterators
+in C++ that cannot be done with iterators in Rust, such as removing elements
+from a vector while iterating over it. Instead in Rust there are two possible
+approaches: use indices or use helper methods.</p>
+<p>Using indices instead of iterators comes with the same challenges as it does in
+C++, with the exception that the program will panic instead of performing
+undefined behavior if an index is out of bounds in safe Rust.</p>
+<p>Using the helper methods resembles the recommendations commonly given for
+writing against newer C++ standards. For example, to remove all elements of a
+particular value in Rust, one would use the
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.retain"><code>Vec::retain</code></a>
+method, which is like <code>remove_if</code> or <code>erase_if</code> on <code>std::vector</code>, but with a
+negative predicate.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+int main() {
+  std::vector&lt;int&gt; v{1, 2, 3};
+
+  auto newEnd = remove(v.begin(), v.end(), 2);
+  v.erase(newEnd, v.end());
+
+  // Or since C++20
+  // std::erase(v, 2);
+
+  for (auto x : v) {
+    std::cout &lt;&lt; x &lt;&lt; std::endl;
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = vec![1, 2, 3];
+    v.retain(|i| *i != 2);
+
+    for x in &amp;v {
+        println!("{}", x);
+    }
+}</code></pre></pre>
+</div>
+<p>When using iterators, one would use the methods described in the section on
+<a href="idioms/iterators.html#ranges-and-views">ranges and views</a>.</p>
+<h2 id="implementing-rust-iterators"><a class="header" href="#implementing-rust-iterators">Implementing Rust iterators</a></h2>
+<p>This extended example defines a binary tree and preorder const iterator over the
+tree. The module structure is included in this example because defining private
+items will be an important part of later patterns used to simplify the
+implementation.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;memory&gt;
+
+template &lt;typename V&gt;
+class Tree {
+public:
+    V value;
+    std::unique_ptr&lt;Tree&lt;V&gt;&gt; left;
+    std::unique_ptr&lt;Tree&lt;V&gt;&gt; right;
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>mod tree {
+    /// Binary tree with values at every node.
+    /// Not necessarily balanced.
+    pub struct Tree&lt;V&gt; {
+        pub value: V,
+        pub left: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+        pub right: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>Much like how in C++ an iterator and a const iterator are distinct things, in
+Rust there are different iterators for owned values, references, and mutable
+references.</p>
+<p>For example, for tree type <code>Tree&lt;V&gt;</code> would likely provide the following methods
+to support preorder iteration. For the methods that provide iteration over
+references, the references are borrowed from the original structure, and so the
+lifetime parameter <code>'a</code> relates the reference to the item to <code>self</code>.</p>
+<div class="table-wrapper"><table><thead><tr><th></th><th>method</th><th>item type</th></tr></thead><tbody>
+<tr><td>reference</td><td><code>fn preorder&lt;'a&gt;(&amp;'a self) -&gt; IterPreorder&lt;'a, V&gt;</code></td><td><code>&amp;'a V</code></td></tr>
+<tr><td>mutable reference</td><td><code>fn preorder_mut&lt;'a&gt;(&amp;'a mut self) -&gt; IterMutPreorder&lt;'a, V&gt;</code></td><td><code>&amp;'a mut V</code></td></tr>
+<tr><td>owned</td><td><code>fn into_preorder(self) -&gt; IntoIterPreorder&lt;V&gt;</code></td><td><code>V</code></td></tr>
+</tbody></table>
+</div>
+<p>Just like with C++ iterators, the essential complexity of defining the iterator
+amounts to determining how to capture the suspended state of traversing the
+structure. In this case the suspended state consists of a stack of the rest of
+the trees to iterate.</p>
+<p>The implementations diverge in the interface provided. C++ requires several
+types and methods to be defined in order for the type to model a forward
+iterator. Rust requires only the definition of the element type that will be
+iterated and a <code>next</code> method.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;memory&gt;
+</span><span class="boring">#include &lt;vector&gt;
+</span><span class="boring">
+</span>template &lt;typename V&gt;
+class Tree {
+public:
+  class iterator {
+    std::vector&lt;const Tree&lt;V&gt; *&gt; rest;
+
+  public:
+    using difference_type = long;
+    using value_type = V;
+    using pointer = const V *;
+    using reference = const V &amp;;
+    using iterator_category =
+        std::forward_iterator_tag;
+
+    iterator() {}
+    iterator(const Tree&lt;V&gt; *start) {
+      rest.push_back(start);
+    }
+
+    reference operator*() const {
+      return rest.back()-&gt;value;
+    }
+
+    iterator &amp;operator++() {
+      const Tree&lt;V&gt; *t = rest.back();
+      rest.pop_back();
+      if (t-&gt;right) {
+        rest.push_back(t-&gt;right.get());
+      }
+      if (t-&gt;left) {
+        rest.push_back(t-&gt;left.get());
+      }
+      return *this;
+    }
+
+    iterator operator++(int) {
+      iterator retval = *this;
+      const Tree&lt;V&gt; *t = rest.back();
+      rest.pop_back();
+      if (t-&gt;right) {
+        rest.push_back(t-&gt;right.get());
+      }
+      if (t-&gt;left) {
+        rest.push_back(t-&gt;left.get());
+      }
+      return retval;
+    }
+
+    bool operator==(const iterator &amp;other) const {
+      return rest == other.rest;
+    }
+
+    bool operator!=(const iterator &amp;other) const {
+      return !(*this == other);
+    }
+  };
+<span class="boring">
+</span><span class="boring">  V value;
+</span><span class="boring">  std::unique_ptr&lt;Tree&lt;V&gt;&gt; left;
+</span><span class="boring">  std::unique_ptr&lt;Tree&lt;V&gt;&gt; right;
+</span>};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>mod tree {
+<span class="boring">    /// Binary tree with values at every node.
+</span><span class="boring">    /// Not necessarily balanced.
+</span><span class="boring">    pub struct Tree&lt;V&gt; {
+</span><span class="boring">        pub value: V,
+</span><span class="boring">        pub left: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+</span><span class="boring">        pub right: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+</span><span class="boring">    }
+</span><span class="boring">
+</span>    pub struct IterPreorder&lt;'a, V&gt;(Vec&lt;&amp;'a Tree&lt;V&gt;&gt;);
+
+    impl&lt;'a, V&gt; Iterator for IterPreorder&lt;'a, V&gt; {
+        type Item = &amp;'a V;
+
+        // This is like a combination of
+        // operator++ and operator*
+        fn next(&amp;mut self) -&gt; Option&lt;&amp;'a V&gt; {
+            match self.0.pop() {
+                None =&gt; None,
+                Some(t) =&gt; {
+                    let Tree { value, left, right } = t;
+                    if let Some(right) = right {
+                        self.0.push(right.as_ref());
+                    }
+                    if let Some(left) = left {
+                        self.0.push(left.as_ref());
+                    }
+                    Some(value)
+                }
+            }
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The remaining step is to make the original type iterable. In C++ this involves
+defining <code>begin</code> and <code>end</code> methods. In Rust this involves either implementing a
+method that explicitly produces the iterator, or implementing the <code>IntoIterator</code>
+trait.</p>
+<p>When there are multiple possible iterations for a type and none of them are
+canonical, it is idiomatic to omit the <code>IntoIterator</code> trait implementation.
+Omitting the implementation requires users to intentionally choose the kind of
+iteration to use. The trait is implemented below to provide an example, but an
+unsorted binary tree is a case where it would be typical to omit the trait
+implementation, to force a user to pick between pre-, post-, and inorder
+iteration.</p>
+<p>Because the implemented iterator is one for references, the trait actually is
+implemented for references to trees <code>&amp;Tree&lt;V&gt;</code>, rather than <code>Tree&lt;V&gt;</code> directly.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+<span class="boring">#include &lt;memory&gt;
+</span><span class="boring">#include &lt;vector&gt;
+</span>
+template &lt;typename V&gt;
+class Tree {
+public:
+<span class="boring">  class iterator {
+</span><span class="boring">    std::vector&lt;const Tree&lt;V&gt; *&gt; rest;
+</span><span class="boring">
+</span><span class="boring">  public:
+</span><span class="boring">    using difference_type = long;
+</span><span class="boring">    using value_type = V;
+</span><span class="boring">    using pointer = const V *;
+</span><span class="boring">    using reference = const V &amp;;
+</span><span class="boring">    using iterator_category =
+</span><span class="boring">        std::forward_iterator_tag;
+</span><span class="boring">
+</span><span class="boring">    iterator() {}
+</span><span class="boring">    iterator(const Tree&lt;V&gt; *start) {
+</span><span class="boring">      rest.push_back(start);
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    reference operator*() const {
+</span><span class="boring">      return rest.back()-&gt;value;
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    iterator &amp;operator++() {
+</span><span class="boring">      const Tree&lt;V&gt; *t = rest.back();
+</span><span class="boring">      rest.pop_back();
+</span><span class="boring">      if (t-&gt;right) {
+</span><span class="boring">        rest.push_back(t-&gt;right.get());
+</span><span class="boring">      }
+</span><span class="boring">      if (t-&gt;left) {
+</span><span class="boring">        rest.push_back(t-&gt;left.get());
+</span><span class="boring">      }
+</span><span class="boring">      return *this;
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    iterator operator++(int) {
+</span><span class="boring">      iterator retval = *this;
+</span><span class="boring">      const Tree&lt;V&gt; *t = rest.back();
+</span><span class="boring">      rest.pop_back();
+</span><span class="boring">      if (t-&gt;right) {
+</span><span class="boring">        rest.push_back(t-&gt;right.get());
+</span><span class="boring">      }
+</span><span class="boring">      if (t-&gt;left) {
+</span><span class="boring">        rest.push_back(t-&gt;left.get());
+</span><span class="boring">      }
+</span><span class="boring">      return retval;
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    bool operator==(const iterator &amp;other) const {
+</span><span class="boring">      return rest == other.rest;
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    bool operator!=(const iterator &amp;other) const {
+</span><span class="boring">      return !(*this == other);
+</span><span class="boring">    }
+</span><span class="boring">  };
+</span><span class="boring">
+</span>  iterator begin() const {
+    return iterator(this);
+  }
+
+  iterator end() const {
+    return iterator();
+  }
+<span class="boring">
+</span><span class="boring">  V value;
+</span><span class="boring">  std::unique_ptr&lt;Tree&lt;V&gt;&gt; left;
+</span><span class="boring">  std::unique_ptr&lt;Tree&lt;V&gt;&gt; right;
+</span>};
+
+int main() {
+  Tree&lt;int&gt; t{1,
+              std::make_unique&lt;Tree&lt;int&gt;&gt;(
+                  2, nullptr, nullptr),
+              std::make_unique&lt;Tree&lt;int&gt;&gt;(
+                  3,
+                  std::make_unique&lt;Tree&lt;int&gt;&gt;(
+                      4, nullptr, nullptr),
+                  nullptr)};
+
+  for (auto v : t) {
+    std::cout &lt;&lt; v &lt;&lt; std::endl;
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">mod tree {
+<span class="boring">   /// Binary tree with values at every node.
+</span><span class="boring">   /// Not necessarily balanced.
+</span><span class="boring">   pub struct Tree&lt;V&gt; {
+</span><span class="boring">       pub value: V,
+</span><span class="boring">       pub left: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+</span><span class="boring">       pub right: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+</span><span class="boring">   }
+</span><span class="boring">
+</span><span class="boring">   pub struct IterPreorder&lt;'a, V&gt;(Vec&lt;&amp;'a Tree&lt;V&gt;&gt;);
+</span><span class="boring">
+</span><span class="boring">   impl&lt;'a, V&gt; Iterator for IterPreorder&lt;'a, V&gt; {
+</span><span class="boring">       type Item = &amp;'a V;
+</span><span class="boring">       fn next(&amp;mut self) -&gt; Option&lt;&amp;'a V&gt; {
+</span><span class="boring">           match self.0.pop() {
+</span><span class="boring">               None =&gt; None,
+</span><span class="boring">               Some(t) =&gt; {
+</span><span class="boring">                   let Tree { value, left, right } = t;
+</span><span class="boring">                   if let Some(right) = right {
+</span><span class="boring">                       self.0.push(right.as_ref());
+</span><span class="boring">                   }
+</span><span class="boring">                   if let Some(left) = left {
+</span><span class="boring">                       self.0.push(left.as_ref());
+</span><span class="boring">                   }
+</span><span class="boring">                   Some(value)
+</span><span class="boring">               }
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span><span class="boring">   }
+</span><span class="boring">
+</span>    impl&lt;V&gt; Tree&lt;V&gt; {
+        pub fn preorder(&amp;self) -&gt; IterPreorder&lt;V&gt; {
+            IterPreorder(vec![self])
+        }
+    }
+
+    impl&lt;'a, V&gt; IntoIterator for &amp;'a Tree&lt;V&gt; {
+        type Item = &amp;'a V;
+        type IntoIter = IterPreorder&lt;'a, V&gt;;
+
+        fn into_iter(self) -&gt; Self::IntoIter {
+            self.preorder()
+        }
+    }
+}
+
+use tree::*;
+
+fn main() {
+    let t = Tree {
+        value: 1,
+        left: Some(Box::new(Tree {
+            value: 2,
+            left: None,
+            right: None,
+        })),
+        right: Some(Box::new(Tree {
+            value: 3,
+            left: Some(Box::new(Tree {
+                value: 4,
+                left: None,
+                right: None,
+            })),
+            right: None,
+        })),
+    };
+
+    for n in t.preorder() {
+        println!("{}", n);
+    }
+
+    for n in &amp;t {
+        println!("{}", n);
+    }
+}</code></pre></pre>
+</div>
+<p>Implementing the iterators for mutable references and owned values can be done
+similarly. With all three, there are three <code>IntoIterator</code> implementations, one
+for <code>&amp;Tree&lt;V&gt;</code>, one for <code>&amp;mut Tree&lt;V&gt;</code>, and one for <code>Tree&lt;V&gt;</code>.</p>
+<h3 id="reducing-code-duplication"><a class="header" href="#reducing-code-duplication">Reducing code duplication</a></h3>
+<p>As with implementing iterators and const iterators in C++, implementing
+iterators for owned values, references, and mutable references can result in
+significant code duplication in Rust.</p>
+<p>One pattern for addressing this involves defining a private trait that captures
+the decomposing of the type and then implementing the <code>Iterator</code> trait via a
+blanket implementation in terms of that trait. Wrapper structs can then be used
+to expose the iteration behavior without exposing the helper trait.</p>
+<p>The following example implements this pattern for the <code>Tree&lt;V&gt;</code> type above as an
+alternative to the simpler, but more duplicative, approach above.</p>
+<pre><pre class="playground"><code class="language-rust">mod tree {
+    /// Binary tree with values at every node.
+    /// Not necessarily balanced.
+    pub struct Tree&lt;V&gt; {
+        pub value: V,
+        pub left: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+        pub right: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+    }
+
+    impl&lt;V&gt; Tree&lt;V&gt; {
+        // ... static methods for constructing trees ...
+<span class="boring">
+</span><span class="boring">       /// Constructs a new node with two
+</span><span class="boring">       /// subtrees.
+</span><span class="boring">       pub fn node(value: V, left: Tree&lt;V&gt;, right: Tree&lt;V&gt;) -&gt; Tree&lt;V&gt; {
+</span><span class="boring">           Tree {
+</span><span class="boring">               value,
+</span><span class="boring">               left: Some(Box::new(left)),
+</span><span class="boring">               right: Some(Box::new(right)),
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span><span class="boring">
+</span><span class="boring">       /// Constructs a new node with a left
+</span><span class="boring">       /// subtree.
+</span><span class="boring">       pub fn left(value: V, left: Tree&lt;V&gt;) -&gt; Tree&lt;V&gt; {
+</span><span class="boring">           Tree {
+</span><span class="boring">               value,
+</span><span class="boring">               left: Some(Box::new(left)),
+</span><span class="boring">               right: None,
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span><span class="boring">
+</span><span class="boring">       /// Constructs a new node with a right
+</span><span class="boring">       /// subtree.
+</span><span class="boring">       pub fn right(value: V, right: Tree&lt;V&gt;) -&gt; Tree&lt;V&gt; {
+</span><span class="boring">           Tree {
+</span><span class="boring">               value,
+</span><span class="boring">               left: None,
+</span><span class="boring">               right: Some(Box::new(right)),
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span><span class="boring">
+</span><span class="boring">       /// Constructs a new leaf node.
+</span><span class="boring">       pub fn leaf(value: V) -&gt; Self {
+</span><span class="boring">           Tree {
+</span><span class="boring">               value,
+</span><span class="boring">               left: None,
+</span><span class="boring">               right: None,
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span>    }
+
+    /// Internal trait for abstracting over access
+    /// to the tree components.
+    ///
+    /// This reduces code duplication when
+    /// implementing behavior that is essentially
+    /// the same for Tree&lt;V&gt;, &amp;Tree&lt;V&gt;,
+    /// and &amp;mut Tree&lt;V&gt;.
+    trait Treeish: Sized {
+        type Output;
+        fn get(self) -&gt; (Option&lt;Self&gt;, Self::Output, Option&lt;Self&gt;);
+    }
+
+    impl&lt;V&gt; Treeish for Tree&lt;V&gt; {
+        type Output = V;
+        fn get(self) -&gt; (Option&lt;Self&gt;, Self::Output, Option&lt;Self&gt;) {
+            let Tree { value, left, right } = self;
+            (left.map(|x| *x), value, right.map(|x| *x))
+        }
+    }
+
+    impl&lt;'a, V&gt; Treeish for &amp;'a Tree&lt;V&gt; {
+        type Output = &amp;'a V;
+        fn get(self) -&gt; (Option&lt;Self&gt;, Self::Output, Option&lt;Self&gt;) {
+            let Tree { value, left, right } = self;
+            (left.as_deref(), value, right.as_deref())
+        }
+    }
+
+    impl&lt;'a, V&gt; Treeish for &amp;'a mut Tree&lt;V&gt; {
+        type Output = &amp;'a mut V;
+        fn get(self) -&gt; (Option&lt;Self&gt;, Self::Output, Option&lt;Self&gt;) {
+            let Tree { value, left, right } = self;
+            (left.as_deref_mut(), value, right.as_deref_mut())
+        }
+    }
+
+    /// Internal struct for implementing Iterator
+    /// in terms of Treeish.
+    struct Preorder&lt;T&gt;(Vec&lt;T&gt;);
+
+    impl&lt;T&gt; Iterator for Preorder&lt;T&gt;
+    where
+        T: Treeish,
+    {
+        type Item = T::Output;
+        fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+            let next = self.0.pop();
+            match next {
+                None =&gt; None,
+                Some(t) =&gt; {
+                    // the helper trait is used here
+                    let (left, value, right) = t.get();
+                    if let Some(right) = right {
+                        self.0.push(right);
+                    }
+                    if let Some(left) = left {
+                        self.0.push(left);
+                    }
+                    Some(value)
+                }
+            }
+        }
+    }
+
+    // Wrappers for exposing the iterator. The wrappers are necessary
+    // in order to keep Treeish private. Treeish::Output would
+    // otherwise be exposed and thus require Treeish to be public.
+
+    /// Preorder iterator
+    pub struct IntoIterPreorder&lt;V&gt;(Preorder&lt;Tree&lt;V&gt;&gt;);
+
+    /// Preorder iterator
+    pub struct IterPreorder&lt;'a, V&gt;(Preorder&lt;&amp;'a Tree&lt;V&gt;&gt;);
+
+    /// Preorder iterator
+    pub struct IterMutPreorder&lt;'a, V&gt;(Preorder&lt;&amp;'a mut Tree&lt;V&gt;&gt;);
+
+    // Delegate to the wrapped implementation.
+
+    impl&lt;V&gt; Iterator for IntoIterPreorder&lt;V&gt; {
+        type Item = V;
+        fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+            self.0.next()
+        }
+    }
+
+    impl&lt;'a, V&gt; Iterator for IterPreorder&lt;'a, V&gt; {
+        type Item = &amp;'a V;
+        fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+            self.0.next()
+        }
+    }
+
+    impl&lt;'a, V&gt; Iterator for IterMutPreorder&lt;'a, V&gt; {
+        type Item = &amp;'a mut V;
+        fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+            self.0.next()
+        }
+    }
+
+    impl&lt;V&gt; Tree&lt;V&gt; {
+        pub fn preorder(self) -&gt; IntoIterPreorder&lt;V&gt; {
+            IntoIterPreorder(Preorder(vec![self]))
+        }
+
+        pub fn preorder_ref(&amp;self) -&gt; IterPreorder&lt;V&gt; {
+            IterPreorder(Preorder(vec![self]))
+        }
+
+        pub fn preorder_ref_mut(&amp;mut self) -&gt; IterMutPreorder&lt;V&gt; {
+            IterMutPreorder(Preorder(vec![self]))
+        }
+    }
+}
+
+use tree::*;
+
+fn main() {
+    let mut t = Tree::node(
+        0,
+        Tree::left(1, Tree::leaf(2)),
+        Tree::node(3, Tree::leaf(4), Tree::right(5, Tree::leaf(6))),
+    );
+
+    for x in t.preorder_ref_mut() {
+        *x += 10;
+    }
+
+    for x in t.preorder_ref() {
+        println!("{}", x);
+    }
+}</code></pre></pre>
+<h2 id="bidirectional-and-random-access-iterators"><a class="header" href="#bidirectional-and-random-access-iterators">Bidirectional and random access iterators</a></h2>
+<p>The Rust standard library does not include support for bidirectional or random
+access iterators. For most of the use cases supported by those iterators,
+working with numeric indices suffices.</p>
+<p>The standard library does have support for <a href="https://doc.rust-lang.org/std/iter/trait.DoubleEndedIterator.html">double-ended
+iterators</a>,
+which allow consuming items from the back of the iterator. However, each item
+can still only be consumed once: when the front and back meet in the middle,
+iteration is over.</p>
+<hr>
+<ol class="footnote-definition"><li id="footnote-mut-iterator-safety">
+<p>The safety of the mutable references is given by the
+fact that the references borrow from the vector, don't overlap, and are
+never produced by the iterator more than once. <a href="#fr-mut-iterator-safety-1">↩</a></p>
+</li>
+<li id="footnote-owned-items-references">
+<p>The owned items might themselves be references,
+however. E.g., calling <code>into_iter</code> on a <code>Vec&lt;&amp;str&gt;</code> will not result in
+iterating over <code>String</code> values even though the vector itself is consumed. <a href="#fr-owned-items-references-1">↩</a></p>
+</li>
 </ol><div style="break-before: page; page-break-before: always;"></div><h1 id="lambdas-closures-and-function-objects"><a class="header" href="#lambdas-closures-and-function-objects">Lambdas, closures, and function objects</a></h1>
 <h2 id="function-pointers"><a class="header" href="#function-pointers">Function pointers</a></h2>
 <p>Both C++ and Rust permit the use of functions as values. In both, the values can
