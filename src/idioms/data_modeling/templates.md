@@ -219,7 +219,7 @@ impl<Label> DirectedGraph<Label> {
 </div>
 
 The major difference between these implementations is that in the C++ version
-`operator>` is used on the values without knowing whether the operator is
+operator `>` is used on the values without knowing whether the operator is
 defined for the type. In the Rust version, there is a constraint requiring that
 the `Label` type implement the `Ord` trait. (See the chapter on [concepts,
 interfaces, and static dispatch](./concepts.md) for more
