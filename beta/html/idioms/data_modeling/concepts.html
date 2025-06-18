@@ -1,0 +1,569 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Concepts, interfaces, and static dispatch - C++ to Rust Phrasebook</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="concepts-interfaces-and-static-dispatch"><a class="header" href="#concepts-interfaces-and-static-dispatch">Concepts, interfaces, and static dispatch</a></h1>
+<p>In C++, static dispatch over an interface is achieved by implementing a template
+function or template method that interacts with the type using some expected
+interface.</p>
+<p>The template function <code>twiceArea</code> in the example below makes use of an <code>area()</code>
+method on the template type parameter.</p>
+<p>To achieve the same goal in Rust involves defining a trait (<code>Shape</code>) with the
+desired method (<code>twice_area</code>) and using the trait as a bound on the type
+parameter for the generic function.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+struct Triangle {
+  double base;
+  double height;
+
+  Triangle(double base, double height)
+      : base(base), height(height) {}
+
+  // NOT virtual: it will be used with static
+  // dispatch
+  double area() const {
+    return 0.5 * base * height;
+  }
+};
+
+// Generic function using interface
+template &lt;class T&gt;
+double twiceArea(const T &amp;shape) {
+  return shape.area() * 2;
+}
+
+int main() {
+  Triangle triangle{1.0, 1.0};
+
+  std::cout &lt;&lt; twiceArea(triangle) &lt;&lt; std::endl;
+  return 0;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">// Interface that generic function will use
+trait Shape {
+    fn area(&amp;self) -&gt; f64;
+}
+
+struct Triangle {
+    base: f64,
+    height: f64,
+}
+
+// Implementation of interface for type
+impl Shape for Triangle {
+    fn area(&amp;self) -&gt; f64 {
+        0.5 * self.base * self.height
+    }
+}
+
+// Generic function using interface
+fn twice_area&lt;T: Shape&gt;(shape: &amp;T) -&gt; f64 {
+    2.0 * shape.area()
+}
+
+fn main() {
+    let triangle = Triangle {
+        base: 1.0,
+        height: 1.0,
+    };
+
+    println!("{}", twice_area(&amp;triangle));
+}</code></pre></pre>
+</div>
+<p>Note that in the Rust example, the definition of the trait and the struct have
+not changed from the example in the chapter on <a href="./abstract_classes.html">virtual methods and dynamic
+dispatch</a>. Even so, this example
+does use static dispatch. This is the result of a design trade-off in Rust
+around the representation of vtables and vptrs which is <a href="./abstract_classes.html#vtables-and-rust-trait-object-types">described later in that
+chapter</a>.</p>
+<p>The difference between Rust and C++ in the above examples arises from Rust being
+nominally typed (types must opt in to supporting a specific interface, merely
+having the right methods isn't enough) and C++'s template meta-programming
+enabling a kind of structural or duck typing (types only need to have the
+methods actually used, and there is no need to explicitly opt in to supporting
+an interface).</p>
+<h2 id="templates-vs-generic-functions"><a class="header" href="#templates-vs-generic-functions">Templates vs generic functions</a></h2>
+<p>The reason why Rust is nominally typed instead of structurally typed has to do
+with the difference between C++ templates and Rust generic functions. In
+particular, C++ templates are only type checked after all of the template
+arguments are provided and they are fully expanded, while Rust generic functions
+are type checked independently of the type arguments.</p>
+<p>Since the functions are checked before the type arguments are known, the methods
+and functions that can be applied to values of those types also need to be known
+before the type arguments are known.</p>
+<p>This point in the programming language design space favors simplicity of
+reasoning about these functions over the flexibility that comes from the
+template programming approach. This becomes especially valuable when writing
+libraries that both provide generic functions defined in terms of other generic
+functions, for which a C++ compiler can give many fewer static guarantees, since
+it would not be possible to test all possible instantiations.</p>
+<p>In both C++ and Rust, however, multiple implementations are generated by the
+compiler in order to achieve static dispatch.</p>
+<h2 id="c-constraints-and-concepts"><a class="header" href="#c-constraints-and-concepts">C++ constraints and concepts</a></h2>
+<p>Rust's approach to static dispatch over an interface can be partially (but only
+partially) modeled with a strict application of <a href="https://en.cppreference.com/w/cpp/language/constraints">C++
+concepts</a>.</p>
+<p>The usual way to apply concepts is still structural and does not model Rust's
+approach: it only requires that a specific method can be called, producing a
+specific type.</p>
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+
+template &lt;typename T&gt;
+concept shape = requires(const T &amp;t) {
+  { t.area() } -&gt; std::same_as&lt;double&gt;;
+};
+
+template &lt;shape T&gt;
+double twiceArea(const T &amp;shape) {
+  return shape.area() * 2.0;
+}
+</code></pre>
+<p>A closer equivalent to the above Rust program in C++ is to use a combination of
+abstract classes and concepts.</p>
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+#include &lt;iostream&gt;
+
+struct Shape {
+  Shape() {}
+  virtual ~Shape() {}
+  virtual double area() const = 0;
+};
+
+template &lt;typename T&gt;
+concept shape = std::derived_from&lt;T, Shape&gt;;
+
+struct Triangle : public Shape {
+  double base;
+  double height;
+
+  Triangle(double base, double height)
+      : base(base), height(height) {}
+
+  // still will be used with static dispatch
+  double area() const override {
+    return 0.5 * base * height;
+  }
+};
+
+template &lt;shape T&gt;
+double twiceArea(const T &amp;shape) {
+  return shape.area() * 2;
+}
+
+int main() {
+  Triangle triangle{1.0, 1.0};
+
+  std::cout &lt;&lt; twiceArea(triangle) &lt;&lt; std::endl;
+  return 0;
+}
+</code></pre>
+<p>This is still not the same, however, because the concept only creates a
+requirement on the use of the template, not on the use of values of type <code>T</code>
+within the template. In Rust, the trait bound constrains both. So the following
+still compiles in C++.</p>
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+
+struct Shape {
+  Shape() {}
+  virtual ~Shape() {}
+  virtual double area() = 0;
+};
+
+template &lt;typename T&gt;
+concept shape = std::derived_from&lt;T, Shape&gt;;
+
+template &lt;shape T&gt;
+double twiceArea(const T &amp;shape) {
+  // note the call to a method not defined in Shape
+  return shape.volume() * 2;
+}
+</code></pre>
+<p>However, the equivalent does not compile in Rust and instead produces an error.</p>
+<pre><code class="language-rust ignore">trait Shape {
+    fn area(&amp;self) -&gt; f64;
+}
+
+fn twice_area&lt;T: Shape&gt;(shape: &amp;T) -&gt; f64 {
+    // note the call to a method not defined in Shape
+    2.0 * shape.volume()
+}</code></pre>
+<pre><code class="language-text">error[E0599]: no method named `volume` found for reference `&amp;T` in the current scope
+ --&gt; example.rs:7:17
+  |
+7 |     2.0 * shape.volume()
+  |                 ^^^^^^ method not found in `&amp;T`
+</code></pre>
+<p>These additional static checks mean that in many situations where C++ templates
+would be useful but hard to implement correctly, Rust generics are freely used.</p>
+<h2 id="required-traits-and-ergonomics"><a class="header" href="#required-traits-and-ergonomics">Required traits and ergonomics</a></h2>
+<p>In the above examples, the function requiring a trait was defined using a generic type <code>T</code> with a separate requirement that <code>T</code> is a <code>Shape</code>, like this:</p>
+<div class="comparison">
+<pre><code class="language-cpp">template &lt;shape T&gt;
+double twiceArea(const T &amp;shape) {
+  return 2.0 * shape.area();
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn twice_area&lt;T: Shape&gt;(shape: &amp;T) -&gt; f64 {
+    2.0 * shape.area()
+}</code></pre>
+</div>
+<p>These syntaxes are both common shorthands for <code>requires</code> clauses (C++) or <code>where</code> clauses (Rust):</p>
+<div class="comparison">
+<pre><code class="language-cpp">template &lt;typename T&gt;
+  requires shape&lt;T&gt;
+double twiceArea(const T &amp;shape) {
+  return 2.0 * shape.area();
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn twice_area&lt;T&gt;(shape: &amp;T) -&gt; f64
+where
+    T: Shape,
+{
+    2.0 * shape.area()
+}</code></pre>
+</div>
+<p>The more verbose form is preferred when there are many type parameters or those
+type parameters must implement many traits. An even shorter-hand available in some
+cases is the <code>impl</code> keyword.</p>
+<div class="comparison">
+<pre><code class="language-cpp">double twiceArea(const shape auto &amp;shape) {
+  return 2.0 * shape.area();
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn twice_area(shape: &amp;impl Shape) -&gt; f64 {
+    2.0 * shape.area()
+}</code></pre>
+</div>
+<h2 id="generics-and-lifetimes"><a class="header" href="#generics-and-lifetimes">Generics and lifetimes</a></h2>
+<p>When defining a template in C++ that makes use of a type template parameter, the
+lifetimes of references stored within objects of that type must be tracked
+manually by the programmer.</p>
+<p>The following (contrived) C++ example compiles without error, but could be used
+in a way that results in undefined behavior.</p>
+<pre><code class="language-cpp"><span class="boring">#include &lt;memory&gt;
+</span><span class="boring">
+</span><span class="boring">struct Shape {
+</span><span class="boring">  Shape() {}
+</span><span class="boring">  virtual ~Shape() {}
+</span><span class="boring">  virtual double area() = 0;
+</span><span class="boring">};
+</span><span class="boring">
+</span>template&lt;typename S&gt;
+void store(S s, std::unique_ptr&lt;Shape&gt; data) {
+    // Will pointers or references in `s` become dangling while `data`
+    // is still in use?
+	*data = s;
+}
+</code></pre>
+<p>Rust checks the bounds on lifetimes of references contained within type
+parameters. <a href="./abstract_classes.html#trait-objects-and-lifetimes">Just as with trait object
+types</a>,
+these bounds are usually inferred according to the <a href="https://doc.rust-lang.org/reference/lifetime-elision.html">lifetime elision
+rules</a>. When they
+cannot be inferred, or they are inferred incorrectly, the bounds can be declared
+manually.</p>
+<p>In the Rust transliteration of the above example, the lifetime bounds have to be
+given manually because the inferred bounds are incorrect. Without explicit
+bounds, the compiler produces an error.</p>
+<pre><code class="language-rust ignore"><span class="boring">trait Shape {}
+</span><span class="boring">
+</span>fn store&lt;S: Shape&gt;(x: S, data: &amp;mut Box&lt;dyn Shape&gt;) {
+    *data = Box::new(x);
+}</code></pre>
+<pre><code class="language-text">error[E0310]: the parameter type `S` may not live long enough
+ --&gt; example.rs:7:5
+  |
+7 |     *data = Box::new(x);
+  |     ^^^^^
+  |     |
+  |     the parameter type `S` must be valid for the static lifetime...
+  |     ...so that the type `S` will meet its required lifetime bounds
+  |
+</code></pre>
+<p>The error message becomes clearer when the inferred lifetime bounds are made
+explicit. With the given type for <code>store</code>, the argument for <code>x</code> could be
+something that has a lifetime that does not last as long as the lifetimes in the
+contents in the box.</p>
+<pre><code class="language-rust ignore"><span class="boring">trait Shape {}
+</span><span class="boring">
+</span><span class="boring">struct Triangle {
+</span><span class="boring">    base: f64,
+</span><span class="boring">    height: f64,
+</span><span class="boring">}
+</span><span class="boring">
+</span><span class="boring">impl Shape for Triangle {}
+</span><span class="boring">
+</span>// The type parameter S is assigned no lifetime bound.
+fn store&lt;'a, S: Shape&gt;(
+    x: S,
+    // The reference is assigned a fresh lifetime by rule
+    // [lifetime-elision.function.implicit-lifetime-parameters].
+    //
+    // The trait object is assigned 'static by rule
+    // [lifetime-elision.trait-object.default] and
+    // [lifetime-elision.trait-object.innermost-type].
+    data: &amp;'a mut Box&lt;dyn Shape + 'static&gt;,
+) {
+    *data = Box::new(x);
+}
+
+// An example of how the implementation of store could be misused with
+// the given type.
+fn main() {
+    let triangle = Triangle {
+        base: 1.0,
+        height: 2.0,
+    };
+    let mut b: Box&lt;dyn Shape&gt; = Box::new(triangle);
+    {
+        let short_lived_triangle = Triangle {
+            base: 5.0,
+            height: 10.0,
+        };
+        store(short_lived_triangle, &amp;mut b);
+    }
+    // Here b contains a dangling reference.
+}</code></pre>
+<p>For this specific case, the most general solution is to define a new lifetime
+parameter to bound both <code>S</code> and <code>dyn Shape</code>. The type parameter for the
+reference can be elided, because it will be assigned a fresh lifetime parameter.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>trait Shape {}
+
+// Note the common bound
+// -----------------here-\
+// ----------------------|---------------------------and here-\
+//                       v                                    v
+fn store&lt;'s, S: Shape + 's&gt;(x: S, data: &amp;mut Box&lt;dyn Shape + 's&gt;) {
+    *data = Box::new(x);
+}
+<span class="boring">}</span></code></pre></pre>
+<div class="quiz-placeholder" data-quiz-name="&quot;concepts&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust needs to know that the type of `Scaled::shape` supports the `area` method,\nso a trait bound on the type parameter is necessary. Trait implementations are\nall or nothing, so the requirement applies to the whole implementation, not the\nindividual method.\n&quot;,&quot;id&quot;:&quot;3cb5759b-5fe0-491e-ac87-4ba455b26e8f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T: Shape&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64\n    where\n        T: Shape,\n    {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;,&quot;```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n}\n\nstruct Scaled&lt;T: Shape&gt; {\n    scale: f64,\n    shape: T,\n}\n\nimpl&lt;T&gt; Shape for Scaled&lt;T&gt; {\n    fn area(&amp;self) -&gt; f64 {\n        self.scale * self.shape.area()\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Consider the following C++ program.\n\n```cpp\ntemplate&lt;typename T&gt;\nstruct Scaled {\n\tdouble scale;\n\tT shape;\n\n\tdouble area() const {\n\t\treturn scale * shape.area();\n\t}\n};\n\ntemplate &lt;typename T&gt;\nvoid printArea(const T &amp;shape) {\n\tstd::cout &lt;&lt; shape.area() &lt;&lt; std::endl;\n}\n```\n\nWhich of the following snippets represents the most idiomatic translation of the\n`Scaled` template class into Rust?\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
+
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Concepts, interfaces, and static dispatch">Click here to leave us feedback about this page.</a>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../idioms/data_modeling/abstract_classes.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../idioms/data_modeling/enums.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../idioms/data_modeling/abstract_classes.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../idioms/data_modeling/enums.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../telemetry/dist/telemetry.iife.js"></script>
+
+
+    </div>
+    </body>
+</html>

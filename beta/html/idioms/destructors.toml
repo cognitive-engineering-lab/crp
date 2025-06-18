@@ -1,0 +1,72 @@
+[[questions]]
+type = "Tracing"
+prompt.program = """
+struct SubWidget {
+    id: i32,
+}
+
+impl Drop for SubWidget {
+    // Prints the id and then sets it to 0
+    fn drop(&mut self) {
+        println!("{}", self.id);
+        self.id = 0;
+    }
+}
+
+struct Widget {
+    id: i32,
+    boxed_sub: Box<SubWidget>,
+    sub: SubWidget,
+}
+
+impl Drop for Widget {
+    // Prints the id and then sets it to 0
+    fn drop(&mut self) {
+        println!("{}", self.id);
+        self.id = 0;
+    }
+}
+
+fn passthrough(a: Widget) -> Widget {
+    a
+}
+
+fn accept(a: Widget) {}
+
+fn main() {
+    let s1 = Box::new(SubWidget { id: 1 });
+    let s2 = SubWidget { id: 2 };
+    let w = Widget {
+        id: 3,
+        sub: s2,
+        boxed_sub: s1,
+    };
+    let s3 = SubWidget { id: 4 };
+
+    let w2 = passthrough(w);
+}
+"""
+answer.doesCompile = true
+answer.stdout = """
+3
+1
+2
+4
+"""
+context = """
+The call to `passthrough` moves ownership of the value in `w` into the
+function's parameter, and then moves ownership back out again when it returns,
+so that `w2` ends up owning the value. None of those steps cause `drop` to be
+called because no initialized variable goes out of scope. When the ownership of
+the value is moved from the `w` into the parameter, or from the `a` in the
+`passthrough` function to `w2`, `w` and `a` are left uninitialized.
+
+At the end of `main`, `w2` is dropped first, since it is declared last. Then its
+members are dropped in order of declaration in the struct definition. Each field
+is completely destructed before the next field is, thus when the `Box` in field
+`boxed_sub` is dropped, it drops the value it owns before the value in `sub` is
+dropped. Finally `s3`, is dropped.
+
+`w`, `s2`, and `s1` are not dropped because they are not initialized.
+"""
+id = "9132e738-cc0b-4ba5-a323-9200b99bcbc4"
