@@ -2024,7 +2024,7 @@ impl Pin {
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<div class="quiz-placeholder" data-quiz-name="&quot;enums&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;b1f69693-be11-4105-b408-7f8925c4303d&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nimpl TryFrom&lt;u8&gt; for Color {\n    type Error = InvalidColor;\n\n    fn try_from(c: u8) -&gt; Result&lt;Self, InvalidColor&gt; {\n        match c {\n            0 =&gt; Ok(Color::Red),\n            1 =&gt; Ok(Color::Blue),\n            2 =&gt; Ok(Color::Green),\n            3 =&gt; Ok(Color::Yellow),\n            _ =&gt; Err(InvalidColor(c)),\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nimpl TryFrom&lt;u8&gt; for Color {\n    type Error = InvalidColor;\n\n    fn try_from(c: u8) -&gt; Result&lt;Self, InvalidColor&gt; {\n        match c {\n            0 | 2 | 3 =&gt; Ok(c as Color),\n            _ =&gt; Err(InvalidColor(c)),\n        }\n    }\n}\n```\n&quot;,&quot;```rust\n#[derive(Clone, Copy)]\nstruct ColorWrapper {\n    color: Color,\n}\n\nimpl TryFrom&lt;u8&gt; for ColorWrapper {\n    type Error = InvalidColor;\n\n    fn try_from(c: u8) -&gt; Result&lt;Self, InvalidColor&gt; {\n        let color = match c {\n            0 =&gt; Ok(Color::Red),\n            1 =&gt; Ok(Color::Blue),\n            2 =&gt; Ok(Color::Green),\n            3 =&gt; Ok(Color::Yellow),\n            _ =&gt; Err(InvalidColor(c)),\n        }?;\n        Ok(ColorWrapper { color })\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of these Rust programs is the most idiomatic translation of the following\nC++ program?\n\n```cpp\n#include &lt;cstdint&gt;\n#include &lt;iostream&gt;\n\nenum ColorImpl : uint8_t {\n  Red,\n  Blue,\n  Green,\n  Yellow,\n};\n\nstruct InvalidColor {\n  uint8_t color;\n};\n\nstruct Color {\n  ColorImpl color;\n\n  Color(ColorImpl c) : color(c) {}\n\n  operator ColorImpl() {\n    return color;\n  }\n\n  explicit Color(uint8_t c) {\n    if (c &lt; Red || c &gt; Yellow) {\n      throw InvalidColor{c};\n    }\n    color = static_cast&lt;ColorImpl&gt;(c);\n  }\n};\n```\n\nAll of the Rust options start with the following import and definitions.\n\n```rust\nuse std::convert::TryFrom;\n\n#[repr(i8)]\n#[derive(Clone, Copy)]\nenum Color {\n    Red,\n    Blue,\n    Green,\n    Yellow,\n}\n\nstruct InvalidColor(u8);\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;enums&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;b1f69693-be11-4105-b408-7f8925c4303d&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nimpl TryFrom&lt;u8&gt; for Color {\n    type Error = InvalidColor;\n\n    fn try_from(c: u8) -&gt; Result&lt;Self, InvalidColor&gt; {\n        match c {\n            0 =&gt; Ok(Color::Red),\n            1 =&gt; Ok(Color::Blue),\n            2 =&gt; Ok(Color::Green),\n            3 =&gt; Ok(Color::Yellow),\n            _ =&gt; Err(InvalidColor(c)),\n        }\n    }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nimpl TryFrom&lt;u8&gt; for Color {\n    type Error = InvalidColor;\n\n    fn try_from(c: u8) -&gt; Result&lt;Self, InvalidColor&gt; {\n        match c {\n            0 | 2 | 3 =&gt; Ok(c as Color),\n            _ =&gt; Err(InvalidColor(c)),\n        }\n    }\n}\n```\n&quot;,&quot;```rust\n#[derive(Clone, Copy)]\nstruct ColorWrapper {\n    color: Color,\n}\n\nimpl TryFrom&lt;u8&gt; for ColorWrapper {\n    type Error = InvalidColor;\n\n    fn try_from(c: u8) -&gt; Result&lt;Self, InvalidColor&gt; {\n        let color = match c {\n            0 =&gt; Ok(Color::Red),\n            1 =&gt; Ok(Color::Blue),\n            2 =&gt; Ok(Color::Green),\n            3 =&gt; Ok(Color::Yellow),\n            _ =&gt; Err(InvalidColor(c)),\n        }?;\n        Ok(ColorWrapper { color })\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of these Rust programs is the most idiomatic translation of the following\nC++ program?\n\n```cpp\n#include &lt;cstdint&gt;\n#include &lt;iostream&gt;\n\nenum ColorImpl : uint8_t {\n  Red,\n  Blue,\n  Green,\n  Yellow,\n};\n\nstruct InvalidColor {\n  uint8_t color;\n};\n\nstruct Color {\n  ColorImpl color;\n\n  Color(ColorImpl c) : color(c) {}\n\n  operator ColorImpl() {\n    return color;\n  }\n\n  explicit Color(uint8_t c) {\n    if (c &lt; Red || c &gt; Yellow) {\n      throw InvalidColor{c};\n    }\n    color = static_cast&lt;ColorImpl&gt;(c);\n  }\n};\n```\n\nAll of the Rust options start with the following import and definitions.\n\n```rust\nuse std::convert::TryFrom;\n\n#[repr(u8)]\n#[derive(Clone, Copy)]\nenum Color {\n    Red,\n    Blue,\n    Green,\n    Yellow,\n}\n\nstruct InvalidColor(u8);\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="tagged-unions-and-stdvariant"><a class="header" href="#tagged-unions-and-stdvariant">Tagged unions and <code>std::variant</code></a></h1>
 <h2 id="c-style-tagged-unions"><a class="header" href="#c-style-tagged-unions">C-style tagged unions</a></h2>
 <p>Because unions cannot be used for type punning in C++, they are usually used
@@ -2810,10 +2810,10 @@ class DirectedGraph {
 <span class="boring">}</span></code></pre></pre>
 </div>
 <p>The major difference between these implementations is that in the C++ version
-<code>operator&gt;</code> is used on the values without knowing whether the operator is
-defined for the type. In the Rust version, there is a constraint requiring that
-the <code>Label</code> type implement the <code>Ord</code> trait. (See the chapter on <a href="idioms/data_modeling/./concepts.html">concepts,
-interfaces, and static dispatch</a> for more
+the <code>&gt;</code> operator or <code>operator&gt;</code> method is used on the values without knowing
+whether the either is defined for the type. In the Rust version, there is a
+constraint requiring that the <code>Label</code> type implement the <code>Ord</code> trait. (See the
+chapter on <a href="idioms/data_modeling/./concepts.html">concepts, interfaces, and static dispatch</a> for more
 details on Rust traits and how they relate to C++ concepts.)</p>
 <p>Unlike C++ templates, generic definitions in Rust are type checked at the point
 of definition rather than at the point of use. This means that for operations to
@@ -2936,7 +2936,7 @@ crate</a>.</p>
 }</code></pre>
 <h2 id="constexpr-template-parameters"><a class="header" href="#constexpr-template-parameters"><code>constexpr</code> template parameters</a></h2>
 <p>Rust also supports the equivalent of constexpr template parameters. For example,
-one can define a generic function that returns an array consecutive integers
+one can define a generic function that returns an array of consecutive integers
 starting from a specific value and whose size is determined at compile time.</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;array&gt;
@@ -3623,7 +3623,7 @@ the module themselves.</p>
 example. More details on how to use modules, <code>pub</code>, and <code>use</code> to achieve
 encapsulation goals are described in the chapter on <a href="idioms/encapsulation/./private_and_friends.html">private members and
 friends</a>.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;headers&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Even if in C++ you wouldn't use namespaces to structure the program, in Rust\nsplitting programs into separate files also means splitting them into separate\nmodules.\n&quot;,&quot;id&quot;:&quot;4665b8ad-511f-4e0b-9dff-bf53e2a8f931&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n// square.rs\npub struct Square {\n    width: f64,\n}\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// square.rsi\npub struct Square {\n    width: f64;\n}\n\nimpl Square {\n    fn area(&amp;self) -&gt; f64;\n}\n\n// square.rs\nmod square;\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;,&quot;```rust\n// square.rs\nstruct Square {\n    width: f64,\n}\n\nimpl Square {\n    fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;,&quot;```rust\n// square.rs\nmod square {\n    struct Square {\n        width: f64,\n    }\n\n    impl Square {\n        fn area(&amp;self) -&gt; f64 {\n            self.width * self.width\n        }\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which Rust program is the idiomatic equivalent to the following C++ program?\n\n```cpp\n// square.h\nstruct Square {\n  double width;\n\n  double area() const;\n};\n\n// square.cc\n#include \&quot;square.h\&quot;\n\ndouble Square::area() const {\n  return this-&gt;width * this.width;\n}\n\n// main.cc\n#include \&quot;square.h\&quot;\n#include &lt;iostream&gt;\n\nint main() {\n  Square square(3.0);\n\n  std::cout &lt;&lt; square.area() &lt;&lt; std::endl;\n}\n```\n&quot;}},{&quot;id&quot;:&quot;e3948224-44d7-47d1-bf37-d5667fd8c9bb&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `mod` defines a module and `greeting.rs` is not a\nvalid module body.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile and prints `Hello!` to standard out.\n&quot;,&quot;It does not compile because the `main.rs` file must include an explicit `use\ngreetings;` statement.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n// greetings.rs\nprintln!(\&quot;Hello!\&quot;);\n```\n\n```rust\n// main.rs\nfn main() {\n    #[path = \&quot;greetings.rs\&quot;]\n    mod greetings;\n}\n```\n&quot;}},{&quot;context&quot;:&quot;In Rust, `mod` defines a module whose body happens to be given in another file.\nThe whole program is compiled from the root file (in this case `main.rs`) as a\ntree of modules.\n&quot;,&quot;id&quot;:&quot;68d431c0-8d39-4f4f-804c-bb6e7baa8d2b&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nmod greetings {\n    pub fn print_greeting() {\n        print_hello();\n        print_goodbye();\n    }\n\n    fn print_hello() {\n        println!(\&quot;Hello!\&quot;);\n    }\n\n    fn print_goodbye() {\n        println!(\&quot;Goodbye!\&quot;);\n    }\n}\n\nuse greetings::*;\n\nfn main() {\n    print_greeting();\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn print_greeting() {\n   print_hello();\n   print_goodbye();\n}\n\nfn print_hello() {\n    println!(\&quot;Hello!\&quot;);\n}\n\nfn print_goodbye() {\n    println!(\&quot;Goodbye!\&quot;);\n}\n\nfn main() {\n    print_hello();\n}\n```\n&quot;,&quot;```rust\nmod greetings {\n    pub fn print_greeting() {\n        print_hello();\n        print_goodbye();\n    }\n\n    fn print_hello() {\n        println!(\&quot;Hello!\&quot;);\n    }\n\n    fn print_goodbye() {\n        println!(\&quot;Goodbye!\&quot;);\n    }\n}\n\nmod main {\n    use greetings::*;\n\n    fn main() {\n        print_greeting();\n    }\n}\n```\n&quot;,&quot;```rust\nmod main {\n    mod greetings {\n        pub fn print_greeting() {\n            print_hello();\n            print_goodbye();\n        }\n\n        fn print_hello() {\n            println!(\&quot;Hello!\&quot;);\n        }\n\n        fn print_goodbye() {\n            println!(\&quot;Goodbye!\&quot;);\n        }\n    }\n\n    use greetings::*;\n\n    fn main() {\n        print_greeting();\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which single-file Rust program is equivalent to this program which is split\nacross multiple files?\n\n```rust\n// greetings.rs\npub fn print_greeting() {\n   print_hello();\n   print_goodbye();\n}\n\nfn print_hello() {\n    println!(\&quot;Hello!\&quot;);\n}\n\nfn print_goodbye() {\n    println!(\&quot;Goodbye!\&quot;);\n}\n\n// main.rs\nmod greetings;\n\nuse greetings::*;\n\nfn main() {\n    print_greeting();\n}\n```\n&quot;}},{&quot;context&quot;:&quot;Since neither `mod` nor `use` performs textual inclusion, it is possible to have\nrecurisve modules within a single crate.\n&quot;,&quot;id&quot;:&quot;b2d00b6a-8efa-40e5-98c7-f9c54f48d09a&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;The program does compile and prints `true`.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because the files have a cyclical dependency.\n&quot;,&quot;It does not compile because `even.rs` and `odd.rs` don't have `mod`\ndeclarations for each other.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n// even.rs\nuse crate::odd::*;\n\npub fn is_even(n: u64) -&gt; bool {\n    if n == 0 {\n        true\n    } else {\n        is_odd(n - 1)\n    }\n}\n\n// odd.rs\nuse crate::even::*;\n\npub fn is_odd(n: u64) -&gt; bool {\n    if n == 1 {\n        true\n    } else {\n        is_even(n - 1)\n    }\n}\n\n// main.rs\nmod even;\nmod odd;\n\nuse even::*;\n\nfn main() {\n    println!(\&quot;{}\&quot;, is_even(4));\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;headers&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Even if in C++ you wouldn't use namespaces to structure the program, in Rust\nsplitting programs into separate files also means splitting them into separate\nmodules.\n&quot;,&quot;id&quot;:&quot;4665b8ad-511f-4e0b-9dff-bf53e2a8f931&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\n// square.rs\npub struct Square {\n    pub width: f64,\n}\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\n// square.rsi\npub struct Square {\n    pub width: f64;\n}\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64;\n}\n\n// square.rs\nmod square;\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;,&quot;```rust\n// square.rs\npub struct Square {\n    pub width: f64,\n}\n\nimpl Square {\n    pub fn area(&amp;self) -&gt; f64 {\n        self.width * self.width\n    }\n}\n\n// main.rs\nmod square;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;,&quot;```rust\n// square.rs\nmod square {\n    pub struct Square {\n        pub width: f64,\n    }\n\n    impl Square {\n        pub fn area(&amp;self) -&gt; f64 {\n            self.width * self.width\n        }\n    }\n}\n\n// main.rs\nmod square;\n\nuse square::*;\n\nfn main() {\n    let square = Square { width: 3.0 };\n\n    println!(\&quot;{}\&quot;, square.area());\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which Rust program is the idiomatic equivalent to the following C++ program?\n\n```cpp\n// square.h\nstruct Square {\n  double width;\n\n  double area() const;\n};\n\n// square.cc\n#include \&quot;square.h\&quot;\n\ndouble Square::area() const {\n  return this-&gt;width * this.width;\n}\n\n// main.cc\n#include \&quot;square.h\&quot;\n#include &lt;iostream&gt;\n\nint main() {\n  Square square(3.0);\n\n  std::cout &lt;&lt; square.area() &lt;&lt; std::endl;\n}\n```\n&quot;}},{&quot;id&quot;:&quot;e3948224-44d7-47d1-bf37-d5667fd8c9bb&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `mod` defines a module and `greeting.rs` is not a\nvalid module body.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile and prints `Hello!` to standard out.\n&quot;,&quot;It does not compile because the `main.rs` file must include an explicit `use\ngreetings;` statement.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n// greetings.rs\nprintln!(\&quot;Hello!\&quot;);\n```\n\n```rust\n// main.rs\nfn main() {\n    #[path = \&quot;greetings.rs\&quot;]\n    mod greetings;\n}\n```\n&quot;}},{&quot;context&quot;:&quot;In Rust, `mod` defines a module whose body happens to be given in another file.\nThe whole program is compiled from the root file (in this case `main.rs`) as a\ntree of modules.\n&quot;,&quot;id&quot;:&quot;68d431c0-8d39-4f4f-804c-bb6e7baa8d2b&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nmod greetings {\n    pub fn print_greeting() {\n        print_hello();\n        print_goodbye();\n    }\n\n    fn print_hello() {\n        println!(\&quot;Hello!\&quot;);\n    }\n\n    fn print_goodbye() {\n        println!(\&quot;Goodbye!\&quot;);\n    }\n}\n\nuse greetings::*;\n\nfn main() {\n    print_greeting();\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nfn print_greeting() {\n   print_hello();\n   print_goodbye();\n}\n\nfn print_hello() {\n    println!(\&quot;Hello!\&quot;);\n}\n\nfn print_goodbye() {\n    println!(\&quot;Goodbye!\&quot;);\n}\n\nfn main() {\n    print_hello();\n}\n```\n&quot;,&quot;```rust\nmod greetings {\n    pub fn print_greeting() {\n        print_hello();\n        print_goodbye();\n    }\n\n    fn print_hello() {\n        println!(\&quot;Hello!\&quot;);\n    }\n\n    fn print_goodbye() {\n        println!(\&quot;Goodbye!\&quot;);\n    }\n}\n\nmod main {\n    use greetings::*;\n\n    fn main() {\n        print_greeting();\n    }\n}\n```\n&quot;,&quot;```rust\nmod main {\n    mod greetings {\n        pub fn print_greeting() {\n            print_hello();\n            print_goodbye();\n        }\n\n        fn print_hello() {\n            println!(\&quot;Hello!\&quot;);\n        }\n\n        fn print_goodbye() {\n            println!(\&quot;Goodbye!\&quot;);\n        }\n    }\n\n    use greetings::*;\n\n    fn main() {\n        print_greeting();\n    }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which single-file Rust program is equivalent to this program which is split\nacross multiple files?\n\n```rust\n// greetings.rs\npub fn print_greeting() {\n   print_hello();\n   print_goodbye();\n}\n\nfn print_hello() {\n    println!(\&quot;Hello!\&quot;);\n}\n\nfn print_goodbye() {\n    println!(\&quot;Goodbye!\&quot;);\n}\n\n// main.rs\nmod greetings;\n\nuse greetings::*;\n\nfn main() {\n    print_greeting();\n}\n```\n&quot;}},{&quot;context&quot;:&quot;Since neither `mod` nor `use` performs textual inclusion, it is possible to have\nrecurisve modules within a single crate.\n&quot;,&quot;id&quot;:&quot;b2d00b6a-8efa-40e5-98c7-f9c54f48d09a&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;The program does compile and prints `true`.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does not compile because the files have a cyclical dependency.\n&quot;,&quot;It does not compile because `even.rs` and `odd.rs` don't have `mod`\ndeclarations for each other.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\n// even.rs\nuse crate::odd::*;\n\npub fn is_even(n: u64) -&gt; bool {\n    if n == 0 {\n        true\n    } else {\n        is_odd(n - 1)\n    }\n}\n\n// odd.rs\nuse crate::even::*;\n\npub fn is_odd(n: u64) -&gt; bool {\n    if n == 1 {\n        true\n    } else {\n        is_even(n - 1)\n    }\n}\n\n// main.rs\nmod even;\nmod odd;\n\nuse even::*;\n\nfn main() {\n    println!(\&quot;{}\&quot;, is_even(4));\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="anonymous-namespaces-and-static"><a class="header" href="#anonymous-namespaces-and-static">Anonymous namespaces and <code>static</code></a></h1>
 <p>Anonymous namespaces in C++ are used to avoid symbol collisions between
 different translation units. Such collisions violate <a href="https://timsong-cpp.github.io/cppwp/n4950/basic.def.odr#14">the one definition
@@ -4044,7 +4044,7 @@ use a type.</li>
 is able to forward to the underlying constructor without knowing about it at the
 point of the definition of <code>std::make_unique</code>. While the example below is not
 useful (because <code>alloc_thing</code> is not a useful helper), it does demonstrate what
-would types have to be defined in order to achieve the same effect as when using
+types would have to be defined in order to achieve the same effect as when using
 the idiom in C++.</p>
 <h2 id="friends-and-testing"><a class="header" href="#friends-and-testing">Friends and testing</a></h2>
 <p>Another common use of friend declarations is to make the internals of a class
@@ -4479,7 +4479,7 @@ the wildcard when matching on the struct fields, making it so that adding
 additional fields to a struct is not breaking change (i.e., that it does not
 <a href="https://doc.rust-lang.org/cargo/reference/semver.html">require the increase of the major version component when using semantic
 versioning</a>).</p>
-<p>Applying the <code>#[non_exhasutive]</code> attribute to the enum itself makes it as if one
+<p>Applying the <code>#[non_exhaustive]</code> attribute to the enum itself makes it as if one
 of the variants were private, requiring a wildcard when matching on the variant
 itself. This has the same effect in terms of versioning as when used on a struct
 but is less advantageous. In most cases, code failing to compile when a new enum
@@ -5369,7 +5369,9 @@ public:
 </code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>pub struct Widget&lt;T&gt; {
+</span>use std::convert::TryFrom;
+
+pub struct Widget&lt;T&gt; {
     parts: *const T,
     part_count: usize,
 }
@@ -5773,7 +5775,7 @@ when needed.</p>
   // and therefore may be assigned to.
   x = 42;
 
-  // x is converted to an lvalue when needed.
+  // x is converted to an rvalue when needed.
   int y = x + 1;
 }
 </code></pre>
@@ -7014,6 +7016,2038 @@ event handling functions for specific types, rather than a single large
 event handling function, so that the underlying implementation can managing
 the enforcement of the invariants required to make the casting safe. <a href="#fr-safe-event-handler-1">↩</a></p>
 </li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="iterators-and-ranges"><a class="header" href="#iterators-and-ranges">Iterators and ranges</a></h1>
+<p>Rust iterators resemble C++
+<a href="https://en.cppreference.com/w/cpp/ranges.html">ranges</a> in that they represent
+iterable sequence and can be manipulated similarly to using
+range views. Since C++ ranges are defined using iterators and ranges were only
+introduced in C++20, this chapter compares Rust iterators with both C++
+iterators and with C++ ranges.</p>
+<p>Rust iterators are forward iterators, not <a href="idioms/iterators.html#bidirectional-and-random-access-iterators">bidirectional or random
+access</a>. The definition of the
+<code>Iterator</code> trait reflects this: all of its methods are based on a <code>next</code> method
+which returns either an <code>Option::Some</code> containing the next item in the iteration
+or <code>Option::None</code>.</p>
+<p>A Rust iterator also does not represent an index into a structure the way that a
+C++ iterator does when used with functions from the C++ STL algorithms library,
+such as <code>std::sort</code>.</p>
+<p>Whether Rust iterators are input iterators or input/output iterators depends on
+whether the iterated items are owned values (input), references (input), or
+mutable references (input/output). The type of the iterated values typically
+reflects whether the structure being iterated over is an owned value, reference,
+or mutable reference. Rust iterators cannot be output iterators only because the
+iterated values must always be initialized.</p>
+<p>In a sense, Rust's iterators are much more like C++23 generators (except that
+Rust <a href="https://github.com/rust-lang/rust/issues/43122">does not yet support
+coroutines</a>).</p>
+<h2 id="iterators-ranges-and-for-loops"><a class="header" href="#iterators-ranges-and-for-loops">Iterators, ranges, and <code>for</code> loops</a></h2>
+<p>In C++, anything that has <code>begin()</code> and <code>end()</code> methods to return iterators
+(i.e., anything that models the C++20 <code>range</code> concept) can be used with a for
+loop. In Rust, anything that implements the
+<a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html"><code>IntoIterator</code></a>
+trait can be used with a for loop. This includes iterators themselves, which
+implement the trait via a <a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html">blanket
+implementation</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+int main() {
+  std::vector&lt;int&gt; v{1, 2, 3};
+
+  // prints 1, 2, 3
+  for (auto &amp;x : v) {
+    std::cout &lt;&lt; x &lt;&lt; std::endl;
+    x = x + 1;
+  }
+
+  // prints 2, 3, 4
+  for (const auto &amp;x : v) {
+    std::cout &lt;&lt; x &lt;&lt; std::endl;
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = vec![1, 2, 3];
+
+    // prints 1, 2, 3
+    for x in &amp;mut v {
+        println!("{}", x);
+        *x = *x + 1;
+    }
+
+    // prints 2, 3, 4
+    for x in &amp;v {
+        println!("{}", x);
+    }
+}</code></pre></pre>
+</div>
+<p>In both C++ and Rust, iterators can be used for reading, writing, or both. In
+Rust, the use of an iterator for writing depends on the type of the elements
+returned. In the case of <code>Vec&lt;i32&gt;</code> above, the <code>IntoIterator</code> trait implemented for
+<code>&amp;mut Vec&lt;i32&gt;</code> produces an iterator over mutable references <code>&amp;mut i32</code>, which
+enables modifying the values in the vector.<sup class="footnote-reference" id="fr-mut-iterator-safety-1"><a href="#footnote-mut-iterator-safety">1</a></sup></p>
+<h2 id="ranges-and-views"><a class="header" href="#ranges-and-views">Ranges and views</a></h2>
+<p>Just as the <a href="https://en.cppreference.com/w/cpp/ranges.html">C++ ranges library</a>
+provides many utility functions for defining pipelines to transform ranges, the
+Rust standard library defines many <a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.filter">iterator
+methods</a>
+transforming Rust iterators, including turning them back into collections like
+vectors.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;ranges&gt;
+#include &lt;vector&gt;
+
+using namespace std::views;
+using namespace std::ranges::views;
+
+int main() {
+<span class="boring">  // clang-format off
+</span>  // This example requires C++23
+  auto v =
+    iota(1)
+      | filter([](int n) { return n % 2 == 1; })
+      | transform([](int n) { return n + 3; })
+      | take(10)
+      | std::ranges::to&lt;std::vector&gt;();
+<span class="boring">  // clang-format on
+</span>
+  // use v...
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let v = (1..)
+        .filter(|i| i % 2 == 1)
+        .map(|i| i + 3)
+        .take(10)
+        .collect::&lt;Vec&lt;i32&gt;&gt;();
+
+    // use v...
+}</code></pre></pre>
+</div>
+<p>The Rust <code>collect</code> iterator method can convert the iterator into anything that
+implements <code>FromIterator</code>. If the type of <code>v</code> can be inferred from its later
+use, the type does not need to be specified in the call to <code>collect</code>.</p>
+<p>In both C++ and in Rust, the view or iterator could be used directly as the
+value to loop over, without first converting to something like
+a vector. Similarly, in both languages the construction of the values is done
+lazily.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;ranges&gt;
+#include &lt;iostream&gt;
+
+using namespace std::views;
+using namespace std::ranges::views;
+
+int main() {
+<span class="boring">  // clang-format off
+</span>    for (auto x :
+        iota(1)
+          | filter([](int n) { return n % 2 == 1; })
+          | transform([](int n) { return n + 3; })
+          | take(10)) {
+      std::cout&lt;&lt; x &lt;&lt; std::endl;
+    }
+<span class="boring">  // clang-format on
+</span>}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    for x in (1..)
+        .filter(|i| i % 2 == 1)
+        .map(|i| i + 3)
+        .take(10)
+    {
+        println!("{}", x);
+    }
+}</code></pre></pre>
+</div>
+<p>Additional useful methods on iterators are provided by the third-party
+<a href="https://docs.rs/itertools/latest/itertools/">itertools crate</a>
+via <a href="idioms/../patterns/adapter.html#extension-traits">extension traits</a>.</p>
+<h2 id="intoiterator-and-ownership"><a class="header" href="#intoiterator-and-ownership"><code>IntoIterator</code> and ownership</a></h2>
+<p>The <a href="https://doc.rust-lang.org/std/iter/trait.IntoIterator.html"><code>IntoIterator</code>
+trait</a> can be
+implemented for a type <code>T</code> itself, a reference <code>&amp;T</code>, or a mutable reference
+<code>&amp;mut T</code>. The possible types of the iterated items depend on what type the trait
+is implemented for. If it is implemented for <code>&amp;mut T</code>, for example, typically
+the items will be mutable references to items still owned by the original
+structure. If the type is <code>T</code>, then the items will be the owned items that were
+in the original structure.<sup class="footnote-reference" id="fr-owned-items-references-1"><a href="#footnote-owned-items-references">2</a></sup></p>
+<p>Since the behavior depends on the type of the structure used in the for loop,
+which may be inferred and therefore not visible, this can lead to surprising
+compilation errors. In particular, iterating over a vector <code>v</code> instead of a
+reference to the vector <code>&amp;v</code> will consume the original vector, making it
+inaccessible.</p>
+<p>Iterating over a structure in C++ is most similar to calling <code>into_iter</code> on a
+mutable reference in Rust.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = vec![
+        String::from("a"),
+        String::from("b"),
+        String::from("c"),
+    ];
+
+    for x in &amp;v {
+        // x: &amp;String
+        println!("{}", x);
+    }
+
+    // since v was borrowed, not moved, it is still accessiable here.
+    println!("{:?}", v);
+
+    for x in &amp;mut v {
+        // x: &amp;mut String
+        x.push('!');
+    }
+
+    // since v was borrowed, not moved, it is still accessiable here.
+    // however, the content of v has been modified
+    println!("{:?}", v);
+
+    for x in v {
+        // x: String
+        // drops x at the end of each iteration
+    }
+
+    // v is no longer accessible, so this wouldn't compile
+    // println!("{:?}", v);
+}</code></pre></pre>
+<p>Most iterable types will also provide methods specifically for accessing the
+reference or mutable reference iterators. Conventionally, these are called
+<code>iter</code> and <code>iter_mut</code>. They are useful in situations where the iteration is not
+being immediately used with a for loop, but instead is used with other iterator
+methods, because of the relative precedence of the reference operator and of
+method invocation.</p>
+<h2 id="identifying-ranges-for-algorithms-to-operate-on"><a class="header" href="#identifying-ranges-for-algorithms-to-operate-on">Identifying ranges for algorithms to operate on</a></h2>
+<p>C++ uses iterators to identify regions of structures on which functions from the
+STL algorithms library should operate. Rust iterators do not serve that purpose.
+Instead, there are two common alternatives.</p>
+<p>The first is that operations which operate strictly on forward iterators just
+operate directly on the iterator. Identifying specific parts of an iterator for
+this purpose can be done using the <a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#provided-methods">iterator
+methods</a>,
+such as
+<a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.take"><code>take</code></a> or
+<a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.filter"><code>filter</code></a>.
+Alternatively, for some types <a href="https://doc.rust-lang.org/book/ch04-03-slices.html">slices can be taken by indexing with a
+range</a> before converting to
+an iterator.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;algorithm&gt;
+#include &lt;vector&gt;
+
+int main() {
+  std::vector v{1, 2, 3, 4, 5, 6, 7, 8, 9};
+  auto begin = v.begin() + 2;
+  auto end = begin + 5;
+  bool b(std::any_of(begin, end, [](int n) {
+    return n % 2 == 0;
+  }));
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let v: Vec&lt;i32&gt; = (1..10).collect();
+    let b = v
+        .iter()
+        .skip(2)
+        .take(5)
+        .any(|n| n % 2 == 0);
+
+    // or
+
+    let b2 = v[3..7].iter().any(|n| n % 2 == 0);
+
+    // ...
+}</code></pre></pre>
+</div>
+<p>The second is that some of the algorithms operate on slices. For example, the
+<a href="https://doc.rust-lang.org/std/primitive.slice.html#method.sort">sort method</a> in
+the Rust standard library operates on slices. This is similar to if in C++, a
+function were to operate on a <code>std::span</code> instead of on an iterator. Many of the
+methods available on <code>Vec&lt;T&gt;</code> are actually defined on <code>&amp;[T]</code> and are made
+available on <code>Vec&lt;T&gt;</code> via <a href="https://doc.rust-lang.org/book/ch15-02-deref.html">deref
+coercion</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+int main() {
+  std::vector v{9, 8, 7, 6, 5, 4, 3, 2, 1};
+
+  for (auto n : v) {
+    std::cout &lt;&lt; n &lt;&lt; ",";
+  }
+  std::cout &lt;&lt; std::endl;
+
+  std::sort(v.begin(), v.end());
+
+  for (auto n : v) {
+    std::cout &lt;&lt; n &lt;&lt; ",";
+  }
+  std::cout &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v: Vec&lt;i32&gt; = (1..10).rev().collect();
+    println!("{:?}", v);
+
+    v.sort();
+
+    println!("{:?}", v);
+}</code></pre></pre>
+</div>
+<h2 id="iterator-invalidation"><a class="header" href="#iterator-invalidation">Iterator invalidation</a></h2>
+<p>In C++, operations sometimes only invalidate some iterators on a value, such as
+the <code>erase</code> method on <code>std::vector</code> only invaliding iterators to the erased
+element and those after it, but not the ones before it.</p>
+<p>In Rust, the fact that iterators borrow the whole iterated value means that no
+operations modifying the value itself (such as erasing values from a vector) can
+be performed while iterating. Thus, there are no iterator invalidation rules to
+keep in mind while using Rust iterators.</p>
+<p>However, this also means that there are things that can be done with iterators
+in C++ that cannot be done with iterators in Rust, such as removing elements
+from a vector while iterating over it. Instead in Rust there are two possible
+approaches: use indices or use helper methods.</p>
+<p>Using indices instead of iterators comes with the same challenges as it does in
+C++, with the exception that the program will panic instead of performing
+undefined behavior if an index is out of bounds in safe Rust.</p>
+<p>Using the helper methods resembles the recommendations commonly given for
+writing against newer C++ standards. For example, to remove all elements of a
+particular value in Rust, one would use the
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.retain"><code>Vec::retain</code></a>
+method, which is like <code>remove_if</code> or <code>erase_if</code> on <code>std::vector</code>, but with a
+negative predicate.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+int main() {
+  std::vector&lt;int&gt; v{1, 2, 3};
+
+  auto newEnd = remove(v.begin(), v.end(), 2);
+  v.erase(newEnd, v.end());
+
+  // Or since C++20
+  // std::erase(v, 2);
+
+  for (auto x : v) {
+    std::cout &lt;&lt; x &lt;&lt; std::endl;
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = vec![1, 2, 3];
+    v.retain(|i| *i != 2);
+
+    for x in &amp;v {
+        println!("{}", x);
+    }
+}</code></pre></pre>
+</div>
+<p>When using iterators, one would use the methods described in the section on
+<a href="idioms/iterators.html#ranges-and-views">ranges and views</a>.</p>
+<h2 id="implementing-rust-iterators"><a class="header" href="#implementing-rust-iterators">Implementing Rust iterators</a></h2>
+<p>This extended example defines a binary tree and preorder const iterator over the
+tree. The module structure is included in this example because defining private
+items will be an important part of later patterns used to simplify the
+implementation.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;memory&gt;
+
+template &lt;typename V&gt;
+class Tree {
+public:
+    V value;
+    std::unique_ptr&lt;Tree&lt;V&gt;&gt; left;
+    std::unique_ptr&lt;Tree&lt;V&gt;&gt; right;
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>mod tree {
+    /// Binary tree with values at every node.
+    /// Not necessarily balanced.
+    pub struct Tree&lt;V&gt; {
+        pub value: V,
+        pub left: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+        pub right: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>Much like how in C++ an iterator and a const iterator are distinct things, in
+Rust there are different iterators for owned values, references, and mutable
+references.</p>
+<p>For example, for tree type <code>Tree&lt;V&gt;</code> would likely provide the following methods
+to support preorder iteration. For the methods that provide iteration over
+references, the references are borrowed from the original structure, and so the
+lifetime parameter <code>'a</code> relates the reference to the item to <code>self</code>.</p>
+<div class="table-wrapper"><table><thead><tr><th></th><th>method</th><th>item type</th></tr></thead><tbody>
+<tr><td>reference</td><td><code>fn preorder&lt;'a&gt;(&amp;'a self) -&gt; IterPreorder&lt;'a, V&gt;</code></td><td><code>&amp;'a V</code></td></tr>
+<tr><td>mutable reference</td><td><code>fn preorder_mut&lt;'a&gt;(&amp;'a mut self) -&gt; IterMutPreorder&lt;'a, V&gt;</code></td><td><code>&amp;'a mut V</code></td></tr>
+<tr><td>owned</td><td><code>fn into_preorder(self) -&gt; IntoIterPreorder&lt;V&gt;</code></td><td><code>V</code></td></tr>
+</tbody></table>
+</div>
+<p>Just like with C++ iterators, the essential complexity of defining the iterator
+amounts to determining how to capture the suspended state of traversing the
+structure. In this case the suspended state consists of a stack of the rest of
+the trees to iterate.</p>
+<p>The implementations diverge in the interface provided. C++ requires several
+types and methods to be defined in order for the type to model a forward
+iterator. Rust requires only the definition of the element type that will be
+iterated and a <code>next</code> method.</p>
+<div class="comparison">
+<pre><code class="language-cpp"><span class="boring">#include &lt;memory&gt;
+</span><span class="boring">#include &lt;vector&gt;
+</span><span class="boring">
+</span>template &lt;typename V&gt;
+class Tree {
+public:
+  class iterator {
+    std::vector&lt;const Tree&lt;V&gt; *&gt; rest;
+
+  public:
+    using difference_type = long;
+    using value_type = V;
+    using pointer = const V *;
+    using reference = const V &amp;;
+    using iterator_category =
+        std::forward_iterator_tag;
+
+    iterator() {}
+    iterator(const Tree&lt;V&gt; *start) {
+      rest.push_back(start);
+    }
+
+    reference operator*() const {
+      return rest.back()-&gt;value;
+    }
+
+    iterator &amp;operator++() {
+      const Tree&lt;V&gt; *t = rest.back();
+      rest.pop_back();
+      if (t-&gt;right) {
+        rest.push_back(t-&gt;right.get());
+      }
+      if (t-&gt;left) {
+        rest.push_back(t-&gt;left.get());
+      }
+      return *this;
+    }
+
+    iterator operator++(int) {
+      iterator retval = *this;
+      const Tree&lt;V&gt; *t = rest.back();
+      rest.pop_back();
+      if (t-&gt;right) {
+        rest.push_back(t-&gt;right.get());
+      }
+      if (t-&gt;left) {
+        rest.push_back(t-&gt;left.get());
+      }
+      return retval;
+    }
+
+    bool operator==(const iterator &amp;other) const {
+      return rest == other.rest;
+    }
+
+    bool operator!=(const iterator &amp;other) const {
+      return !(*this == other);
+    }
+  };
+<span class="boring">
+</span><span class="boring">  V value;
+</span><span class="boring">  std::unique_ptr&lt;Tree&lt;V&gt;&gt; left;
+</span><span class="boring">  std::unique_ptr&lt;Tree&lt;V&gt;&gt; right;
+</span>};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>mod tree {
+<span class="boring">    /// Binary tree with values at every node.
+</span><span class="boring">    /// Not necessarily balanced.
+</span><span class="boring">    pub struct Tree&lt;V&gt; {
+</span><span class="boring">        pub value: V,
+</span><span class="boring">        pub left: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+</span><span class="boring">        pub right: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+</span><span class="boring">    }
+</span><span class="boring">
+</span>    pub struct IterPreorder&lt;'a, V&gt;(Vec&lt;&amp;'a Tree&lt;V&gt;&gt;);
+
+    impl&lt;'a, V&gt; Iterator for IterPreorder&lt;'a, V&gt; {
+        type Item = &amp;'a V;
+
+        // This is like a combination of
+        // operator++ and operator*
+        fn next(&amp;mut self) -&gt; Option&lt;&amp;'a V&gt; {
+            let Tree { value, left, right } = self.0.pop()?;
+            if let Some(right) = right {
+                self.0.push(right.as_ref());
+            }
+            if let Some(left) = left {
+                self.0.push(left.as_ref());
+            }
+            Some(value)
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The remaining step is to make the original type iterable. In C++, this involves
+defining <code>begin</code> and <code>end</code> methods. In Rust, this involves either implementing a
+method that explicitly produces the iterator, or implementing the <code>IntoIterator</code>
+trait.</p>
+<p>When there are multiple possible iterations for a type and none of them are
+canonical, it is idiomatic to omit the <code>IntoIterator</code> trait implementation.
+Omitting the implementation requires users to intentionally choose the kind of
+iteration to use. The trait is implemented below to provide an example, but an
+unsorted binary tree is a case where it would be typical to omit the trait
+implementation, to force a user to pick between pre-, post-, and in-order
+iteration.</p>
+<p>Because the implemented iterator is one for references, the trait actually is
+implemented for references to trees <code>&amp;Tree&lt;V&gt;</code>, rather than <code>Tree&lt;V&gt;</code> directly.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+<span class="boring">#include &lt;memory&gt;
+</span><span class="boring">#include &lt;vector&gt;
+</span>
+template &lt;typename V&gt;
+class Tree {
+public:
+<span class="boring">  class iterator {
+</span><span class="boring">    std::vector&lt;const Tree&lt;V&gt; *&gt; rest;
+</span><span class="boring">
+</span><span class="boring">  public:
+</span><span class="boring">    using difference_type = long;
+</span><span class="boring">    using value_type = V;
+</span><span class="boring">    using pointer = const V *;
+</span><span class="boring">    using reference = const V &amp;;
+</span><span class="boring">    using iterator_category =
+</span><span class="boring">        std::forward_iterator_tag;
+</span><span class="boring">
+</span><span class="boring">    iterator() {}
+</span><span class="boring">    iterator(const Tree&lt;V&gt; *start) {
+</span><span class="boring">      rest.push_back(start);
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    reference operator*() const {
+</span><span class="boring">      return rest.back()-&gt;value;
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    iterator &amp;operator++() {
+</span><span class="boring">      const Tree&lt;V&gt; *t = rest.back();
+</span><span class="boring">      rest.pop_back();
+</span><span class="boring">      if (t-&gt;right) {
+</span><span class="boring">        rest.push_back(t-&gt;right.get());
+</span><span class="boring">      }
+</span><span class="boring">      if (t-&gt;left) {
+</span><span class="boring">        rest.push_back(t-&gt;left.get());
+</span><span class="boring">      }
+</span><span class="boring">      return *this;
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    iterator operator++(int) {
+</span><span class="boring">      iterator retval = *this;
+</span><span class="boring">      const Tree&lt;V&gt; *t = rest.back();
+</span><span class="boring">      rest.pop_back();
+</span><span class="boring">      if (t-&gt;right) {
+</span><span class="boring">        rest.push_back(t-&gt;right.get());
+</span><span class="boring">      }
+</span><span class="boring">      if (t-&gt;left) {
+</span><span class="boring">        rest.push_back(t-&gt;left.get());
+</span><span class="boring">      }
+</span><span class="boring">      return retval;
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    bool operator==(const iterator &amp;other) const {
+</span><span class="boring">      return rest == other.rest;
+</span><span class="boring">    }
+</span><span class="boring">
+</span><span class="boring">    bool operator!=(const iterator &amp;other) const {
+</span><span class="boring">      return !(*this == other);
+</span><span class="boring">    }
+</span><span class="boring">  };
+</span><span class="boring">
+</span>  iterator begin() const {
+    return iterator(this);
+  }
+
+  iterator end() const {
+    return iterator();
+  }
+<span class="boring">
+</span><span class="boring">  V value;
+</span><span class="boring">  std::unique_ptr&lt;Tree&lt;V&gt;&gt; left;
+</span><span class="boring">  std::unique_ptr&lt;Tree&lt;V&gt;&gt; right;
+</span>};
+
+int main() {
+  Tree&lt;int&gt; t{1,
+              std::make_unique&lt;Tree&lt;int&gt;&gt;(
+                  2, nullptr, nullptr),
+              std::make_unique&lt;Tree&lt;int&gt;&gt;(
+                  3,
+                  std::make_unique&lt;Tree&lt;int&gt;&gt;(
+                      4, nullptr, nullptr),
+                  nullptr)};
+
+  for (auto v : t) {
+    std::cout &lt;&lt; v &lt;&lt; std::endl;
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">mod tree {
+<span class="boring">   /// Binary tree with values at every node.
+</span><span class="boring">   /// Not necessarily balanced.
+</span><span class="boring">   pub struct Tree&lt;V&gt; {
+</span><span class="boring">       pub value: V,
+</span><span class="boring">       pub left: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+</span><span class="boring">       pub right: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+</span><span class="boring">   }
+</span><span class="boring">
+</span><span class="boring">   pub struct IterPreorder&lt;'a, V&gt;(Vec&lt;&amp;'a Tree&lt;V&gt;&gt;);
+</span><span class="boring">
+</span><span class="boring">   impl&lt;'a, V&gt; Iterator for IterPreorder&lt;'a, V&gt; {
+</span><span class="boring">       type Item = &amp;'a V;
+</span><span class="boring">       fn next(&amp;mut self) -&gt; Option&lt;&amp;'a V&gt; {
+</span><span class="boring">           match self.0.pop() {
+</span><span class="boring">               None =&gt; None,
+</span><span class="boring">               Some(t) =&gt; {
+</span><span class="boring">                   let Tree { value, left, right } = t;
+</span><span class="boring">                   if let Some(right) = right {
+</span><span class="boring">                       self.0.push(right.as_ref());
+</span><span class="boring">                   }
+</span><span class="boring">                   if let Some(left) = left {
+</span><span class="boring">                       self.0.push(left.as_ref());
+</span><span class="boring">                   }
+</span><span class="boring">                   Some(value)
+</span><span class="boring">               }
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span><span class="boring">   }
+</span><span class="boring">
+</span>    impl&lt;V&gt; Tree&lt;V&gt; {
+        pub fn preorder(&amp;self) -&gt; IterPreorder&lt;V&gt; {
+            IterPreorder(vec![self])
+        }
+    }
+
+    impl&lt;'a, V&gt; IntoIterator for &amp;'a Tree&lt;V&gt; {
+        type Item = &amp;'a V;
+        type IntoIter = IterPreorder&lt;'a, V&gt;;
+
+        fn into_iter(self) -&gt; Self::IntoIter {
+            self.preorder()
+        }
+    }
+}
+
+use tree::*;
+
+fn main() {
+    let t = Tree {
+        value: 1,
+        left: Some(Box::new(Tree {
+            value: 2,
+            left: None,
+            right: None,
+        })),
+        right: Some(Box::new(Tree {
+            value: 3,
+            left: Some(Box::new(Tree {
+                value: 4,
+                left: None,
+                right: None,
+            })),
+            right: None,
+        })),
+    };
+
+    for n in t.preorder() {
+        println!("{}", n);
+    }
+
+    for n in &amp;t {
+        println!("{}", n);
+    }
+}</code></pre></pre>
+</div>
+<p>Implementing the iterators for mutable references and owned values can be done
+similarly. With all three, there are three <code>IntoIterator</code> implementations, one
+for <code>&amp;Tree&lt;V&gt;</code>, one for <code>&amp;mut Tree&lt;V&gt;</code>, and one for <code>Tree&lt;V&gt;</code>.</p>
+<h3 id="reducing-code-duplication"><a class="header" href="#reducing-code-duplication">Reducing code duplication</a></h3>
+<p>As with implementing iterators and const iterators in C++, implementing
+iterators for owned values, references, and mutable references can result in
+significant code duplication in Rust.</p>
+<p>One pattern for addressing this involves defining a private trait that captures
+the decomposing of the type and then implementing the <code>Iterator</code> trait via a
+blanket implementation in terms of that trait. Wrapper structs can then be used
+to expose the iteration behavior without exposing the helper trait.</p>
+<p>The following example implements this pattern for the <code>Tree&lt;V&gt;</code> type above as an
+alternative to the simpler, but more duplicative, approach above.</p>
+<pre><pre class="playground"><code class="language-rust">mod tree {
+    /// Binary tree with values at every node.
+    /// Not necessarily balanced.
+    pub struct Tree&lt;V&gt; {
+        pub value: V,
+        pub left: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+        pub right: Option&lt;Box&lt;Tree&lt;V&gt;&gt;&gt;,
+    }
+
+    impl&lt;V&gt; Tree&lt;V&gt; {
+        // ... static methods for constructing trees ...
+<span class="boring">
+</span><span class="boring">       /// Constructs a new node with two
+</span><span class="boring">       /// subtrees.
+</span><span class="boring">       pub fn node(value: V, left: Tree&lt;V&gt;, right: Tree&lt;V&gt;) -&gt; Tree&lt;V&gt; {
+</span><span class="boring">           Tree {
+</span><span class="boring">               value,
+</span><span class="boring">               left: Some(Box::new(left)),
+</span><span class="boring">               right: Some(Box::new(right)),
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span><span class="boring">
+</span><span class="boring">       /// Constructs a new node with a left
+</span><span class="boring">       /// subtree.
+</span><span class="boring">       pub fn left(value: V, left: Tree&lt;V&gt;) -&gt; Tree&lt;V&gt; {
+</span><span class="boring">           Tree {
+</span><span class="boring">               value,
+</span><span class="boring">               left: Some(Box::new(left)),
+</span><span class="boring">               right: None,
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span><span class="boring">
+</span><span class="boring">       /// Constructs a new node with a right
+</span><span class="boring">       /// subtree.
+</span><span class="boring">       pub fn right(value: V, right: Tree&lt;V&gt;) -&gt; Tree&lt;V&gt; {
+</span><span class="boring">           Tree {
+</span><span class="boring">               value,
+</span><span class="boring">               left: None,
+</span><span class="boring">               right: Some(Box::new(right)),
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span><span class="boring">
+</span><span class="boring">       /// Constructs a new leaf node.
+</span><span class="boring">       pub fn leaf(value: V) -&gt; Self {
+</span><span class="boring">           Tree {
+</span><span class="boring">               value,
+</span><span class="boring">               left: None,
+</span><span class="boring">               right: None,
+</span><span class="boring">           }
+</span><span class="boring">       }
+</span>    }
+
+    /// Internal trait for abstracting over access
+    /// to the tree components.
+    ///
+    /// This reduces code duplication when
+    /// implementing behavior that is essentially
+    /// the same for Tree&lt;V&gt;, &amp;Tree&lt;V&gt;,
+    /// and &amp;mut Tree&lt;V&gt;.
+    trait Treeish: Sized {
+        type Output;
+        fn get(self) -&gt; (Option&lt;Self&gt;, Self::Output, Option&lt;Self&gt;);
+    }
+
+    impl&lt;V&gt; Treeish for Tree&lt;V&gt; {
+        type Output = V;
+        fn get(self) -&gt; (Option&lt;Self&gt;, Self::Output, Option&lt;Self&gt;) {
+            let Tree { value, left, right } = self;
+            (left.map(|x| *x), value, right.map(|x| *x))
+        }
+    }
+
+    impl&lt;'a, V&gt; Treeish for &amp;'a Tree&lt;V&gt; {
+        type Output = &amp;'a V;
+        fn get(self) -&gt; (Option&lt;Self&gt;, Self::Output, Option&lt;Self&gt;) {
+            let Tree { value, left, right } = self;
+            (left.as_deref(), value, right.as_deref())
+        }
+    }
+
+    impl&lt;'a, V&gt; Treeish for &amp;'a mut Tree&lt;V&gt; {
+        type Output = &amp;'a mut V;
+        fn get(self) -&gt; (Option&lt;Self&gt;, Self::Output, Option&lt;Self&gt;) {
+            let Tree { value, left, right } = self;
+            (left.as_deref_mut(), value, right.as_deref_mut())
+        }
+    }
+
+    /// Internal struct for implementing Iterator
+    /// in terms of Treeish.
+    struct Preorder&lt;T&gt;(Vec&lt;T&gt;);
+
+    impl&lt;T&gt; Iterator for Preorder&lt;T&gt;
+    where
+        T: Treeish,
+    {
+        type Item = T::Output;
+        fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+            let next = self.0.pop();
+            match next {
+                None =&gt; None,
+                Some(t) =&gt; {
+                    // the helper trait is used here
+                    let (left, value, right) = t.get();
+                    if let Some(right) = right {
+                        self.0.push(right);
+                    }
+                    if let Some(left) = left {
+                        self.0.push(left);
+                    }
+                    Some(value)
+                }
+            }
+        }
+    }
+
+    // Wrappers for exposing the iterator. The wrappers are necessary
+    // in order to keep Treeish private. Treeish::Output would
+    // otherwise be exposed and thus require Treeish to be public.
+
+    /// Preorder iterator
+    pub struct IntoIterPreorder&lt;V&gt;(Preorder&lt;Tree&lt;V&gt;&gt;);
+
+    /// Preorder iterator
+    pub struct IterPreorder&lt;'a, V&gt;(Preorder&lt;&amp;'a Tree&lt;V&gt;&gt;);
+
+    /// Preorder iterator
+    pub struct IterMutPreorder&lt;'a, V&gt;(Preorder&lt;&amp;'a mut Tree&lt;V&gt;&gt;);
+
+    // Delegate to the wrapped implementation.
+
+    impl&lt;V&gt; Iterator for IntoIterPreorder&lt;V&gt; {
+        type Item = V;
+        fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+            self.0.next()
+        }
+    }
+
+    impl&lt;'a, V&gt; Iterator for IterPreorder&lt;'a, V&gt; {
+        type Item = &amp;'a V;
+        fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+            self.0.next()
+        }
+    }
+
+    impl&lt;'a, V&gt; Iterator for IterMutPreorder&lt;'a, V&gt; {
+        type Item = &amp;'a mut V;
+        fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+            self.0.next()
+        }
+    }
+
+    impl&lt;V&gt; Tree&lt;V&gt; {
+        pub fn preorder(self) -&gt; IntoIterPreorder&lt;V&gt; {
+            IntoIterPreorder(Preorder(vec![self]))
+        }
+
+        pub fn preorder_ref(&amp;self) -&gt; IterPreorder&lt;V&gt; {
+            IterPreorder(Preorder(vec![self]))
+        }
+
+        pub fn preorder_ref_mut(&amp;mut self) -&gt; IterMutPreorder&lt;V&gt; {
+            IterMutPreorder(Preorder(vec![self]))
+        }
+    }
+}
+
+use tree::*;
+
+fn main() {
+    let mut t = Tree::node(
+        0,
+        Tree::left(1, Tree::leaf(2)),
+        Tree::node(3, Tree::leaf(4), Tree::right(5, Tree::leaf(6))),
+    );
+
+    for x in t.preorder_ref_mut() {
+        *x += 10;
+    }
+
+    for x in t.preorder_ref() {
+        println!("{}", x);
+    }
+}</code></pre></pre>
+<h2 id="bidirectional-and-random-access-iterators"><a class="header" href="#bidirectional-and-random-access-iterators">Bidirectional and random access iterators</a></h2>
+<p>The Rust standard library does not include support for bidirectional or random
+access iterators. For most of the use cases supported by those iterators,
+working with numeric indices suffices.</p>
+<p>The standard library does have support for <a href="https://doc.rust-lang.org/std/iter/trait.DoubleEndedIterator.html">double-ended
+iterators</a>,
+which allow consuming items from the back of the iterator. However, each item
+can still only be consumed once: when the front and back meet in the middle,
+iteration is over.</p>
+<hr>
+<ol class="footnote-definition"><li id="footnote-mut-iterator-safety">
+<p>The safety of the mutable references is given by the
+fact that the references borrow from the vector, don't overlap, and are
+never produced by the iterator more than once. <a href="#fr-mut-iterator-safety-1">↩</a></p>
+</li>
+<li id="footnote-owned-items-references">
+<p>The owned items might themselves be references,
+however. E.g., calling <code>into_iter</code> on a <code>Vec&lt;&amp;str&gt;</code> will not result in
+iterating over <code>String</code> values even though the vector itself is consumed. <a href="#fr-owned-items-references-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="lambdas-closures-and-function-objects"><a class="header" href="#lambdas-closures-and-function-objects">Lambdas, closures, and function objects</a></h1>
+<h2 id="function-pointers"><a class="header" href="#function-pointers">Function pointers</a></h2>
+<p>Both C++ and Rust permit the use of functions as values. In both, the values can
+have <a href="https://doc.rust-lang.org/std/primitive.fn.html">function pointer types</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+int process(int n) {
+  std::cout &lt;&lt; n &lt;&lt; std::endl;
+  return 2 * n;
+}
+
+int main() {
+  auto f = process;
+  // or with type annotation
+  // int (*f)(int) = process;
+
+  std::cout &lt;&lt; f(42) &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn process(n: i32) -&gt; i32 {
+    println!("{}", n);
+    2 * n
+}
+
+fn main() {
+    let f = process;
+    // or with type annotation
+    // let f: fn(i32) -&gt; i32 = process;
+
+    println!("{}", f(42));
+}</code></pre></pre>
+</div>
+<p>Non-capturing closures are also convertible function pointers in both C++ and
+Rust. In the following example the type could be inferred in both C++ and Rust,
+but the type is explicitly given to demonstrate that in both cases the closure
+has a function pointer type.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+int main() {
+  int (*f)(int) = [](int n) {
+    std::cout &lt;&lt; n &lt;&lt; std::endl;
+    return 2 * n;
+  };
+
+  std::cout &lt;&lt; f(42) &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let f = |n: i32| {
+        println!("{}", n);
+        2 * n
+    };
+    // or with type annotation
+    // let f: fn(i32) -&gt; i32 = process;
+
+    println!("{}", f(42));
+}</code></pre></pre>
+</div>
+<p>Unlike in C++, in Rust functions can be defined within other functions. This has
+the same meaning as defining the functions outside of the function (i.e., the
+function is not a capturing closure and so cannot capture variables defined in
+the outer function), but the name of the function is only available within the
+outer function.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    fn process(n: i32) -&gt; i32 {
+        println!("{}", n);
+        2 * n
+    }
+
+    println!("{}", process(42));
+}</code></pre></pre>
+<h2 id="rusts-call-operator-traits"><a class="header" href="#rusts-call-operator-traits">Rust's call operator traits</a></h2>
+<p>In C++, any class can implement the call operator method <code>operator()</code> and be a
+function object. Closures defined by lambdas do so automatically. In Rust the
+equivalent are the call operator traits.</p>
+<div class="table-wrapper"><table><thead><tr><th>Trait</th><th>Method</th><th>Description</th></tr></thead><tbody>
+<tr><td><a href="https://doc.rust-lang.org/std/ops/trait.FnOnce.html"><code>FnOnce&lt;Args&gt;</code></a></td><td><code>fn call_once(self, args: Args) -&gt; Self::Output</code></td><td>Can be called at most once</td></tr>
+<tr><td><a href="https://doc.rust-lang.org/std/ops/trait.FnMut.html"><code>FnMut&lt;Args&gt;</code></a></td><td><code>fn call_mut(&amp;mut self, args: Args) -&gt; Self::Output</code></td><td>Can be called multiple times and may mutate captures (like the <code>mutable</code> specifier in C++)</td></tr>
+<tr><td><a href="https://doc.rust-lang.org/std/ops/trait.Fn.html"><code>Fn&lt;Args&gt;</code></a></td><td><code>fn call(&amp;self, args: Args) -&gt; Self::Output</code></td><td>Can be called multiple times and do not mutate captures</td></tr>
+</tbody></table>
+</div>
+<p>Rust function pointers implement all three traits. Other closures implement the
+traits depending on how they use the captured variables.</p>
+<details>
+<summary>
+<p>Closure implementing only <code>FnOnce</code></p>
+</summary>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string x("hi");
+  auto f = [x = std::move(x)]() mutable {
+    return std::move(x);
+  };
+
+  std::cout &lt;&lt; f() &lt;&lt; std::endl;
+  // compiles, but the captured value has been
+  // moved
+  std::cout &lt;&lt; f() &lt;&lt; std::endl; // prints ""
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+   let f = {
+       let x = String::from("hi");
+       // f : FnOnce()
+       move || x
+   };
+
+   // f() is equivalent to f.call_once()
+   println!("{}", f()); // prints "hi"
+
+   // Won't compile--call_once consumes f.
+   // println!("{}", f());
+}</code></pre></pre>
+</div>
+</details>
+<details>
+<summary>
+<p>Closure implementing <code>FnMut</code> and taking ownership of the capture</p>
+</summary>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;string&gt;
+
+int main() {
+  std::string x("");
+  auto f = [x = std::move(x)]() mutable {
+    x.push_back('!');
+    return x.size();
+  };
+
+  std::cout &lt;&lt; f() &lt;&lt; std::endl; // prints "1"
+  std::cout &lt;&lt; f() &lt;&lt; std::endl; // prints "2"
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut f = {
+        let mut x = String::from("");
+        // f : FnMut() -&gt; usize
+        move || {
+            x.push('!');
+            x.len()
+        }
+    };
+
+    println!("{}", f()); // prints "1"
+    println!("{}", f()); // prints "2"
+}</code></pre></pre>
+</div>
+</details>
+<details>
+<summary>
+<p>Closure implementing <code>FnMut</code> and capturing by mutable reference</p>
+</summary>
+<p>In this case, <code>x</code> has to be alive as long as the closure might be used, since
+the closure borrows <code>x</code>. Therefore, <code>x</code> can't be declared in a block with the
+lambda like in the previous example.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string x("");
+  auto f = [&amp;x]() {
+    x.push_back('!');
+    return x.size();
+  };
+
+  std::cout &lt;&lt; f() &lt;&lt; std::endl; // prints "1"
+  std::cout &lt;&lt; f() &lt;&lt; std::endl; // prints "2"
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut x = String::from("");
+    // g : FnMut() -&gt; usize
+    let mut f = || {
+        x.push('!');
+        x.len()
+    };
+
+    println!("{}", f()); // prints "1"
+    println!("{}", f()); // prints "2"
+}</code></pre></pre>
+</div>
+</details>
+<details>
+<summary>
+<p>Closure implementing <code>Fn</code></p>
+</summary>
+<p>Whether <code>x</code> is <code>mut</code> or not doesn't affect whether the closure implements <code>Fn</code>
+or <code>FnMut</code>. What matters is how <code>x</code> is used by the closure.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string x("");
+  auto f = [&amp;x]() { return x.size(); };
+
+  std::cout &lt;&lt; f() &lt;&lt; std::endl; // prints "0"
+  std::cout &lt;&lt; f() &lt;&lt; std::endl; // prints "0"
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let f = {
+        let x = String::from("");
+        // g : Fn() -&gt; usize
+        move || x.len()
+    };
+
+    println!("{}", f()); // prints "0"
+    println!("{}", f()); // prints "0"
+}</code></pre></pre>
+</div>
+</details>
+<h2 id="lambdas-and-closures"><a class="header" href="#lambdas-and-closures">Lambdas and closures</a></h2>
+<p>In neither C++ nor Rust can the concrete type of a capturing closure be written.
+In both languages, for local variables this means that the type must be
+inferred.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;sstream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string greeting = "hello";
+  // Can't write the type of the closure
+  auto sayHelloTo = [&amp;](std::string &amp;who) {
+    std::ostringstream out;
+    out &lt;&lt; greeting &lt;&lt; " " &lt;&lt; who;
+    return out.str();
+  };
+
+  std::string world("world");
+  std::string moon("moon");
+
+  std::cout &lt;&lt; sayHelloTo(world) &lt;&lt; std::endl;
+  std::cout &lt;&lt; sayHelloTo(moon) &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let greeting = "hello";
+
+    // Can't write the type of the closure
+    let say_hello_to = |who: &amp;str| {
+        format!("{} {}", greeting, who)
+    };
+
+    println!("{}", say_hello_to("world"));
+    println!("{}", say_hello_to("moon"));
+}</code></pre></pre>
+</div>
+<p>In both C++ and Rust if the closure is heap-allocated a type can be given. In
+C++ this is done using <code>std::function</code> while in Rust it again is done with the
+call operator traits.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;functional&gt;
+#include &lt;iostream&gt;
+#include &lt;sstream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string greeting = "hello";
+  // Can't write the type of the closure
+  std::function&lt;std::string(std::string &amp;)&gt;
+      sayHelloTo([&amp;](std::string &amp;who) {
+        std::ostringstream out;
+        out &lt;&lt; greeting &lt;&lt; " " &lt;&lt; who;
+        return out.str();
+      });
+
+  std::string world("world");
+  std::string moon("moon");
+
+  std::cout &lt;&lt; sayHelloTo(world) &lt;&lt; std::endl;
+  std::cout &lt;&lt; sayHelloTo(moon) &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let greeting = "hello";
+
+    // Can't write the type of the closure
+    let say_hello_to: Box&lt;
+        dyn Fn(&amp;str) -&gt; String,
+    &gt; = Box::new(|who: &amp;str| {
+        format!("{} {}", greeting, who)
+    });
+
+    println!("{}", say_hello_to("world"));
+    println!("{}", say_hello_to("moon"));
+}</code></pre></pre>
+</div>
+<p>Since <code>std::function</code> can be empty the above example isn't strictly equivalent.
+However, since <code>std::function</code> is often used with the side condition that the
+value not be empty, the <code>Box</code> without an <code>Option</code> wrapper for representing the
+empty case is the more practical translation.</p>
+<p>A type can also be given in terms of one of the function operator traits for
+references to closures in Rust.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let greeting = "hello";
+
+    // Can't write the type of the closure
+    let say_hello_to = |who: &amp;str| {
+        format!("{} {}", greeting, who)
+    };
+
+    let say: &amp;dyn Fn(&amp;str) -&gt; String = &amp;say_hello_to;
+
+    println!("{}", say("world"));
+    println!("{}", say("moon"));
+}</code></pre></pre>
+<p>Additionally, in both C++ and Rust, the return type of the closure can be
+annotated as part of the lambda expression. This is useful when the return type
+either cannot be inferred or should be less specific than what would be
+inferred. In the following example this is used to return a value in terms of an
+interface it implements instead of the concrete type that would otherwise be
+inferred.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+
+// The common interface
+struct Debug {
+  virtual std::ostream &amp;
+  emit(std::ostream &amp;out) const = 0;
+};
+
+std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out,
+                         const Debug &amp;d) {
+  d.emit(out);
+  return out;
+}
+
+// Two things that implement the interface
+struct A : public Debug {
+  std::ostream &amp;
+  emit(std::ostream &amp;out) const override {
+    out &lt;&lt; "A";
+    return out;
+  }
+};
+
+struct B : public Debug {
+  std::ostream &amp;
+  emit(std::ostream &amp;out) const override {
+    out &lt;&lt; "B";
+    return out;
+  }
+};
+
+int main() {
+  // Without the return-type annotation,
+  // std::unique_ptr&lt;A&gt; would be inferred.
+  auto f = [](std::unique_ptr&lt;A&gt; a,
+              std::unique_ptr&lt;B&gt; b)
+      -&gt; std::unique_ptr&lt;Debug&gt; { return a; };
+  std::cout &lt;&lt; *f(std::make_unique&lt;A&gt;(),
+                  std::make_unique&lt;B&gt;())
+            &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">// The common interface
+use std::fmt::Debug;
+
+// Two things that implement the interface
+#[derive(Debug)]
+struct A;
+
+#[derive(Debug)]
+struct B;
+
+fn main() {
+    // Without the return type annotation,
+    // Box&lt;A&gt; would be inferred.
+    let f = move |a: Box&lt;A&gt;,
+                  b: Box&lt;B&gt;|
+          -&gt; Box&lt;dyn Debug&gt; { a };
+    println!("{:?}", f(Box::new(A), Box::new(B)));
+}</code></pre></pre>
+</div>
+<h2 id="capturing-variables"><a class="header" href="#capturing-variables">Capturing variables</a></h2>
+<p>In C++, capture specifiers are used to indicate whether a variable should be
+captured by reference, by copy, or by move. The capture specifiers can be given
+for all of the variables at once, for each variable, or given as a default along
+with specific choices for each variable.</p>
+<p>In Rust, the variables are captured either all by reference (by default) or all by move (using
+a <code>move</code> specifier). In order to express other capture strategies, the references
+and copies need to be explicitly defined and the closure needs to capture those
+variables instead.</p>
+<p>Expressing the pattern of explicitly making copies or taking references
+leverages the fact that in Rust blocks are expressions. In the examples that
+need to do that, notice the lack of a semicolon in the last statement of the
+block that is being assigned to the variable to hold the closure.</p>
+<p>The following examples show examples of different patterns of capturing
+variables in C++ and their analogs in Rust.</p>
+<details>
+<summary>
+<p>Capture <code>x</code> and <code>y</code> by reference</p>
+</summary>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string x("hello world");
+  std::string y("goodnight moon");
+
+  auto f = [&amp;]() {
+    std::cout &lt;&lt; x &lt;&lt; std::endl;
+    std::cout &lt;&lt; y &lt;&lt; std::endl;
+  };
+
+  // x and y borrowed by f, but still available
+  std::cout &lt;&lt; x &lt;&lt; std::endl;
+  std::cout &lt;&lt; y &lt;&lt; std::endl;
+
+  f();
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x = String::from("hello world");
+    let y = String::from("goodnight moon");
+
+    let f = || {
+        println!("{}", x);
+        println!("{}", y);
+    };
+
+    // x and y borrowed by f, but still available
+    println!("{}", x);
+    println!("{}", y);
+
+    f();
+}</code></pre></pre>
+</div>
+</details>
+<details>
+<summary>
+<p>Capture <code>x</code> and <code>y</code> by mutable reference</p>
+</summary>
+<p>The C++ version is same as when capturing by mutable reference.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string x("hello world");
+  std::string y("goodnight moon");
+
+  auto f = [&amp;]() {
+    x.push_back('!');
+    y.push_back('!');
+  };
+
+  // x and y borrowed by mutably f, but still
+  // available anyway
+  std::cout &lt;&lt; x &lt;&lt; std::endl;
+  std::cout &lt;&lt; y &lt;&lt; std::endl;
+
+  f();
+
+  std::cout &lt;&lt; x &lt;&lt; std::endl;
+  std::cout &lt;&lt; y &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut x = String::from("hello world");
+    let mut y = String::from("goodnight moon");
+
+    // f needs to be mut because it mutates
+    // its captured variables
+    let mut f = || {
+        x.push('!');
+        y.push('!');
+    };
+
+    // x and y borrowed mutably by f, and so
+    // can't be used here
+    // println!("{}", x);
+    // println!("{}", y);
+
+    f();
+
+    println!("{}", x);
+    println!("{}", y);
+}</code></pre></pre>
+</div>
+</details>
+<details>
+<summary>
+<p>Copy <code>x</code> and <code>y</code> to capture by value</p>
+</summary>
+<p>In C++ this requires that the lambda have the <code>mutable</code> specifier. In Rust this
+requires</p>
+<ul>
+<li>making a copy of the values for the closure to capture,</li>
+<li>marking those copy as mutable with <code>mut</code>,</li>
+<li>marking the closure itself as mutable with <code>mut</code>, and</li>
+<li>using the <code>move</code> specifier to move ownership of the copies into the closure.</li>
+</ul>
+<p>Types that indicate they are <a href="idioms/constructors/copy_and_move_constructors.html#trivially-copyable-types">trivially copyable by implementing the <code>Copy</code>
+trait</a> do
+not need to be explicitly cloned.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string x("hello world");
+  std::string y("goodnight moon");
+
+  auto f = [=]() mutable {
+    x.push_back('!');
+    y.push_back('!');
+  };
+
+  // copies of x and y owned by f, originals
+  // still available
+  std::cout &lt;&lt; x &lt;&lt; std::endl;
+  std::cout &lt;&lt; y &lt;&lt; std::endl;
+
+  f();
+
+  // still don't have the !, since the copies
+  // were modified not the originals
+  std::cout &lt;&lt; x &lt;&lt; std::endl;
+  std::cout &lt;&lt; y &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x = String::from("hello world");
+    let y = String::from("goodnight moon");
+
+    let mut f = {
+        // Shadow outer variables with copies.
+        // This needs to happen outside of the
+        // closure expression.
+        let mut x = x.clone();
+        let mut y = y.clone();
+        move || {
+            x.push('!');
+            y.push('!');
+        }
+    };
+
+    // clones of x and y owned by f, originals
+    // still available
+    println!("{}", x);
+    println!("{}", y);
+
+    f();
+
+    // still don't have the !, since the copies
+    // were modified not the originals
+    println!("{}", x);
+    println!("{}", y);
+}</code></pre></pre>
+</div>
+</details>
+<details>
+<summary>
+<p>Move <code>x</code> and <code>y</code> to capture by value</p>
+</summary>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string x("hello world");
+  std::string y("goodnight moon");
+
+  auto f = [x = std::move(x),
+            y = std::move(y)]() {
+    std::cout &lt;&lt; x &lt;&lt; std::endl;
+    std::cout &lt;&lt; y &lt;&lt; std::endl;
+  };
+
+  // x and y moved into f,
+  // empty strings left behind.
+  std::cout &lt;&lt; x &lt;&lt; std::endl;
+  std::cout &lt;&lt; y &lt;&lt; std::endl;
+
+  f();
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let x = String::from("hello world");
+    let y = String::from("goodnight moon");
+
+    // captures x and y by value
+    let f = move || {
+        println!("{}", x);
+        println!("{}", y);
+    };
+
+    // x and y moved into f,
+    // original variables cannot be used
+    // println!("{}", x);
+    // println!("{}", y);
+
+    f();
+}</code></pre></pre>
+</div>
+</details>
+<details>
+<summary>
+<p>Move <code>x</code> to capture by value, capture <code>y</code> by reference</p>
+</summary>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string x("hello world");
+  std::string y("goodnight moon");
+
+  auto f = [x = std::move(x), &amp;y]() mutable {
+    x.push_back('!');
+    std::cout &lt;&lt; x &lt;&lt; std::endl;
+    std::cout &lt;&lt; y &lt;&lt; std::endl;
+  };
+
+  // x moved into f, y borrowed by f
+  std::cout &lt;&lt; x &lt;&lt; std::endl;
+  std::cout &lt;&lt; y &lt;&lt; std::endl;
+
+  f();
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut x = String::from("hello world");
+    let y = String::from("goodnight moon");
+
+    let mut f = {
+        let y = &amp;y;
+        // Actually captures both x and y by
+        // value, but y is a reference
+        move || {
+            x.push('!');
+            println!("{}", x);
+            println!("{}", y);
+        }
+    };
+
+    // x moved into f, y borrowed by f
+    // println!("{}", x);
+    println!("{}", y);
+
+    f();
+}</code></pre></pre>
+</div>
+</details>
+<h2 id="function-objects"><a class="header" href="#function-objects">Function objects</a></h2>
+<p>Unlike in C++, in Rust only functions and closures implement the function call
+operator traits. The ability to directly implement the traits is <a href="https://github.com/rust-lang/rust/issues/29625">not yet part
+of stable Rust</a>.</p>
+<p>Instead, one can implement a <a href="idioms/./user-defined_conversions.html">conversion
+function</a>. The standard conversion traits <code>From</code>
+and <code>Into</code> cannot be implemented for this purpose, however, because the <code>impl Trait</code> syntax cannot be used in trait implementations.<sup class="footnote-reference" id="fr-impl-trait-impl-1"><a href="#footnote-impl-trait-impl">1</a></sup> Instead
+a separate method must be defined.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstddef&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+struct MyClosure {
+  std::string msg;
+
+  std::size_t operator()() {
+    std::cout &lt;&lt; msg &lt;&lt; std::endl;
+    return msg.size();
+  }
+};
+
+int main() {
+  MyClosure myClosure{"hello world"};
+  myClosure();
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust edition2024">struct MyClosure {
+    msg: String,
+}
+
+impl MyClosure {
+    fn as_fn(&amp;self) -&gt; impl Fn() -&gt; usize {
+        move || {
+            println!("{}", self.msg);
+            self.msg.len()
+        }
+    }
+}
+
+fn main() {
+    let my_closure = MyClosure {
+        msg: String::from("hello world"),
+    };
+    let f = my_closure.as_fn();
+
+    f();
+}</code></pre></pre>
+</div>
+<p>In Rust editions earlier than 2024, the above example requires a precise
+capturing annotation using the <a href="https://doc.rust-lang.org/std/keyword.use.html#precise-capturing"><code>use&lt;'a&gt;</code>
+syntax</a> to
+specify that the returned closure borrows from the parameters, since otherwise a
+lifetime bound is not inferred.</p>
+<h2 id="member-functions-as-function-pointers"><a class="header" href="#member-functions-as-function-pointers">Member functions as function pointers</a></h2>
+<p>In C++, pointers to member functions can be invoked with the <code>.*</code> operator or
+can be converted to <code>std::function</code> values using <code>std::mem_fn</code>, enabling them to
+be used in the same way as other <code>std::function</code> values. When called on a
+derived class, whether the method whose address was taken or the overriding
+method in the derived class is called depends on whether the method is defined
+as virtual.</p>
+<p>In Rust pointers to member functions are normal function pointers. For example,
+a method on a type <code>T</code> with a <code>&amp;self</code> parameter is a function whose first
+argument has type <code>&amp;T</code>. When the method is named via a trait, then the first
+argument of the function has type <code>&amp;dyn T</code> with a lifetime bound. Determining
+whether vtables are involved in the use of a pointer to a member function is
+determined at the time that the method is referenced, rather than when the
+method is defined.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cassert&gt;
+#include &lt;functional&gt;
+#include &lt;iostream&gt;
+
+struct Interface {
+  virtual void showVirtual() = 0;
+};
+
+struct A : public Interface {
+  void show() {
+    std::cout &lt;&lt; "A" &lt;&lt; std::endl;
+  }
+
+  void showVirtual() override {
+    std::cout &lt;&lt; "A" &lt;&lt; std::endl;
+  }
+};
+
+struct B : public Interface {
+  void showVirtual() override {
+    std::cout &lt;&lt; "B" &lt;&lt; std::endl;
+  }
+
+  void show() {
+    std::cout &lt;&lt; "B" &lt;&lt; std::endl;
+  }
+};
+
+int main() {
+  auto showV = &amp;Interface::showVirtual;
+  auto showA = &amp;A::show;
+  auto showB = &amp;B::show;
+
+  A a;
+  B b;
+
+  (a.*showV)(); // prints A
+  (b.*showV)(); // prints B
+
+  (a.*showA)(); // prints A
+  (b.*showB)(); // prints B
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">trait Interface {
+    fn show(&amp;self);
+}
+
+struct A;
+
+impl Interface for A {
+    fn show(&amp;self) {
+        println!("A");
+    }
+}
+
+struct B;
+
+impl Interface for B {
+    fn show(&amp;self) {
+        println!("B");
+    }
+}
+
+fn main() {
+    // types could be inferred, but given to show
+    // that they are just a function pointers
+    let show_a: fn(&amp;A) = A::show;
+    let show_b: fn(&amp;B) = B::show;
+    let show_v: fn(&amp;(dyn Interface + 'static)) =
+        Interface::show;
+
+    show_a(&amp;A); // prints A
+    show_b(&amp;B); // prints B
+
+    show_v(&amp;A); // prints A
+    show_v(&amp;B); // prints B
+}</code></pre></pre>
+</div>
+<h2 id="closures-as-parameters"><a class="header" href="#closures-as-parameters">Closures as parameters</a></h2>
+<p>In both C++ and Rust, unboxed closures can be accepted as parameters. Just as
+using <code>auto</code> as the type of a parameter in C++ makes the function actually a
+function template, using <code>impl Trait</code> as the type of a parameter in Rust makes
+the function generic. <a href="idioms/data_modeling/concepts.html#templates-vs-generic-functions">The resulting generic function is checked statically,
+just like it would be if the type parameter and bound were given
+explicitly.</a></p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+int apply_to_0(auto f) {
+  return f(0);
+}
+
+int main() {
+  int x = 1;
+  auto f([=](int n) { return n + x; });
+  std::cout &lt;&lt; apply_to_0(f) &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn apply_to_0(f: impl FnOnce(i32) -&gt; i32) -&gt; i32 {
+    f(0)
+}
+
+fn main() {
+    let x = 1;
+    let f = move |n: i32| x + n;
+    println!("{}", apply_to_0(&amp;f));
+}</code></pre></pre>
+</div>
+<p>When accepting closures as type parameters in Rust, it is best practice to
+specify the type as the the least restrictive interface required for how the
+closure will be used.</p>
+<p>Using <code>FnOnce</code> as the bound is the least restrictive, and so should be used so
+that the function accepting a closure as a parameter is as compatible with as
+many closures as possible . <code>FnOnce</code> works with <code>Fn</code> and <code>FnMut</code> because there
+are <code>FnOnce</code> trait implementations for <code>&amp;Fn</code> and <code>&amp;FnMut</code>. The <code>FnMut</code> trait is
+the next most restrictive, followed by <code>Fn</code>, and then actual function pointers,
+whose types are written with a lowercase <code>fn</code>.</p>
+<p>In both C++ and Rust, it is also possible to pass references or pointers to closures. In
+the following example, the closure is in dynamically allocated storage in both
+C++ and in Rust.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;functional&gt;
+#include &lt;iostream&gt;
+
+int apply_to_0(std::function&lt;int(int)&gt; f) {
+  return f(0);
+}
+
+int main() {
+  int x = 1;
+  // closure is on heap
+  auto f(std::function(
+      [=](int n) { return n + x; }));
+  std::cout &lt;&lt; apply_to_0(f) &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn apply_to_0(f: Box&lt;dyn FnOnce(i32) -&gt; i32&gt;) -&gt; i32 {
+    f(0)
+}
+
+fn main() {
+    let x = 1;
+    let f = Box::new(move |n: i32| x + n);
+    println!("{}", apply_to_0(f));
+}</code></pre></pre>
+</div>
+<p><code>FnOnce</code> can be called when in a <code>Box</code>, because the box owns the trait object,
+but not when in a reference which doesn't. <code>Fn</code> and <code>FnMut</code> do not have the same
+restriction.</p>
+<h2 id="returning-closures"><a class="header" href="#returning-closures">Returning closures</a></h2>
+<p>In C++, <code>auto</code> or <code>decltype(auto)</code> can be used as the return type for a function
+returning a closure. In Rust, once again the <code>impl Trait</code> syntax can be used.
+Just as how in C++ using <code>auto</code> in this way does not denote an abbreviated
+function template, it does not denote a generic function in Rust. Instead the
+type is inferred, and must satisfy the trait.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+decltype(auto) makeConst(int n) {
+  return [n]() { return n; };
+}
+
+int main() {
+  auto f = makeConst(42);
+  std::cout &lt;&lt; f() &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn make_const(n: i32) -&gt; impl Fn() -&gt; i32 {
+    move || n
+}
+
+fn main() {
+    let f = make_const(42);
+    println!("{}", f());
+}</code></pre></pre>
+</div>
+<p>In places in C++ where <code>decltype</code> is used to name the closure, e.g., when
+returning a closure in a template class, in Rust the <code>impl Trait</code> syntax is
+used. If a type needs to be given in a let binding, then an underscore <code>_</code> can
+be used to indicate that the part of the type that is the closure's type should
+be inferred.</p>
+<pre><pre class="playground"><code class="language-rust">struct Wrapper&lt;T&gt;(T);
+
+fn make_closure() -&gt; Wrapper&lt;impl Fn(i32) -&gt; i32&gt;
+{
+    let x = 1;
+    Wrapper(move |n: i32| x + n)
+}
+
+fn main() {
+    let w: Wrapper&lt;_&gt; = make_closure();
+    w.0(0);
+}</code></pre></pre>
+<p>There are several other places where <code>decltype</code> works but <code>impl Trait</code> does not
+yet, such as <a href="https://github.com/rust-lang/rust/issues/99697">the output type for <code>Fn</code>
+traits</a>. This means that one can
+define closures that return closures in Rust, but cannot give them a type, and
+therefore cannot return them from functions. The following compiles in C++ but
+fails to compile in Rust for that reason.</p>
+<div class="comparison">
+<pre><code class="language-cpp">decltype(auto) makeClosure(int n) {
+  return [n]() { return [n]() { return n; }; };
+}
+</code></pre>
+<pre><code class="language-rust ignore">// Does not compile: not yet supported
+fn make_closure(
+    n: i32,
+) -&gt; impl Fn() -&gt; impl Fn() -&gt; i32 {
+    move || move || n
+}</code></pre>
+</div>
+<h2 id="template-lambdas"><a class="header" href="#template-lambdas">Template lambdas</a></h2>
+<p>Rust does not support generic closures. Thus, the following has no equivalent in
+Rust.</p>
+<pre><code class="language-cpp">#include &lt;string&gt;
+
+int main() {
+  int n = 0;
+
+  auto idCounter = [&amp;]&lt;typename T&gt;(T x) {
+    n++;
+    return x;
+  };
+
+  int y = idCounter(5);
+  std::string z =
+      idCounter.template operator()&lt;std::string&gt;(std::string("hi"));
+}
+</code></pre>
+<p>However, if the lambda doesn't capture anything, it is possible to write the
+following equivalent in Rust, by using an inner function definition.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;string&gt;
+
+int main() {
+  auto id = []&lt;typename T&gt;(T x) { return x; };
+  int y = id(5);
+  std::string z = id(std::string("hi"));
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    fn id&lt;T&gt;(x: T) -&gt; T {
+        x
+    }
+
+    id(5);
+    id(String::from("hi"));
+}</code></pre></pre>
+</div>
+<h2 id="partial-application-and-stdbind"><a class="header" href="#partial-application-and-stdbind">Partial application and <code>std::bind</code></a></h2>
+<p>There is no equivalent to the C++ template <code>std::bind</code> in the Rust standard
+library. The idiomatic way to express partial application in Rust is to write
+out the lambda.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cassert&gt;
+#include &lt;functional&gt;
+
+int add(int x, int y) {
+  return x + y;
+}
+
+int main() {
+  using namespace std::placeholders;
+
+  auto addTen = std::bind(add, 10, _1);
+  assert(42 == addTen(32));
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn add(x: i32, y: i32) -&gt; i32 {
+    x + y
+}
+
+fn main() {
+    let add_ten = move |y| add(10, y);
+    assert_eq!(42, add_ten(32));
+}</code></pre></pre>
+</div>
+<p>The third-party crate
+<a href="https://docs.rs/partial_application/latest/partial_application/">partial_application</a>
+provides something akin to <code>std::bind</code> using Rust macros.</p>
+<pre><code class="language-rust ignore">use partial_application::*;
+
+fn add(x: i32, y: i32) -&gt; i32 {
+    x + y
+}
+
+fn main() {
+    let add_ten = partial!(move add =&gt; 10, _);
+
+    assert_eq!(42, add_ten(32));
+}</code></pre>
+<h2 id="returning-references-to-captured-variables"><a class="header" href="#returning-references-to-captured-variables">Returning references to captured variables</a></h2>
+<p>In Rust it is not possible to have a closure return a reference to a captured
+variable. This is due to a limitation with how the <code>Fn</code> family of traits are
+defined: <code>Fn::Output</code> does not have a way to express a lifetime bound.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::string msg("hello world");
+  auto f = [=]() -&gt; const std::string &amp; {
+    return msg;
+  };
+  std::cout &lt;&lt; f() &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn main() {
+    let msg = String::from("hello world");
+    // fails to compile!
+    let f = move || &amp;msg;
+
+    println!("{}", f());
+}</code></pre>
+</div>
+<p>The workarounds to this limitation in Rust involve either heap-allocating and
+using a shared pointer <code>Rc</code>, or defining a new trait instead of using one of the
+<code>Fn</code> traits. The following example shows a trait that uses <a href="https://doc.rust-lang.org/reference/items/associated-items.html#r-items.associated.type.generic">generic associated types</a> to define a generalized
+<code>Fn</code> trait. In practice, however, it is usually better either to
+define a custom trait for each use case or to elide the trait entirely if a
+single struct is sufficient.</p>
+<pre><pre class="playground"><code class="language-rust">trait Closure&lt;Args&gt; {
+    // The lifetime parameter enables expressing
+    // the bound.
+    type Output&lt;'a&gt;
+    where
+        Self: 'a;
+
+    // The bound from self can then be
+    // provided to Output.
+    fn call&lt;'a&gt;(
+        &amp;'a self,
+        args: Args,
+    ) -&gt; Self::Output&lt;'a&gt;;
+}
+
+struct MyClosure {
+    msg: String,
+}
+
+impl Closure&lt;()&gt; for MyClosure {
+    type Output&lt;'a&gt; = &amp;'a str;
+
+    fn call(&amp;self, _: ()) -&gt; &amp;str {
+        &amp;self.msg
+    }
+}
+
+fn main() {
+    let f = MyClosure {
+        msg: String::from("hello world"),
+    };
+
+    println!("{}", f.call(()));
+}</code></pre></pre>
+<h2 id="closures-ownership-and-fnonce"><a class="header" href="#closures-ownership-and-fnonce">Closures, ownership, and <code>FnOnce</code></a></h2>
+<p>Closures are a part of Rust where the borrow checker is likely to cause
+frustration for a C++ programmer. This is usually not because of lifetimes,
+which have to be similarly considered in C++, but rather because C++ defaults to
+copy semantics while Rust defaults to move semantics. For example, this small
+adjustment to one of the earlier examples fails to compile.</p>
+<pre><code class="language-rust ignore">fn main() {
+    let greeting = "hello ".to_string();
+
+    // Can't write the type of the closure
+    let say_hello_to = move |who: &amp;str| {
+        greeting + who
+    };
+
+    println!("{}", say_hello_to("world"));
+    println!("{}", say_hello_to("moon"));
+}</code></pre>
+<p>This fails to compile because the <code>+</code> operator takes ownership of <code>greeting</code>,
+which makes it no longer accessible for later invocations. Because of this, the
+closure only implements <code>FnOnce</code>, not <code>Fn</code>, and therefore can only be called
+once, because the call takes ownership of the closure itself.</p>
+<pre><code class="language-text">error[E0382]: use of moved value: `say_hello_to`
+ --&gt; example.rs:9:20
+  |
+8 |     println!("{}", say_hello_to("world"));
+  |                    --------------------- `say_hello_to` moved due to this call
+9 |     println!("{}", say_hello_to("moon"));
+  |                    ^^^^^^^^^^^^ value used here after move
+  |
+note: closure cannot be invoked more than once because it moves the variable `greeting` out of its environment
+ --&gt; example.rs:6:26
+  |
+6 |         move |who: &amp;str| greeting + who;
+  |                          ^^^^^^^^
+note: this value implements `FnOnce`, which causes it to be moved when called
+ --&gt; example.rs:8:20
+  |
+8 |     println!("{}", say_hello_to("world"));
+  |
+</code></pre>
+<p>In many cases like this, the answer is to clone the value so that the copy owned
+by the closure can be retained for future invocations.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let greeting = "hello ".to_string();
+
+    // Can't write the type of the closure
+    let say_hello_to = move |who: &amp;str| {
+        greeting.clone() + who
+    };
+
+    println!("{}", say_hello_to("world"));
+    println!("{}", say_hello_to("moon"));
+}</code></pre></pre>
+<p>If cloning isn't desired because it is too expensive, then the closure needs to
+be redesigned to avoid giving away ownership of its captured variables.</p>
+<h2 id="documentation-best-practices"><a class="header" href="#documentation-best-practices">Documentation best practices</a></h2>
+<p>C++ often recommended to explicitly list captures in a lambda expression,
+especially in situations where a closure will outlive its context. The purpose
+of this is to assist in reasoning about the lifetimes of the captures to ensure
+that the closure does not outlive any of the objects it has captured.</p>
+<p>In Rust, the same decisions about captures with respect to lifetimes have to be
+made, but the compiler tracks them instead of having to do the reasoning
+manually. That is, in spite of the type of the closure not being expressible, it
+does still include the lifetimes of variables captured by reference, and so is
+checked the same way that any other structure would be.</p>
+<p>This results in the best practices for documenting closures in Rust not
+including enumerating captures, even in situations where one would do so in C++.</p>
+<p>The same is true about the destructibility of the content of the captures in a
+closure. The example involving <code>FnOnce</code> functions in <a href="idioms/closures.html#closures-ownership-and-fnonce">the previous
+section</a> may be a point of frustration
+initially, but the behavior has the benefit of reducing the documentation and reasoning
+burdens.</p>
+<hr>
+<ol class="footnote-definition"><li id="footnote-impl-trait-impl">
+<p>That is, one can write neither <code>impl From&lt;&amp;MyClosure&gt; for impl Fn() -&gt; usize {...}</code> nor <code>impl Into&lt;impl Fn() -&gt; usize&gt; for &amp;MyClosure {...}</code>. <a href="#fr-impl-trait-impl-1">↩</a></p>
+</li>
 </ol><div style="break-before: page; page-break-before: always;"></div><h1 id="object-identity"><a class="header" href="#object-identity">Object identity</a></h1>
 <p>In C++ the pointer to an object is sometimes used to represent its identity in
 terms of the logic of a program.</p>
@@ -7273,7 +9307,7 @@ int main() {
 </code></pre>
 <p>This more closely aligns with the normal Rust idiom for returning multiple
 values.</p>
-<div class="quiz-placeholder" data-quiz-name="&quot;multiple_return&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;17e30276-7ebe-499e-b8b0-4acfb815feaa&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub fn split_at(\n    data: &amp;[u8],\n    mid: usize,\n) -&gt; (&amp;[u8], &amp;[u8]);\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub fn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    left: &amp;mut &amp;[u8],\n    right: &amp;mut &amp;[u8],\n);\n```\n&quot;,&quot;```rust\nfn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    left: &amp;mut &amp;[u8],\n    right: &amp;mut &amp;[u8],\n) -&gt; (usize, usize);\n```\n&quot;,&quot;```rust\nfn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    remaining: &amp;mut &amp;[u8],\n) -&gt; &amp;[u8];\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic translation of this C++ function\nsignature into a Rust function signature?\n\n```cpp\nvoid main() {}\n```\n\n```cpp\n#include &lt;cstdint&gt;\n\nvoid splitAt(std::uint8_t *data,\n             std::size_t dataSize,\n             uint8_t **left,\n             std::size_t *leftSize,\n             uint8_t **right,\n             std::size_t *rightSize);\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<div class="quiz-placeholder" data-quiz-name="&quot;multiple_return&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;17e30276-7ebe-499e-b8b0-4acfb815feaa&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub fn split_at(\n    data: &amp;[u8],\n    mid: usize,\n) -&gt; (&amp;[u8], &amp;[u8]);\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub fn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    left: &amp;mut &amp;[u8],\n    right: &amp;mut &amp;[u8],\n);\n```\n&quot;,&quot;```rust\nfn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    left: &amp;mut &amp;[u8],\n    right: &amp;mut &amp;[u8],\n) -&gt; (usize, usize);\n```\n&quot;,&quot;```rust\nfn split_at(\n    data: &amp;[u8],\n    mid: usize,\n    remaining: &amp;mut &amp;[u8],\n) -&gt; &amp;[u8];\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic translation of this C++ function\nsignature into a Rust function signature?\n\n```cpp\nvoid main() {}\n```\n\n```cpp\n#include &lt;cstdint&gt;\n\nvoid splitAt(std::uint8_t *data,\n             std::size_t dataSize,\n             std::size_t mid,\n             uint8_t **left,\n             std::size_t *leftSize,\n             uint8_t **right,\n             std::size_t *rightSize);\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="optional-return-values"><a class="header" href="#optional-return-values">Optional return values</a></h1>
 <p>One idiom in C++ for optionally producing a result from a method or function is
 to use a reference parameter along with a boolean or integer return value to
@@ -7621,7 +9655,104 @@ achieve the same results as when using slices of <code>MaybeUninit</code>, but w
 having to write any unsafe code. The IO APIs for avoiding unnecessary
 initialization use <code>BorrowedBuf</code> instead of slices of <code>MaybeUninit</code>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;pre-allocated_buffers&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;5b23f54f-b4a2-46f5-87b4-5551a2c93be8&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nlet mut buf = [0u8; 1024];\n\nwhile let Some(count) = fetch(&amp;mut buf) {\n    // use data in buf\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nlet mut buf;\n\nwhile let Some(count) = fetch(&amp;mut buf) {\n    // use data in buf\n}\n```\n&quot;,&quot;```rust\nloop {\n    let mut buf = [0u8; 1024];\n    let Some(count) = fetch(&amp;mut buf) else {\n        break;\n    };\n    // use data in buf\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic way in Rust to use the following\nfunction?\n\n```rust\n/// Fetches data into the given buffer. Returns the number of bytes populated,\n/// or `None` when the end of the data is reached. The contents of `buf` will\n/// not be read.\nfn fetch(buf: &amp;mut [u8]) -&gt; Option&lt;usize&gt;\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="curiously-recurring-template-pattern-crtp"><a class="header" href="#curiously-recurring-template-pattern-crtp">Curiously recurring template pattern (CRTP)</a></h1>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="adapter-pattern"><a class="header" href="#adapter-pattern">Adapter pattern</a></h1>
+<p>In C++, if an existing class needs to implement a new interface, the adapter
+pattern is normally used. The pattern involves defining a wrapper class that
+implements the interface by delegating to the methods on the original class.</p>
+<p>In Rust, the same pattern is possible and is <a href="https://doc.rust-lang.org/book/ch20-02-advanced-traits.html#using-the-newtype-pattern-to-implement-external-traits-on-external-types">sometimes necessary due to the
+orphan
+rule</a>.
+However, because traits can be implemented where <em>either</em> the type or the trait
+is defined, usually it is possible to just implement the trait for the type
+directly, without the need for a wrapper.</p>
+<p>The following example adds an interface to <code>std::string</code> in C++ and <code>String</code> in
+Rust for use with a template function defined in the library. When dynamic
+dispatch is needed, there is no change to how to implement the trait for the
+existing type in Rust.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;concepts&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+template &lt;typename T&gt;
+concept doubleable = requires(const T t) {
+  { t.twice() } -&gt; std::same_as&lt;T&gt;;
+};
+
+template &lt;doubleable T&gt;
+T quadruple(const T &amp;x) {
+  return x.twice().twice();
+}
+
+struct DoubleableString {
+  std::string str;
+
+  DoubleableString twice() const {
+    return DoubleableString{this-&gt;str +
+                            this-&gt;str};
+  }
+};
+
+int main() {
+  auto s = quadruple(
+      DoubleableString{std::string("a")});
+  std::cout &lt;&lt; s.str &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">trait Doubleable {
+    fn twice(&amp;self) -&gt; Self;
+}
+
+impl Doubleable for String {
+    fn twice(&amp;self) -&gt; Self {
+        self.clone() + self
+    }
+}
+
+fn quadruple&lt;T: Doubleable&gt;(x: T) -&gt; T {
+    x.twice().twice()
+}
+
+fn main() {
+    let s = quadruple(String::from("a"));
+    println!("{}", s);
+}</code></pre></pre>
+</div>
+<h2 id="extension-traits"><a class="header" href="#extension-traits">Extension traits</a></h2>
+<p>The usual approach to adding functionality to an existing type in C++ is to
+define the additional functionality as functions.</p>
+<p>Rust can similarly add functionality by defining freestanding functions. Rust
+also supports the ability to add methods to existing types. It does so by using
+the same mechanism as described in the previous section. By using a blanket
+implementation, methods can even be added to any type that implements some other
+trait. This is the approach used by the <a href="https://docs.rs/itertools/latest/itertools/"><code>itertools</code>
+crate</a> to add additional
+functionality to anything that implements the <code>Iterator</code> trait.</p>
+<pre><pre class="playground"><code class="language-rust">trait Middle {
+    type Output;
+    fn middle(&amp;mut self) -&gt; Option&lt;Self::Output&gt;;
+}
+
+impl&lt;T: ExactSizeIterator&gt; Middle for T {
+    type Output = T::Item;
+
+    fn middle(&amp;mut self) -&gt; Option&lt;Self::Output&gt; {
+        let len = self.len();
+        if len &gt; 0 &amp;&amp; len % 2 == 1 {
+            self.nth(len / 2)
+        } else {
+            None
+        }
+    }
+}
+
+fn main() {
+    println!("{:?}", [1, 2, 3].iter().middle());
+    println!("{:?}", [1, 2, 3].iter().map(|n| n + 1).middle());
+}</code></pre></pre>
+<p>The <code>map</code> method returns a different type than <code>iter</code>, but <code>middle</code> can be
+called on the result of either one.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="curiously-recurring-template-pattern-crtp"><a class="header" href="#curiously-recurring-template-pattern-crtp">Curiously recurring template pattern (CRTP)</a></h1>
 <p>The C++ <a href="https://en.cppreference.com/w/cpp/language/crtp">curiously recurring template
 pattern</a> is used to make the
 concrete type of the derived class available in the definition of methods
@@ -7879,6 +10010,129 @@ crates.io</a>.</p>
 chain security.</p>
 <p>Solutions for supply chain security that do not involve vendoring or custom
 registries are <a href="https://github.com/rust-lang/rfcs/pull/3724">in progress</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="tests"><a class="header" href="#tests">Tests</a></h1>
+<p>This chapter gives a small example of testing in Rust by comparison to
+<a href="https://github.com/boostorg/test">Boost.Test</a> for C++. A more thorough guide to
+testing in Rust is available as part of the <a href="https://doc.rust-lang.org/book/ch11-00-testing.html">Rust
+Book</a>, including
+information on <a href="https://doc.rust-lang.org/stable/book/ch14-02-publishing-to-crates-io.html#documentation-comments-as-tests">documentation
+testing</a>.
+Details on the built-in support for testing in
+<a href="https://doc.rust-lang.org/rustc/tests/index.html">rustc</a> and
+<a href="https://doc.rust-lang.org/cargo/commands/cargo-test.html">Cargo</a> are available
+in their respective manuals.</p>
+<h2 id="unit-tests"><a class="header" href="#unit-tests">Unit tests</a></h2>
+<p>When using C++ test frameworks such as Boost.Test, tests are defined as
+functions which are registered with the framework. The tests are compiled
+against a test driver provided by the framework.</p>
+<p>In Rust, testing is handled similarly. Unlike with C++, the test registration
+mechanism and test driver are both provided by Rust itself.</p>
+<p>Additionally, the way that tests are organized is different. In C++, unit tests
+are defined in separate files from the units under test. In Rust, they are
+typically defined in the same file, usually in a <code>test</code> sub-module, with
+inclusion of the module controlled by the <code>test</code> feature flag via the
+<code>#[cfg(test)]</code> annotation.</p>
+<p>The example below defines a small class and tests for that class. In C++ this
+involves creating three separate files: a header file for the interface, the
+implementation of the interface, and the test driver. In Rust, this is all done
+in a single file.</p>
+<div class="comparison">
+<pre><code class="language-cpp">// counter.h
+#ifndef COUNTER_H
+#define COUNTER_H
+
+class Counter {
+  unsigned int count;
+
+public:
+  Counter();
+  unsigned int get();
+  void increment();
+};
+
+#endif
+
+// counter.cc
+#include "counter.h"
+Counter::Counter() : count(0) {}
+
+unsigned int Counter::get() {
+  return count;
+}
+
+void Counter::increment() {
+  ++count;
+}
+
+// test_main.cc
+#define BOOST_TEST_MODULE my_tests
+#include &lt;boost/test/included/unit_test.hpp&gt;
+#include "counter.h"
+
+BOOST_AUTO_TEST_CASE(test_counter_initialize) {
+  Counter c;
+  BOOST_TEST(c.get() == 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_counter_increment) {
+  Counter c;
+  c.increment();
+  BOOST_TEST(c.get() == 1);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// counter.rs
+pub struct Counter(u32);
+
+impl Counter {
+    pub fn new() -&gt; Counter {
+        Counter(0)
+    }
+
+    pub fn get(&amp;self) -&gt; u32 {
+        self.0
+    }
+
+    pub fn increment(&amp;mut self) {
+        self.0 += 1;
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn counter_initialize() {
+        let c = Counter::new();
+        assert_eq!(0, c.get());
+    }
+
+    #[test]
+    fn counter_increment() {
+        let mut c = Counter::new();
+        c.increment();
+        assert_eq!(1, c.get());
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>Defining unit tests within the module being tested has the benefit of making
+internals of the module under test visible to the test code. This makes it
+possible to unit test internal components without exposing them to the rest of
+the program, as one would have to in C++ by including declarations in the header
+file and by declaring test fixtures as <code>friend</code>s.</p>
+<p>Running the tests in C++ involves linking against <code>boost_unit_test_framework</code>.
+In Rust, the tests can be run with <code>cargo test</code>. If not using Cargo, the tests
+can be compiled by passing the flag <code>--test</code> to rustc, and running the
+executable produced.</p>
+<h2 id="integration-tests"><a class="header" href="#integration-tests">Integration tests</a></h2>
+<p>Integration tests as supported by Cargo, are still defined outside of the module
+and outside of the crate, purely in terms of the exposed API.</p>
+<p>See the <a href="https://doc.rust-lang.org/book/ch11-03-test-organization.html#integration-tests">Rust
+Book</a>
+for details on how to organize integration tests for Rust programs.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="attribution-notices"><a class="header" href="#attribution-notices">Attribution notices</a></h1>
 <p>This book makes use of the Standard C++ Foundation logo under their posted
 <a href="https://isocpp.org/home/terms-of-use">terms of use</a>.</p>

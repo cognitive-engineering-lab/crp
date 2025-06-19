@@ -497,7 +497,7 @@ the wildcard when matching on the struct fields, making it so that adding
 additional fields to a struct is not breaking change (i.e., that it does not
 <a href="https://doc.rust-lang.org/cargo/reference/semver.html">require the increase of the major version component when using semantic
 versioning</a>).</p>
-<p>Applying the <code>#[non_exhasutive]</code> attribute to the enum itself makes it as if one
+<p>Applying the <code>#[non_exhaustive]</code> attribute to the enum itself makes it as if one
 of the variants were private, requiring a wildcard when matching on the variant
 itself. This has the same effect in terms of versioning as when used on a struct
 but is less advantageous. In most cases, code failing to compile when a new enum

@@ -369,10 +369,10 @@ class DirectedGraph {
 <span class="boring">}</span></code></pre></pre>
 </div>
 <p>The major difference between these implementations is that in the C++ version
-<code>operator&gt;</code> is used on the values without knowing whether the operator is
-defined for the type. In the Rust version, there is a constraint requiring that
-the <code>Label</code> type implement the <code>Ord</code> trait. (See the chapter on <a href="./concepts.html">concepts,
-interfaces, and static dispatch</a> for more
+the <code>&gt;</code> operator or <code>operator&gt;</code> method is used on the values without knowing
+whether the either is defined for the type. In the Rust version, there is a
+constraint requiring that the <code>Label</code> type implement the <code>Ord</code> trait. (See the
+chapter on <a href="./concepts.html">concepts, interfaces, and static dispatch</a> for more
 details on Rust traits and how they relate to C++ concepts.)</p>
 <p>Unlike C++ templates, generic definitions in Rust are type checked at the point
 of definition rather than at the point of use. This means that for operations to
@@ -495,7 +495,7 @@ crate</a>.</p>
 }</code></pre>
 <h2 id="constexpr-template-parameters"><a class="header" href="#constexpr-template-parameters"><code>constexpr</code> template parameters</a></h2>
 <p>Rust also supports the equivalent of constexpr template parameters. For example,
-one can define a generic function that returns an array consecutive integers
+one can define a generic function that returns an array of consecutive integers
 starting from a specific value and whose size is determined at compile time.</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;array&gt;
