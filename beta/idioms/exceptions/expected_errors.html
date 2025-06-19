@@ -1,0 +1,844 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Expected errors - C++ to Rust Phrasebook</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="expected-errors"><a class="header" href="#expected-errors">Expected errors</a></h1>
+<p>In C++, <code>throw</code> both produces an error (the thrown exception) and initiates
+non-local control flow (unwinding to the nearest <code>catch</code> block). In Rust, error
+values (<code>Option::None</code> or <code>Result::Err</code>) are returned as normal values from a
+function. Rust's <code>return</code> statement can be used to return early from a function.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
+
+double divide(double dividend, double divisor) {
+  if (divisor == 0.0) {
+    throw std::domain_error("zero divisor");
+  }
+
+  return dividend / divisor;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn divide(
+    dividend: f64,
+    divisor: f64,
+) -&gt; Option&lt;f64&gt; {
+    if divisor == 0.0 {
+        return None;
+    }
+
+    Some(dividend / divisor)
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The requirement to have the return type indicate that an error is possible means
+that callbacks that are permitted to have errors need to be given an <code>Option</code> or
+<code>Result</code> return type. Omitting that is like requiring callbacks to be <code>noexcept</code>
+in C++. Functions that do not need to indicate errors but that will be used as
+callbacks where errors are permitted will need to wrap their results in
+<code>Option::Some</code> or <code>Result::Ok</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
+
+int produce_42() {
+  return 42;
+}
+
+int fail() {
+  throw std::runtime_error("oops");
+}
+
+int useCallback(int (*func)(void)) {
+  return func();
+}
+
+int main() {
+  try {
+    int x = useCallback(produce_42);
+    int y = useCallback(fail);
+
+    // use x and y
+  } catch (std::runtime_error &amp;e) {
+    // handle error
+  }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn produce_42() -&gt; i32 {
+    42
+}
+
+fn fail() -&gt; Option&lt;i32&gt; {
+    None
+}
+
+fn use_callback(
+    f: impl Fn() -&gt; Option&lt;i32&gt;,
+) -&gt; Option&lt;i32&gt; {
+    f()
+}
+
+fn main() {
+    // need to wrap produce_42 to match the
+    // expected type
+    let Some(x) =
+        use_callback(|| Some(produce_42()))
+    else {
+        // handle error
+        return;
+    };
+    let Some(y) = use_callback(fail) else {
+        // handle error
+        return;
+    };
+    // use x and y
+}</code></pre></pre>
+</div>
+<h2 id="handling-errors"><a class="header" href="#handling-errors">Handling errors</a></h2>
+<p>In C++, the only way to handle exceptions is <code>catch</code>. In Rust, all of the
+features for dealing with <a href="../data_modeling/tagged_unions.html">tagged
+unions</a> can be used with <code>Result</code> and
+<code>Option</code>. The most approach depends on the intention of the program.</p>
+<p>The basic way of handling an error indicated by a <code>Result</code> in Rust is by using
+<code>match</code>.</p>
+<p>Using <code>match</code> is the most general approach, because it enables handling
+additional cases explicitly and can be used as an expression. <code>match</code> connotes
+equal importance of all branches.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;vector&gt;
+#include &lt;stdexcept&gt;
+
+int main() {
+    std::vector&lt;int&gt; v;
+    // ... populate v ...
+    try {
+        auto x = v.at(0);
+        // use x
+    } catch (std::out_of_range &amp;e) {
+        // handle error
+    }
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = Vec::&lt;i32&gt;::new();
+    // ... populate v ...
+    match v.get(0) {
+        Some(x) =&gt; {
+            // use x
+        }
+        None =&gt; {
+            // handle error
+        }
+    }
+}</code></pre></pre>
+</div>
+<p>Because handling only a single variant of a Rust enum is so common, the <code>if let</code>
+syntax support that use case. The syntax both makes it clear that only the one
+case is important and reduces the levels of indentation.</p>
+<p><code>if let</code> is less general than <code>match</code>. It can also be used as an expression, but
+can only distinguish one case from the rest. <code>if let</code> connotes that the <code>else</code>
+case is not the normal case, but that some default handling will occur or some
+default value will be produced.</p>
+<p>Note that with <code>Result</code>, <code>if let</code> does not enable accessing the error value.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = Vec::&lt;i32&gt;::new();
+    // ... populate v ...
+    if let Some(x) = v.get(0) {
+        // use x
+    } else {
+        // handle error
+    }
+}</code></pre></pre>
+<p>When the error handling involves some kind of control flow operation, like
+<code>break</code> or <code>return</code>, the <code>let else</code> syntax is even more concise.</p>
+<p>Much like normal <code>let</code> statements, <code>let else</code> statements can only be used where
+statements are expected. <code>let else</code> statements also connote that the else case
+is not the normal case, and that no further (normal) processing will occur.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = Vec::&lt;i32&gt;::new();
+    // ... populate v ...
+    let Some(x) = v.get(0) else {
+        // handle error
+        return;
+    };
+    // use x
+}</code></pre></pre>
+<p><code>Result</code> and <code>Option</code> also have some helper methods for handling errors.
+These methods resemble the methods on <code>std::expected</code> in C++.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;expected&gt;
+#include &lt;string&gt;
+
+int main() {
+  std::expected&lt;int, std::string&gt; res(42);
+  auto x(res.transform([](int n) { return n * 2; }));
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let res: Result&lt;i32, String&gt; = Ok(42);
+    let x = res.map(|n| n * 2);
+}</code></pre></pre>
+</div>
+<p>These helper methods and others are described in detail in the documentation for
+<a href="https://doc.rust-lang.org/std/option/enum.Option.html#implementations"><code>Option</code></a>
+and
+<a href="https://doc.rust-lang.org/std/result/enum.Result.html#implementations"><code>Result</code></a>.</p>
+<h2 id="borrowed-results"><a class="header" href="#borrowed-results">Borrowed results</a></h2>
+<p>In the above examples, the successful results are borrowed from the vector. It
+common to need to clone or copy the result into an owned copy, and to want to do
+so without having to match on and reconstruct the value. <code>Result</code> and <code>Option</code>
+have helper methods for these purposes.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut v = Vec::&lt;i32&gt;::new();
+    v.push(42);
+    let x: Option&lt;&amp;i32&gt; = v.get(0);
+    let y: Option&lt;i32&gt; = v.get(0).copied();
+
+    let mut w = Vec::&lt;String&gt;::new();
+    w.push("hello".to_string());
+    let s: Option&lt;&amp;String&gt; = w.get(0);
+    let r: Option&lt;String&gt; = w.get(0).cloned();
+}</code></pre></pre>
+<h2 id="propagating-errors"><a class="header" href="#propagating-errors">Propagating errors</a></h2>
+<p>In C++, exceptions propagate automatically. In Rust, errors indicated by
+<code>Result</code> or <code>Option</code> must be explicitly propagated. The <code>?</code> operator is a
+convenience for this. There are also several methods for manipulating <code>Result</code>
+and <code>Option</code> that have a similar effect to propagating the error.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstddef&gt;
+#include &lt;vector&gt;
+
+int accessValue(std::vector&lt;std::size_t&gt; indices,
+                 std::vector&lt;int&gt; values,
+                 std::size_t i) {
+  // vector::at throws
+  size_t idx(indices.at(i));
+  // vector::at throws
+  return values.at(idx);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn access_value(
+    indices: Vec&lt;usize&gt;,
+    values: Vec&lt;i32&gt;,
+    i: usize,
+) -&gt; Option&lt;i32&gt; {
+    // * dereferences the &amp;i32 to copy it
+    // ? propagates the None
+    let idx = *indices.get(i)?;
+    // returns the Option directly
+    values.get(idx).copied()
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The above Rust example is equivalent to the following, which does not use the
+<code>?</code> operator. The version using <code>?</code> is more idiomatic.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn access_value(
+    indices: Vec&lt;usize&gt;,
+    values: Vec&lt;i32&gt;,
+    i: usize,
+) -&gt; Option&lt;i32&gt; {
+    // matching through the &amp; makes a copy of the i32
+    let Some(&amp;idx) = indices.get(i) else {
+        return None;
+    };
+    // still returns the Option directly
+    values.get(idx).copied()
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The following example is also equivalent. It is not idiomatic (using <code>?</code> here is
+more readable), but does demonstrate one of the helper methods.
+<code>Option::and_then</code> is similar to <a href="https://en.cppreference.com/w/cpp/utility/optional/and_then"><code>std::optional::and_then</code> in
+C++23</a>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn access_value(
+    indices: Vec&lt;usize&gt;,
+    values: Vec&lt;i32&gt;,
+    i: usize,
+) -&gt; Option&lt;i32&gt; {
+    // matching through the &amp; makes a copy of the i32
+    indices
+        .get(i)
+        .and_then(|idx| values.get(*idx))
+        .copied()
+}
+<span class="boring">}</span></code></pre></pre>
+<p>These helper methods and others are described in detail in the documentation for
+<a href="https://doc.rust-lang.org/std/option/enum.Option.html#implementations"><code>Option</code></a>
+and
+<a href="https://doc.rust-lang.org/std/result/enum.Result.html#implementations"><code>Result</code></a>.</p>
+<h2 id="uncaught-exceptions-in-main"><a class="header" href="#uncaught-exceptions-in-main">Uncaught exceptions in <code>main</code></a></h2>
+<p>In C++ when an exception is uncaught, it terminates the program with a non-zero
+exit code and an error message. To achieve a similar result using <code>Result</code> in
+Rust, <code>main</code> can be given a return type of <code>Result</code>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;stdexcept&gt;
+
+int main() {
+  throw std::runtime_error("oops");
+}
+</code></pre>
+<pre><code class="language-rust ignore">fn main() -&gt; Result&lt;(), &amp;'static str&gt; {
+    Err("oops")
+}</code></pre>
+</div>
+<p>In Rust, the <code>main</code> function can return any type that implements the <a href="https://doc.rust-lang.org/std/process/trait.Termination.html"><code>Termination</code>
+trait</a>, such as
+<code>()</code>, <code>Result</code>, and <a href="https://doc.rust-lang.org/std/process/struct.ExitCode.html"><code>ExitCode</code></a>.
+For example, <code>main</code> can return a result whose error type implements the <a href="https://doc.rust-lang.org/std/fmt/trait.Debug.html"><code>Debug</code>
+trait</a>:</p>
+<pre><pre class="playground"><code class="language-rust no_run">#[derive(Debug)]
+struct InterestingError {
+    message: &amp;'static str,
+    other_interesting_value: i32,
+}
+
+fn main() -&gt; Result&lt;(), InterestingError&gt; {
+    Err(InterestingError {
+        message: "oops",
+        other_interesting_value: 9001,
+    })
+}</code></pre></pre>
+<p>Running this program produces the output <code>Error: InterestingError { message: "oops", other_interesting_value: 9001 }</code> with an exit code of <code>1</code>.</p>
+<h2 id="limitations-to-forcing-error-handling-with-result"><a class="header" href="#limitations-to-forcing-error-handling-with-result">Limitations to forcing error handling with <code>Result</code></a></h2>
+<p>Returning <code>Result</code> or <code>Option</code> does not give the usual benefits when used with
+APIs that pass pre-allocated buffers by mutable reference. This is because the
+buffer is accessible outside of the <code>Result</code> or <code>Option</code>, and so the compiler
+cannot force handling of the error case.</p>
+<p>For example, in the following example the result of <code>read_line</code> can be ignored,
+resulting in logic errors in the program. However, since the buffer is required
+to be initialized, it will not result in memory safety violations or undefined
+behavior.</p>
+<pre><pre class="playground"><code class="language-rust">fn main() {
+    let mut buffer = String::with_capacity(1024);
+    std::io::stdin().read_line(&amp;mut buffer);
+    // use buffer
+}</code></pre></pre>
+<p>Rust will produce a warning in this case, because of the <a href="https://doc.rust-lang.org/reference/attributes/diagnostics.html#the-must_use-attribute"><code>#[must_use]</code>
+attribute</a>
+on <code>Result</code>.</p>
+<pre><code class="language-text">warning: unused `Result` that must be used
+ --&gt; example.rs:3:5
+  |
+3 |     std::io::stdin().read_line(&amp;mut buffer);
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this `Result` may be an `Err` variant, which should be handled
+  = note: `#[warn(unused_must_use)]` on by default
+help: use `let _ = ...` to ignore the resulting value
+  |
+3 |     let _ = std::io::stdin().read_line(&amp;mut buffer);
+  |     +++++++
+</code></pre>
+<p><code>Option</code> does not have a <code>#[must_use]</code> attribute, so functions that return an
+<code>Option</code> that must be handled (due to the <code>None</code> case indicating an error)
+should be annotated with the <code>#[must_use]</code> attribute. For example, the <code>get</code>
+method on slices returns <code>Option</code> and is <a href="https://doc.rust-lang.org/src/core/slice/mod.rs.html#592-595">annotated as
+<code>#[must_use]</code></a>.</p>
+<h2 id="designing-and-implementing-error-types"><a class="header" href="#designing-and-implementing-error-types">Designing and implementing error types</a></h2>
+<p>One challenge to handling errors in Rust compared to C++ is that because error
+propagation in Rust is explicit, error values from different subsystems need to
+be combined into a single type in order to be propagated further up the stack.
+With C++ exceptions, this requires no special effort.</p>
+<p>The following example shows how such an error type is implemented manually.
+Later examples show how the
+<a href="https://docs.rs/thiserror/latest/thiserror/">thiserror</a> and
+<a href="https://docs.rs/anyhow/latest/anyhow/">anyhow</a> crates can be used to reduce the
+verbosity of the implementation.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;exception&gt;
+
+struct ErrorA : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowA() {}
+
+struct ErrorB : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowB() {}
+
+void process() {
+  mightThrowA();
+  mightThrowB();
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::error::Error;
+use std::fmt::Display;
+use std::fmt::Formatter;
+
+#[derive(Debug)]
+struct ErrorA;
+
+impl Display for ErrorA {
+    fn fmt(
+        &amp;self,
+        fmt: &amp;mut Formatter&lt;'_&gt;,
+    ) -&gt; Result&lt;(), std::fmt::Error&gt; {
+        write!(fmt, "ErrorA produced")
+    }
+}
+
+impl Error for ErrorA {}
+
+fn might_throw_A() -&gt; Result&lt;(), ErrorA&gt; {
+    Ok(())
+}
+
+#[derive(Debug)]
+struct ErrorB;
+
+impl Display for ErrorB {
+    fn fmt(
+        &amp;self,
+        fmt: &amp;mut Formatter&lt;'_&gt;,
+    ) -&gt; Result&lt;(), std::fmt::Error&gt; {
+        write!(fmt, "ErrorB produced")
+    }
+}
+
+impl Error for ErrorB {}
+
+fn might_throw_B() -&gt; Result&lt;(), ErrorB&gt; {
+    Ok(())
+}
+
+// This extra structure is needed to combine the errors
+#[derive(Debug)]
+enum ErrorAOrB {
+    ErrorA(ErrorA),
+    ErrorB(ErrorB),
+}
+
+impl Display for ErrorAOrB {
+    fn fmt(
+        &amp;self,
+        fmt: &amp;mut Formatter&lt;'_&gt;,
+    ) -&gt; Result&lt;(), std::fmt::Error&gt; {
+        match self {
+            Self::ErrorA(err) =&gt; err.fmt(fmt),
+            Self::ErrorB(err) =&gt; err.fmt(fmt),
+        }
+    }
+}
+
+impl Error for ErrorAOrB {}
+
+impl From&lt;ErrorA&gt; for ErrorAOrB {
+    fn from(err: ErrorA) -&gt; Self {
+        Self::ErrorA(err)
+    }
+}
+
+impl From&lt;ErrorB&gt; for ErrorAOrB {
+    fn from(err: ErrorB) -&gt; Self {
+        Self::ErrorB(err)
+    }
+}
+
+fn process() -&gt; Result&lt;(), ErrorAOrB&gt; {
+    // the ? operator uses the From instance
+    might_throw_A()?;
+    might_throw_B()?;
+    Ok(())
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The following example uses the
+<a href="https://docs.rs/thiserror/latest/thiserror/">thiserror</a> crate to implement the
+same thing as in the above example. The C++ version shown for comparison is the
+same as in the previous example.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;exception&gt;
+
+struct ErrorA : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowA() {}
+
+struct ErrorB : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowB() {}
+
+void process() {
+  mightThrowA();
+  mightThrowB();
+}
+</code></pre>
+<pre><code class="language-rust ignore">use thiserror::Error;
+
+#[derive(Debug, Error)]
+#[error("ErrorA was produced")]
+struct ErrorA;
+
+fn might_throw_A() -&gt; Result&lt;(), ErrorA&gt; {
+    Ok(())
+}
+
+#[derive(Debug, Error)]
+#[error("ErrorB was produced")]
+struct ErrorB;
+
+fn might_throw_B() -&gt; Result&lt;(), ErrorB&gt; {
+    Ok(())
+}
+
+#[derive(Debug, Error)]
+enum ErrorAOrB {
+    #[error("error from source A")]
+    ErrorA(#[from] ErrorA),
+    #[error("error from source B")]
+    ErrorB(#[from] ErrorB),
+}
+
+fn process() -&gt; Result&lt;(), ErrorAOrB&gt; {
+    might_throw_A()?;
+    might_throw_B()?;
+    Ok(())
+}</code></pre>
+</div>
+<h2 id="error-types-for-applications"><a class="header" href="#error-types-for-applications">Error types for applications</a></h2>
+<p>When implementing an application (as opposed to a library), it is often the case
+that the specific type of error isn't as significant as the ability to easily
+propagate them without the verbosity of the above example. For those cases, the
+<a href="https://crates.io/crates/anyhow">anyhow</a> crate provides mechanisms for
+combining errors into a single error type, as well as the ability to produce
+one-off errors. Since the errors types used in conjunction with anyhow still
+need to implement the <code>std::error::Error</code> trait, anyhow is often used in
+conjunction with thiserror.</p>
+<p>Discriminating based on the type of the error, as one would do with <code>catch</code> in
+C++, can be done with one of the <a href="https://docs.rs/anyhow/latest/anyhow/struct.Error.html#method.downcast"><code>downcast</code>
+methods</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;exception&gt;
+
+struct ErrorA : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowA() {}
+
+struct ErrorB : public std::exception {
+  const char *msg = "ErrorA was produced";
+  const char *what() const noexcept override {
+    return msg;
+  }
+};
+
+void mightThrowB() {}
+
+void process() {
+  mightThrowA();
+  mightThrowB();
+}
+
+int main() {
+  try {
+    process();
+  } catch (ErrorA &amp;err) {
+    // handle ErrorA
+  } catch (ErrorB &amp;err) {
+    // handle ErrorB
+  }
+}
+</code></pre>
+<pre><code class="language-rust ignore">use thiserror::Error;
+
+#[derive(Debug, Error)]
+#[error("ErrorA was produced")]
+struct ErrorA;
+
+fn might_throw_A() -&gt; Result&lt;(), ErrorA&gt; {
+    Ok(())
+}
+
+#[derive(Debug, Error)]
+#[error("ErrorB was produced")]
+struct ErrorB;
+
+fn might_throw_B() -&gt; Result&lt;(), ErrorB&gt; {
+    Ok(())
+}
+
+fn process() -&gt; anyhow::Result&lt;()&gt; {
+    might_throw_A()?;
+    might_throw_B()?;
+    Ok(())
+}
+
+fn main() {
+    if let Err(err) = process() {
+        if let Some(errA) =
+            err.downcast_ref::&lt;ErrorA&gt;()
+        {
+            // handle ErrorA
+        } else if let Some(errB) =
+            err.downcast_ref::&lt;ErrorB&gt;()
+        {
+            // handle ErrorB
+        }
+    }
+}</code></pre>
+</div>
+<h2 id="backtraces"><a class="header" href="#backtraces">Backtraces</a></h2>
+<p>Backtraces can be manually included with errors by defining a field with the
+type <a href="https://doc.rust-lang.org/std/backtrace/index.html"><code>Backtrace</code></a>. The
+backtrace can be captured using the <a href="https://doc.rust-lang.org/std/backtrace/struct.Backtrace.html#method.capture"><code>Backtrace::capture</code>
+method</a>.
+The <a href="https://doc.rust-lang.org/std/backtrace/index.html">module documentation</a>
+describes the configuration required to enable backtraces.</p>
+<p>Both <a href="https://docs.rs/thiserror/latest/thiserror/">thiserror</a> and
+<a href="https://docs.rs/anyhow/latest/anyhow/">anyhow</a> have support for conveniently
+adding backtrace information to errors. Instructions for including backtraces
+are given on the main documentation page for each crate.</p>
+
+
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Expected errors">Click here to leave us feedback about this page.</a>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../idioms/exceptions.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../idioms/exceptions/bugs.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../idioms/exceptions.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../idioms/exceptions/bugs.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../telemetry/dist/telemetry.iife.js"></script>
+
+
+    </div>
+    </body>
+</html>
