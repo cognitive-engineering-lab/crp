@@ -166,11 +166,11 @@
                         <h1 id="iterators-and-ranges"><a class="header" href="#iterators-and-ranges">Iterators and ranges</a></h1>
 <p>Rust iterators resemble C++
 <a href="https://en.cppreference.com/w/cpp/ranges.html">ranges</a> in that they represent
-iterable sequence and can be manipulated similarly to how ranges can be using
+iterable sequence and can be manipulated similarly to using
 range views. Since C++ ranges are defined using iterators and ranges were only
 introduced in C++20, this chapter compares Rust iterators with both C++
 iterators and with C++ ranges.</p>
-<p>Rust iterators are forward iterators, not <a href="#bidirectional-and-random-access-iterators">bidirecitonal or random
+<p>Rust iterators are forward iterators, not <a href="#bidirectional-and-random-access-iterators">bidirectional or random
 access</a>. The definition of the
 <code>Iterator</code> trait reflects this: all of its methods are based on a <code>next</code> method
 which returns either an <code>Option::Some</code> containing the next item in the iteration
@@ -230,7 +230,7 @@ int main() {
 }</code></pre></pre>
 </div>
 <p>In both C++ and Rust, iterators can be used for reading, writing, or both. In
-Rust the use of an iterator for writing depends on the type of the elements
+Rust, the use of an iterator for writing depends on the type of the elements
 returned. In the case of <code>Vec&lt;i32&gt;</code> above, the <code>IntoIterator</code> trait implemented for
 <code>&amp;mut Vec&lt;i32&gt;</code> produces an iterator over mutable references <code>&amp;mut i32</code>, which
 enables modifying the values in the vector.<sup class="footnote-reference" id="fr-mut-iterator-safety-1"><a href="#footnote-mut-iterator-safety">1</a></sup></p>
@@ -276,7 +276,7 @@ int main() {
 implements <code>FromIterator</code>. If the type of <code>v</code> can be inferred from its later
 use, the type does not need to be specified in the call to <code>collect</code>.</p>
 <p>In both C++ and in Rust, the view or iterator could be used directly as the
-value to iterator over in a for loop, without first converting to something like
+value to loop over, without first converting to something like
 a vector. Similarly, in both languages the construction of the values is done
 lazily.</p>
 <div class="comparison">
@@ -448,7 +448,7 @@ int main() {
 <p>In C++, operations sometimes only invalidate some iterators on a value, such as
 the <code>erase</code> method on <code>std::vector</code> only invaliding iterators to the erased
 element and those after it, but not the ones before it.</p>
-<p>In Rust the fact that iterators borrow the whole iterated value means that no
+<p>In Rust, the fact that iterators borrow the whole iterated value means that no
 operations modifying the value itself (such as erasing values from a vector) can
 be performed while iterating. Thus, there are no iterator invalidation rules to
 keep in mind while using Rust iterators.</p>
@@ -630,26 +630,21 @@ public:
         // This is like a combination of
         // operator++ and operator*
         fn next(&amp;mut self) -&gt; Option&lt;&amp;'a V&gt; {
-            match self.0.pop() {
-                None =&gt; None,
-                Some(t) =&gt; {
-                    let Tree { value, left, right } = t;
-                    if let Some(right) = right {
-                        self.0.push(right.as_ref());
-                    }
-                    if let Some(left) = left {
-                        self.0.push(left.as_ref());
-                    }
-                    Some(value)
-                }
+            let Tree { value, left, right } = self.0.pop()?;
+            if let Some(right) = right {
+                self.0.push(right.as_ref());
             }
+            if let Some(left) = left {
+                self.0.push(left.as_ref());
+            }
+            Some(value)
         }
     }
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>The remaining step is to make the original type iterable. In C++ this involves
-defining <code>begin</code> and <code>end</code> methods. In Rust this involves either implementing a
+<p>The remaining step is to make the original type iterable. In C++, this involves
+defining <code>begin</code> and <code>end</code> methods. In Rust, this involves either implementing a
 method that explicitly produces the iterator, or implementing the <code>IntoIterator</code>
 trait.</p>
 <p>When there are multiple possible iterations for a type and none of them are
@@ -657,7 +652,7 @@ canonical, it is idiomatic to omit the <code>IntoIterator</code> trait implement
 Omitting the implementation requires users to intentionally choose the kind of
 iteration to use. The trait is implemented below to provide an example, but an
 unsorted binary tree is a case where it would be typical to omit the trait
-implementation, to force a user to pick between pre-, post-, and inorder
+implementation, to force a user to pick between pre-, post-, and in-order
 iteration.</p>
 <p>Because the implemented iterator is one for references, the trait actually is
 implemented for references to trees <code>&amp;Tree&lt;V&gt;</code>, rather than <code>Tree&lt;V&gt;</code> directly.</p>

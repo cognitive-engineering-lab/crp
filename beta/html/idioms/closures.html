@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Lambdas, closures,and function objects - C++ to Rust Phrasebook</title>
+        <title>Lambdas, closures, and function objects - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -237,7 +237,7 @@ outer function.</p>
     println!("{}", process(42));
 }</code></pre></pre>
 <h2 id="rusts-call-operator-traits"><a class="header" href="#rusts-call-operator-traits">Rust's call operator traits</a></h2>
-<p>In C++, any class can implement the call operator trait <code>operator()</code> and be a
+<p>In C++, any class can implement the call operator method <code>operator()</code> and be a
 function object. Closures defined by lambdas do so automatically. In Rust the
 equivalent are the call operator traits.</p>
 <div class="table-wrapper"><table><thead><tr><th>Trait</th><th>Method</th><th>Description</th></tr></thead><tbody>
@@ -548,12 +548,12 @@ fn main() {
 }</code></pre></pre>
 </div>
 <h2 id="capturing-variables"><a class="header" href="#capturing-variables">Capturing variables</a></h2>
-<p>In C++ capture specifiers are used to indicate whether a variable should be
+<p>In C++, capture specifiers are used to indicate whether a variable should be
 captured by reference, by copy, or by move. The capture specifiers can be given
 for all of the variables at once, for each variable, or given as a default along
 with specific choices for each variable.</p>
-<p>In Rust, the variables are captured either all by reference or all by move using
-a <code>move</code> specifier. In order to express other capture strategies, the references
+<p>In Rust, the variables are captured either all by reference (by default) or all by move (using
+a <code>move</code> specifier). In order to express other capture strategies, the references
 and copies need to be explicitly defined and the closure needs to capture those
 variables instead.</p>
 <p>Expressing the pattern of explicitly making copies or taking references
@@ -1005,7 +1005,7 @@ many closures as possible . <code>FnOnce</code> works with <code>Fn</code> and <
 are <code>FnOnce</code> trait implementations for <code>&amp;Fn</code> and <code>&amp;FnMut</code>. The <code>FnMut</code> trait is
 the next most restrictive, followed by <code>Fn</code>, and then actual function pointers,
 whose types are written with a lowercase <code>fn</code>.</p>
-<p>In both C++ it is also possible to pass references or pointers to closures. In
+<p>In both C++ and Rust, it is also possible to pass references or pointers to closures. In
 the following example, the closure is in dynamically allocated storage in both
 C++ and in Rust.</p>
 <div class="comparison">
@@ -1101,7 +1101,7 @@ fn make_closure(
 </div>
 <h2 id="template-lambdas"><a class="header" href="#template-lambdas">Template lambdas</a></h2>
 <p>Rust does not support generic closures. Thus, the following has no equivalent in
-rust.</p>
+Rust.</p>
 <pre><code class="language-cpp">#include &lt;string&gt;
 
 int main() {
@@ -1204,9 +1204,9 @@ int main() {
 }</code></pre>
 </div>
 <p>The workarounds to this limitation in Rust involve either heap-allocating and
-using a shared pointer <code>Rc</code> or defining a new trait instead of using one of the
-<code>Fn</code> traits. The following example shows a trait that resembles a generalized
-<code>Fn</code> trait and its use. In practice, however, it is usually better either to
+using a shared pointer <code>Rc</code>, or defining a new trait instead of using one of the
+<code>Fn</code> traits. The following example shows a trait that uses <a href="https://doc.rust-lang.org/reference/items/associated-items.html#r-items.associated.type.generic">generic associated types</a> to define a generalized
+<code>Fn</code> trait. In practice, however, it is usually better either to
 define a custom trait for each use case or to elide the trait entirely if a
 single struct is sufficient.</p>
 <pre><pre class="playground"><code class="language-rust">trait Closure&lt;Args&gt; {
@@ -1303,7 +1303,7 @@ be redesigned to avoid giving away ownership of its captured variables.</p>
 especially in situations where a closure will outlive its context. The purpose
 of this is to assist in reasoning about the lifetimes of the captures to ensure
 that the closure does not outlive any of the objects it has captured.</p>
-<p>In Rust the same decisions about captures with respect to lifetimes have to be
+<p>In Rust, the same decisions about captures with respect to lifetimes have to be
 made, but the compiler tracks them instead of having to do the reasoning
 manually. That is, in spite of the type of the closure not being expressible, it
 does still include the lifetimes of variables captured by reference, and so is
@@ -1313,7 +1313,7 @@ including enumerating captures, even in situations where one would do so in C++.
 <p>The same is true about the destructibility of the content of the captures in a
 closure. The example involving <code>FnOnce</code> functions in <a href="#closures-ownership-and-fnonce">the previous
 section</a> may be a point of frustration
-initially, but the behavior  the benefit of reducing the documentation and reasoning
+initially, but the behavior has the benefit of reducing the documentation and reasoning
 burdens.</p>
 <hr>
 <ol class="footnote-definition"><li id="footnote-impl-trait-impl">
@@ -1321,7 +1321,7 @@ burdens.</p>
 </li>
 </ol>
 
-                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Lambdas, closures,and function objects">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Lambdas, closures, and function objects">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

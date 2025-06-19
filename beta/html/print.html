@@ -7019,11 +7019,11 @@ the enforcement of the invariants required to make the casting safe. <a href="#f
 </ol><div style="break-before: page; page-break-before: always;"></div><h1 id="iterators-and-ranges"><a class="header" href="#iterators-and-ranges">Iterators and ranges</a></h1>
 <p>Rust iterators resemble C++
 <a href="https://en.cppreference.com/w/cpp/ranges.html">ranges</a> in that they represent
-iterable sequence and can be manipulated similarly to how ranges can be using
+iterable sequence and can be manipulated similarly to using
 range views. Since C++ ranges are defined using iterators and ranges were only
 introduced in C++20, this chapter compares Rust iterators with both C++
 iterators and with C++ ranges.</p>
-<p>Rust iterators are forward iterators, not <a href="idioms/iterators.html#bidirectional-and-random-access-iterators">bidirecitonal or random
+<p>Rust iterators are forward iterators, not <a href="idioms/iterators.html#bidirectional-and-random-access-iterators">bidirectional or random
 access</a>. The definition of the
 <code>Iterator</code> trait reflects this: all of its methods are based on a <code>next</code> method
 which returns either an <code>Option::Some</code> containing the next item in the iteration
@@ -7083,7 +7083,7 @@ int main() {
 }</code></pre></pre>
 </div>
 <p>In both C++ and Rust, iterators can be used for reading, writing, or both. In
-Rust the use of an iterator for writing depends on the type of the elements
+Rust, the use of an iterator for writing depends on the type of the elements
 returned. In the case of <code>Vec&lt;i32&gt;</code> above, the <code>IntoIterator</code> trait implemented for
 <code>&amp;mut Vec&lt;i32&gt;</code> produces an iterator over mutable references <code>&amp;mut i32</code>, which
 enables modifying the values in the vector.<sup class="footnote-reference" id="fr-mut-iterator-safety-1"><a href="#footnote-mut-iterator-safety">1</a></sup></p>
@@ -7129,7 +7129,7 @@ int main() {
 implements <code>FromIterator</code>. If the type of <code>v</code> can be inferred from its later
 use, the type does not need to be specified in the call to <code>collect</code>.</p>
 <p>In both C++ and in Rust, the view or iterator could be used directly as the
-value to iterator over in a for loop, without first converting to something like
+value to loop over, without first converting to something like
 a vector. Similarly, in both languages the construction of the values is done
 lazily.</p>
 <div class="comparison">
@@ -7301,7 +7301,7 @@ int main() {
 <p>In C++, operations sometimes only invalidate some iterators on a value, such as
 the <code>erase</code> method on <code>std::vector</code> only invaliding iterators to the erased
 element and those after it, but not the ones before it.</p>
-<p>In Rust the fact that iterators borrow the whole iterated value means that no
+<p>In Rust, the fact that iterators borrow the whole iterated value means that no
 operations modifying the value itself (such as erasing values from a vector) can
 be performed while iterating. Thus, there are no iterator invalidation rules to
 keep in mind while using Rust iterators.</p>
@@ -7483,26 +7483,21 @@ public:
         // This is like a combination of
         // operator++ and operator*
         fn next(&amp;mut self) -&gt; Option&lt;&amp;'a V&gt; {
-            match self.0.pop() {
-                None =&gt; None,
-                Some(t) =&gt; {
-                    let Tree { value, left, right } = t;
-                    if let Some(right) = right {
-                        self.0.push(right.as_ref());
-                    }
-                    if let Some(left) = left {
-                        self.0.push(left.as_ref());
-                    }
-                    Some(value)
-                }
+            let Tree { value, left, right } = self.0.pop()?;
+            if let Some(right) = right {
+                self.0.push(right.as_ref());
             }
+            if let Some(left) = left {
+                self.0.push(left.as_ref());
+            }
+            Some(value)
         }
     }
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>The remaining step is to make the original type iterable. In C++ this involves
-defining <code>begin</code> and <code>end</code> methods. In Rust this involves either implementing a
+<p>The remaining step is to make the original type iterable. In C++, this involves
+defining <code>begin</code> and <code>end</code> methods. In Rust, this involves either implementing a
 method that explicitly produces the iterator, or implementing the <code>IntoIterator</code>
 trait.</p>
 <p>When there are multiple possible iterations for a type and none of them are
@@ -7510,7 +7505,7 @@ canonical, it is idiomatic to omit the <code>IntoIterator</code> trait implement
 Omitting the implementation requires users to intentionally choose the kind of
 iteration to use. The trait is implemented below to provide an example, but an
 unsorted binary tree is a case where it would be typical to omit the trait
-implementation, to force a user to pick between pre-, post-, and inorder
+implementation, to force a user to pick between pre-, post-, and in-order
 iteration.</p>
 <p>Because the implemented iterator is one for references, the trait actually is
 implemented for references to trees <code>&amp;Tree&lt;V&gt;</code>, rather than <code>Tree&lt;V&gt;</code> directly.</p>
@@ -7971,7 +7966,7 @@ outer function.</p>
     println!("{}", process(42));
 }</code></pre></pre>
 <h2 id="rusts-call-operator-traits"><a class="header" href="#rusts-call-operator-traits">Rust's call operator traits</a></h2>
-<p>In C++, any class can implement the call operator trait <code>operator()</code> and be a
+<p>In C++, any class can implement the call operator method <code>operator()</code> and be a
 function object. Closures defined by lambdas do so automatically. In Rust the
 equivalent are the call operator traits.</p>
 <div class="table-wrapper"><table><thead><tr><th>Trait</th><th>Method</th><th>Description</th></tr></thead><tbody>
@@ -8282,12 +8277,12 @@ fn main() {
 }</code></pre></pre>
 </div>
 <h2 id="capturing-variables"><a class="header" href="#capturing-variables">Capturing variables</a></h2>
-<p>In C++ capture specifiers are used to indicate whether a variable should be
+<p>In C++, capture specifiers are used to indicate whether a variable should be
 captured by reference, by copy, or by move. The capture specifiers can be given
 for all of the variables at once, for each variable, or given as a default along
 with specific choices for each variable.</p>
-<p>In Rust, the variables are captured either all by reference or all by move using
-a <code>move</code> specifier. In order to express other capture strategies, the references
+<p>In Rust, the variables are captured either all by reference (by default) or all by move (using
+a <code>move</code> specifier). In order to express other capture strategies, the references
 and copies need to be explicitly defined and the closure needs to capture those
 variables instead.</p>
 <p>Expressing the pattern of explicitly making copies or taking references
@@ -8739,7 +8734,7 @@ many closures as possible . <code>FnOnce</code> works with <code>Fn</code> and <
 are <code>FnOnce</code> trait implementations for <code>&amp;Fn</code> and <code>&amp;FnMut</code>. The <code>FnMut</code> trait is
 the next most restrictive, followed by <code>Fn</code>, and then actual function pointers,
 whose types are written with a lowercase <code>fn</code>.</p>
-<p>In both C++ it is also possible to pass references or pointers to closures. In
+<p>In both C++ and Rust, it is also possible to pass references or pointers to closures. In
 the following example, the closure is in dynamically allocated storage in both
 C++ and in Rust.</p>
 <div class="comparison">
@@ -8835,7 +8830,7 @@ fn make_closure(
 </div>
 <h2 id="template-lambdas"><a class="header" href="#template-lambdas">Template lambdas</a></h2>
 <p>Rust does not support generic closures. Thus, the following has no equivalent in
-rust.</p>
+Rust.</p>
 <pre><code class="language-cpp">#include &lt;string&gt;
 
 int main() {
@@ -8938,9 +8933,9 @@ int main() {
 }</code></pre>
 </div>
 <p>The workarounds to this limitation in Rust involve either heap-allocating and
-using a shared pointer <code>Rc</code> or defining a new trait instead of using one of the
-<code>Fn</code> traits. The following example shows a trait that resembles a generalized
-<code>Fn</code> trait and its use. In practice, however, it is usually better either to
+using a shared pointer <code>Rc</code>, or defining a new trait instead of using one of the
+<code>Fn</code> traits. The following example shows a trait that uses <a href="https://doc.rust-lang.org/reference/items/associated-items.html#r-items.associated.type.generic">generic associated types</a> to define a generalized
+<code>Fn</code> trait. In practice, however, it is usually better either to
 define a custom trait for each use case or to elide the trait entirely if a
 single struct is sufficient.</p>
 <pre><pre class="playground"><code class="language-rust">trait Closure&lt;Args&gt; {
@@ -9037,7 +9032,7 @@ be redesigned to avoid giving away ownership of its captured variables.</p>
 especially in situations where a closure will outlive its context. The purpose
 of this is to assist in reasoning about the lifetimes of the captures to ensure
 that the closure does not outlive any of the objects it has captured.</p>
-<p>In Rust the same decisions about captures with respect to lifetimes have to be
+<p>In Rust, the same decisions about captures with respect to lifetimes have to be
 made, but the compiler tracks them instead of having to do the reasoning
 manually. That is, in spite of the type of the closure not being expressible, it
 does still include the lifetimes of variables captured by reference, and so is
@@ -9047,7 +9042,7 @@ including enumerating captures, even in situations where one would do so in C++.
 <p>The same is true about the destructibility of the content of the captures in a
 closure. The example involving <code>FnOnce</code> functions in <a href="idioms/closures.html#closures-ownership-and-fnonce">the previous
 section</a> may be a point of frustration
-initially, but the behavior  the benefit of reducing the documentation and reasoning
+initially, but the behavior has the benefit of reducing the documentation and reasoning
 burdens.</p>
 <hr>
 <ol class="footnote-definition"><li id="footnote-impl-trait-impl">
