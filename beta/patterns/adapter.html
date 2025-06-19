@@ -256,8 +256,10 @@ impl&lt;T: ExactSizeIterator&gt; Middle for T {
 
 fn main() {
     println!("{:?}", [1, 2, 3].iter().middle());
-    println!("{:?}", vec![1, 2, 3].iter().middle());
+    println!("{:?}", [1, 2, 3].iter().map(|n| n + 1).middle());
 }</code></pre></pre>
+<p>The <code>map</code> method returns a different type than <code>iter</code>, but <code>middle</code> can be
+called on the result of either one.</p>
 
 
                         <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Adapter pattern">Click here to leave us feedback about this page.</a>
