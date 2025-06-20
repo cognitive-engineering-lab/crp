@@ -27,7 +27,7 @@ are that
 
 1. `Result` and `Option` force explicit handling of the error case in order to
    access the contained value. This also differs from `std::expected` in C++23.
-2. When propagating errors with `Result`, the types of the errors much match.
+2. When propagating errors with `Result`, the types of the errors must match.
    There are libraries for making this easier to handle.
 
 ## `Result` vs `Option`
