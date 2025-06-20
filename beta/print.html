@@ -1174,13 +1174,19 @@ in Rust</a>.</p>
 variants, the visitor pattern is sometimes used for this situation, especially
 when using versions of the C++ standard before the introduction of
 <code>std::variant</code>. In most of these cases the idiomatic Rust solution is the same
-as what one would do when converting a C++ solution that uses tagged unions. The
-chapter on the visitor pattern<!-- LINKME --> describes when to use a
-Rust version of the visitor pattern or when to use Rust's enums (which are
-closer to <code>std::variant</code> than to C++ enums) to model the data.</p>
+as what one would do when converting a C++ solution that uses <a href="idioms/./data_modeling/tagged_unions.html">tagged
+unions</a>. The chapter on the <a href="idioms/../patterns/visitor.html">visitor
+pattern</a> describes when to use a Rust version of the
+visitor pattern or when to use Rust's enums (which are closer to <code>std::variant</code>
+than to C++ enums) to model the data.</p>
 <h2 id="varying-data-and-operations"><a class="header" href="#varying-data-and-operations">Varying data and operations</a></h2>
-<p>When both data and operations may be extended by a client, the visitor pattern
-is used in both C++ and in Rust<!-- LINKME -->.</p>
+<p>When both data and operations may be extended by a client, the required
+solutions are more complex. In C++, the approach usually involves some kind of
+extension to the <a href="idioms/../patterns/visitor.html">visitor pattern</a> along with dynamic
+casting. Because Rust does not support the kind of RTTI necessary for a dynamic
+cast operator, different approaches need to be used. Some of those approaches
+are discussed in the <a href="idioms/../patterns/visitor.html#expression-problem">chapter on the visitor
+pattern</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="abstract-classes-interfaces-and-dynamic-dispatch"><a class="header" href="#abstract-classes-interfaces-and-dynamic-dispatch">Abstract classes, interfaces, and dynamic dispatch</a></h1>
 <p>In C++ when an interface will be used with dynamic dispatch to resolve invoked
 methods, the interface is defined using an abstract class. Types that implement
@@ -9752,6 +9758,718 @@ fn main() {
 }</code></pre></pre>
 <p>The <code>map</code> method returns a different type than <code>iter</code>, but <code>middle</code> can be
 called on the result of either one.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="visitor-pattern-and-double-dispatch"><a class="header" href="#visitor-pattern-and-double-dispatch">Visitor pattern and double dispatch</a></h1>
+<p>In C++ the visitor pattern is typically used to enable adding behaviors to a
+type without modifying the class definitions. In Rust, the same goal is
+conventionally accomplished by using Rust enums, which resemble C++ <a href="patterns/../idioms/data_modeling/tagged_unions.html">tagged
+unions</a>. While the chapter on tagged
+unions compares using Rust enums with C++ <code>std::variant</code>, this chapter <a href="patterns/visitor.html#use-a-rust-enum-instead">compares
+using the visitor pattern in C++ with using Rust
+enums</a>.</p>
+<p>Since the visitor pattern and double dispatch may be useful for other purposes
+as well, a <a href="patterns/visitor.html#visitors">Rust visitor pattern version of the example</a> is also
+given.</p>
+<p>Extensions of the visitor pattern are sometimes used in C++ to make it possible
+to extend both data and behavior without modifying the original definitions
+(i.e., to solve <a href="https://cs.brown.edu/~sk/Publications/Papers/Published/kff-synth-fp-oo/">the expression
+problem</a>).
+However, those solutions also make use of dynamic casting, and Rust does not
+support that form of RTTI. Instead, <a href="patterns/visitor.html#varying-data-and-behavior">other approaches to solving the expression
+problem are more likely to be used in Rust</a>.</p>
+<h2 id="use-a-rust-enum-instead"><a class="header" href="#use-a-rust-enum-instead">Use a Rust enum instead</a></h2>
+<p>For the first case, where the variants are fixed but behaviors are not, the
+idiomatic approach in Rust is to implement the data structure as an enum instead
+of as many structs with a common interface. This is similar to using
+<code>std::variant</code> in C++.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;exception&gt;
+#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+#include &lt;unordered_map&gt;
+
+// Declare types that visitor can visit
+class Lit;
+class Plus;
+class Var;
+class Let;
+
+// Define abstract class for visitor
+struct Visitor {
+  virtual void visit(Lit &amp;e) = 0;
+  virtual void visit(Plus &amp;e) = 0;
+  virtual void visit(Var &amp;e) = 0;
+  virtual void visit(Let &amp;e) = 0;
+  virtual ~Visitor() = default;
+
+protected:
+  Visitor() = default;
+};
+
+// Define abstract class for expressions
+struct Exp {
+  virtual void accept(Visitor &amp;v) = 0;
+  virtual ~Exp() = default;
+};
+
+// Implement each expression variant
+struct Lit : public Exp {
+  int value;
+
+  Lit(int value) : value(value) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Plus : public Exp {
+  std::unique_ptr&lt;Exp&gt; lhs;
+  std::unique_ptr&lt;Exp&gt; rhs;
+
+  Plus(std::unique_ptr&lt;Exp&gt; lhs,
+       std::unique_ptr&lt;Exp&gt; rhs)
+      : lhs(std::move(lhs)), rhs(std::move(rhs)) {
+  }
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Var : public Exp {
+  std::string name;
+
+  Var(std::string name) : name(name) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Let : public Exp {
+  std::string name;
+  std::unique_ptr&lt;Exp&gt; exp;
+  std::unique_ptr&lt;Exp&gt; body;
+
+  Let(std::string name, std::unique_ptr&lt;Exp&gt; exp,
+      std::unique_ptr&lt;Exp&gt; body)
+      : name(std::move(name)),
+        exp(std::move(exp)),
+        body(std::move(body)) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+// Define Visitor for evaluating expressions
+
+// Exception for representing expression
+// evaluation errors
+struct UnknownVar : std::exception {
+  std::string name;
+
+  UnknownVar(std::string name) : name(name) {}
+
+  const char *what() const noexcept override {
+    return "Unknown variable";
+  }
+};
+
+// Define type for evaluation environment
+using Env = std::unordered_map&lt;std::string, int&gt;;
+
+// Define evaluator
+struct EvalVisitor : public Visitor {
+  // Return value. Results propagate up the stack.
+  int value = 0;
+
+  // Evaluation environment. Changes propagate
+  // down the stack
+  Env env;
+
+  // Define behavior for each case of the
+  // expression.
+  void visit(Lit &amp;e) override { value = e.value; }
+  void visit(Plus &amp;e) override {
+    e.lhs-&gt;accept(*this);
+    auto lhs = value;
+    e.rhs-&gt;accept(*this);
+    auto rhs = value;
+    value = lhs + rhs;
+  }
+  void visit(Var &amp;e) override {
+    try {
+      value = env.at(e.name);
+    } catch (std::out_of_range &amp;ex) {
+      throw UnknownVar(e.name);
+    }
+  }
+  void visit(Let &amp;e) override {
+    e.exp-&gt;accept(*this);
+    auto orig_env = env;
+    env[e.name] = value;
+    e.body-&gt;accept(*this);
+    env = orig_env;
+  }
+};
+
+int main() {
+  // Construct an expression
+  auto x = Plus(std::make_unique&lt;Let&gt;(
+                    std::string("x"),
+                    std::make_unique&lt;Lit&gt;(3),
+                    std::make_unique&lt;Var&gt;(
+                        std::string("x"))),
+                std::make_unique&lt;Lit&gt;(2));
+
+  // Construct the evaluator
+  EvalVisitor visitor;
+
+  // Run the evaluator
+  x.accept(visitor);
+
+  // Print the output
+  std::cout &lt;&lt; visitor.value &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashMap;
+
+// Define expressions.
+//
+// This covers the first 3 sections of the
+// C++ version.
+enum Exp {
+    Var(String),
+    Lit(i32),
+    Plus {
+        lhs: Box&lt;Exp&gt;,
+        rhs: Box&lt;Exp&gt;,
+    },
+    Let {
+        var: String,
+        exp: Box&lt;Exp&gt;,
+        body: Box&lt;Exp&gt;,
+    },
+}
+
+// Exception for representing expression
+// evaluation errors
+#[derive(Debug)]
+enum EvalError&lt;'a&gt; {
+    UnknownVar(&amp;'a str),
+}
+
+// Define type for evaluation environment
+type Env&lt;'a&gt; = HashMap&lt;&amp;'a str, i32&gt;;
+
+// Define evaluator
+fn eval&lt;'a&gt;(
+    env: &amp;Env&lt;'a&gt;,
+    e: &amp;'a Exp,
+) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+    match e {
+        Exp::Var(x) =&gt; env
+            .get(x.as_str())
+            .cloned()
+            .ok_or(EvalError::UnknownVar(x)),
+        Exp::Lit(n) =&gt; Ok(*n),
+        Exp::Plus { lhs, rhs } =&gt; {
+            let lv = eval(env, lhs)?;
+            let rv = eval(env, rhs)?;
+            Ok(lv + rv)
+        }
+        Exp::Let { var, exp, body } =&gt; {
+            let val = eval(env, exp)?;
+            let mut env = env.clone();
+            env.insert(var, val);
+            eval(&amp;env, body)
+        }
+    }
+}
+
+fn main() {
+    use Exp::*;
+
+    // Construct an expression
+    let e = Let {
+        var: "x".to_string(),
+        exp: Box::new(Lit(3)),
+        body: Box::new(Plus {
+            lhs: Box::new(Var("x".to_string())),
+            rhs: Box::new(Lit(2)),
+        }),
+    };
+
+    // Run the evaluator
+    let res = eval(&amp;HashMap::new(), &amp;e);
+
+    // Print the output
+    println!("{:?}", res);
+}</code></pre></pre>
+</div>
+<h2 id="visitors"><a class="header" href="#visitors">Visitors</a></h2>
+<p>If the visitor pattern is still needed for some reason, it can be implemented
+similarly to how it is in C++. This can make direct ports of programs that use
+the visitor pattern more feasible. However, the enum-based implementation should
+still be preferred.</p>
+<p>The following example shows how to implement the same program as in the previous
+example, but using a visitor in Rust. The C++ program is identical to the
+previous one.</p>
+<p>The example also demonstrates using double dispatch with trait objects in Rust.
+The expressions are represented as <code>dyn Exp</code> trait objects which accept a <code>dyn Visitor</code> trait object, and then call on the visitor the method specific to the
+type of expression.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;exception&gt;
+#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+#include &lt;unordered_map&gt;
+
+// Declare types that visitor can visit
+class Lit;
+class Plus;
+class Var;
+class Let;
+
+// Define abstract class for visitor
+struct Visitor {
+  virtual void visit(Lit &amp;e) = 0;
+  virtual void visit(Plus &amp;e) = 0;
+  virtual void visit(Var &amp;e) = 0;
+  virtual void visit(Let &amp;e) = 0;
+  virtual ~Visitor() = default;
+
+protected:
+  Visitor() = default;
+};
+
+// Define abstract class for expressions
+struct Exp {
+  virtual void accept(Visitor &amp;v) = 0;
+  virtual ~Exp() = default;
+};
+
+// Implement each expression variant
+struct Lit : public Exp {
+  int value;
+
+  Lit(int value) : value(value) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Plus : public Exp {
+  std::unique_ptr&lt;Exp&gt; lhs;
+  std::unique_ptr&lt;Exp&gt; rhs;
+
+  Plus(std::unique_ptr&lt;Exp&gt; lhs,
+       std::unique_ptr&lt;Exp&gt; rhs)
+      : lhs(std::move(lhs)), rhs(std::move(rhs)) {
+  }
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Var : public Exp {
+  std::string name;
+
+  Var(std::string name) : name(name) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Let : public Exp {
+  std::string name;
+  std::unique_ptr&lt;Exp&gt; exp;
+  std::unique_ptr&lt;Exp&gt; body;
+
+  Let(std::string name, std::unique_ptr&lt;Exp&gt; exp,
+      std::unique_ptr&lt;Exp&gt; body)
+      : name(std::move(name)),
+        exp(std::move(exp)),
+        body(std::move(body)) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+// Define Visitor for evaluating expressions
+
+// Exception for representing expression
+// evaluation errors
+struct UnknownVar : std::exception {
+  std::string name;
+
+  UnknownVar(std::string name) : name(name) {}
+
+  const char *what() const noexcept override {
+    return "Unknown variable";
+  }
+};
+
+// Define type for evaluation environment
+using Env = std::unordered_map&lt;std::string, int&gt;;
+
+// Define evaluator
+struct EvalVisitor : public Visitor {
+  // Return value. Results propagate up the stack.
+  int value = 0;
+
+  // Evaluation environment. Changes propagate
+  // down the stack
+  Env env;
+
+  // Define behavior for each case of the
+  // expression.
+  void visit(Lit &amp;e) override { value = e.value; }
+  void visit(Plus &amp;e) override {
+    e.lhs-&gt;accept(*this);
+    auto lhs = value;
+    e.rhs-&gt;accept(*this);
+    auto rhs = value;
+    value = lhs + rhs;
+  }
+  void visit(Var &amp;e) override {
+    try {
+      value = env.at(e.name);
+    } catch (std::out_of_range &amp;ex) {
+      throw UnknownVar(e.name);
+    }
+  }
+  void visit(Let &amp;e) override {
+    e.exp-&gt;accept(*this);
+    auto orig_env = env;
+    env[e.name] = value;
+    e.body-&gt;accept(*this);
+    env = orig_env;
+  }
+};
+
+int main() {
+  // Construct an expression
+  auto x = Plus(std::make_unique&lt;Let&gt;(
+                    std::string("x"),
+                    std::make_unique&lt;Lit&gt;(3),
+                    std::make_unique&lt;Var&gt;(
+                        std::string("x"))),
+                std::make_unique&lt;Lit&gt;(2));
+
+  // Construct the evaluator
+  EvalVisitor visitor;
+
+  // Run the evaluator
+  x.accept(visitor);
+
+  // Print the output
+  std::cout &lt;&lt; visitor.value &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">// This is NOT an idiomatic translation. The
+// previous example using Rust enums is.
+
+use std::collections::HashMap;
+
+// Define types that the visitor can visit
+struct Lit(i32);
+struct Plus {
+    lhs: Box&lt;dyn Exp&gt;,
+    rhs: Box&lt;dyn Exp&gt;,
+}
+struct Var(String);
+struct Let {
+    name: String,
+    exp: Box&lt;dyn Exp&gt;,
+    body: Box&lt;dyn Exp&gt;,
+}
+
+// Define trait for expressions
+trait Exp {
+    // Much like C++ can't have virtual template
+    // methods, Rust can't have trait objects
+    // where the traits have generic methods.
+    //
+    // Therefore the visitor either has to be
+    // mutable to collect the results or the
+    // accept method has to be specialized to a
+    // specific return type.
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut dyn Visitor&lt;'a&gt;);
+}
+
+// Define trait for the visitor
+trait Visitor&lt;'a&gt; {
+    fn visit_lit(&amp;mut self, e: &amp;'a Lit);
+    fn visit_plus(&amp;mut self, e: &amp;'a Plus);
+    fn visit_var(&amp;mut self, e: &amp;'a Var);
+    fn visit_let(&amp;mut self, e: &amp;'a Let);
+}
+
+// Implement accept behavior for each expression variant
+impl Exp for Lit {
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut (dyn Visitor&lt;'a&gt;)) {
+        v.visit_lit(self);
+    }
+}
+
+impl Exp for Plus {
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut dyn Visitor&lt;'a&gt;) {
+        v.visit_plus(self);
+    }
+}
+
+impl Exp for Var {
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut dyn Visitor&lt;'a&gt;) {
+        v.visit_var(self);
+    }
+}
+
+impl Exp for Let {
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut dyn Visitor&lt;'a&gt;) {
+        v.visit_let(self);
+    }
+}
+
+// Define Visitor for evaluating expressions
+
+// Error for representing expression evaluation
+// errors.
+//
+// Has a lifetime parameter beacause it borrows
+// the name from the expression.
+#[derive(Debug)]
+enum EvalError&lt;'a&gt; {
+    UnknownVar(&amp;'a str),
+}
+
+// Define type for evaluation environment
+//
+// Has a lifetime parameter because it borrows
+// the names from the expression.
+type Env&lt;'a&gt; = HashMap&lt;&amp;'a str, i32&gt;;
+
+// Define the evaluator
+struct EvalVisitor&lt;'a&gt; {
+    // Return value. Results propagate up the stack.
+    env: Env&lt;'a&gt;,
+
+    // Evaluation environment. Changes propagate
+    // down the stack
+    value: Result&lt;i32, EvalError&lt;'a&gt;&gt;,
+}
+
+// Define behavior for each case of the
+// expression.
+impl&lt;'a&gt; Visitor&lt;'a&gt; for EvalVisitor&lt;'a&gt; {
+    fn visit_lit(&amp;mut self, e: &amp;'a Lit) {
+        self.value = Ok(e.0);
+    }
+
+    fn visit_plus(&amp;mut self, e: &amp;'a Plus) {
+        e.lhs.accept(self);
+        let Ok(lv) = self.value else {
+            return;
+        };
+        e.rhs.accept(self);
+        let Ok(rv) = self.value else {
+            return;
+        };
+        self.value = Ok(lv + rv);
+    }
+
+    fn visit_var(&amp;mut self, e: &amp;'a Var) {
+        self.value = self
+            .env
+            .get(e.0.as_str())
+            .ok_or(EvalError::UnknownVar(&amp;e.0))
+            .copied();
+    }
+
+    fn visit_let(&amp;mut self, e: &amp;'a Let) {
+        e.exp.accept(self);
+        let Ok(val) = self.value else {
+            return;
+        };
+        let orig_env = self.env.clone();
+        self.env.insert(e.name.as_ref(), val);
+        e.body.accept(self);
+        self.env = orig_env;
+    }
+}
+
+fn main() {
+    // Construct an expression
+    let x = Plus {
+        lhs: Box::new(Let {
+            name: "x".to_string(),
+            exp: Box::new(Lit(3)),
+            body: Box::new(Var("x".to_string())),
+        }),
+        rhs: Box::new(Lit(2)),
+    };
+
+    // Construct the evaluator
+    let mut visitor = EvalVisitor {
+        value: Ok(0),
+        env: HashMap::new(),
+    };
+
+    // Run the evaluator
+    x.accept(&amp;mut visitor);
+
+    // Print the output
+    println!("{:?}", visitor.value);
+}</code></pre></pre>
+</div>
+<h2 id="varying-data-and-behavior"><a class="header" href="#varying-data-and-behavior">Varying data and behavior</a></h2>
+<p>In C++, extensions to the visitor pattern are sometimes used to handle
+situations where both data and behavior and vary. One of the alternative
+approaches to handle this situation in Rust, adopted from functional
+programming, is called <a href="https://www.cambridge.org/core/services/aop-cambridge-core/content/view/14416CB20C4637164EA9F77097909409/S0956796808006758a.pdf/data-types-a-la-carte.pdf">"data types à la
+carte"</a>.</p>
+<p>The following example shows a variation on the earlier examples using this
+pattern to make it so that two parts of the expression type can be defined
+separately and given evaluators separately. This approach can lead to
+performance problems (in large part due to the indirection through nested
+structures), so its necessity should be carefully evaluated before it is used.</p>
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashMap;
+
+// A type for combining separately-defined
+// expressions. Defining individual expressions
+// completely separately and then using an
+// application-specific sum type instead of nesting
+// Sum can improve performance.
+enum Sum&lt;L, R&gt; {
+    Inl(L),
+    Inr(R),
+}
+
+// Define arithmetic expressions
+enum ArithExp&lt;E&gt; {
+    Lit(i32),
+    Plus { lhs: E, rhs: E },
+}
+
+// Define let bindings and variables
+enum LetExp&lt;E&gt; {
+    Var(String),
+    Let { name: String, exp: E, body: E },
+}
+
+// Combine the expressions
+type Sig&lt;E&gt; = Sum&lt;ArithExp&lt;E&gt;, LetExp&lt;E&gt;&gt;;
+
+// Define the fixed-point for recursive
+// expressions.
+struct Exp(Sig&lt;Box&lt;Exp&gt;&gt;);
+
+// Define an evaluator
+
+// The evaluation environment
+type Env&lt;'a&gt; = HashMap&lt;&amp;'a str, i32&gt;;
+
+// Evaluation errors
+#[derive(Debug)]
+enum EvalError&lt;'a&gt; {
+    UndefinedVar(&amp;'a str),
+}
+
+// A trait for expressions that can
+// be evaluated.
+trait Eval {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt;;
+}
+
+// Implement the evaluator trait for
+// the administrative types
+
+impl&lt;L: Eval, R: Eval&gt; Eval for Sum&lt;L, R&gt; {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        match self {
+            Sum::Inl(left) =&gt; left.eval(env),
+            Sum::Inr(right) =&gt; right.eval(env),
+        }
+    }
+}
+
+impl&lt;E: Eval&gt; Eval for Box&lt;E&gt; {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        self.as_ref().eval(env)
+    }
+}
+
+// Implement the trait for the desired variants.
+impl&lt;E: Eval&gt; Eval for ArithExp&lt;E&gt; {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        match self {
+            ArithExp::Lit(n) =&gt; Ok(*n),
+            ArithExp::Plus { lhs, rhs } =&gt; Ok(lhs.eval(env)? + rhs.eval(env)?),
+        }
+    }
+}
+
+impl&lt;E: Eval&gt; Eval for LetExp&lt;E&gt; {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        match self {
+            LetExp::Var(x) =&gt; env
+                .get(x.as_str())
+                .copied()
+                .ok_or(EvalError::UndefinedVar(x)),
+            LetExp::Let { name, exp, body } =&gt; {
+                let arg = exp.eval(env)?;
+                let mut env = env.clone();
+                env.insert(name, arg);
+                body.eval(&amp;env)
+            }
+        }
+    }
+}
+
+// Since the trait is implemented for everything
+// inside of Exp, it can be implemented for Exp.
+impl Eval for Exp {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        self.0.eval(env)
+    }
+}
+
+// helpers for constructing expressions
+
+fn lit(n: i32) -&gt; Exp {
+    Exp(Sum::Inl(ArithExp::Lit(n)))
+}
+
+fn plus(lhs: Exp, rhs: Exp) -&gt; Exp {
+    Exp(Sum::Inl(ArithExp::Plus {
+        lhs: Box::new(lhs),
+        rhs: Box::new(rhs),
+    }))
+}
+
+fn var(x: &amp;str) -&gt; Exp {
+    Exp(Sum::Inr(LetExp::Var(x.to_string())))
+}
+
+fn elet(name: &amp;str, val: Exp, body: Exp) -&gt; Exp {
+    Exp(Sum::Inr(LetExp::Let {
+        name: name.to_string(),
+        exp: Box::new(val),
+        body: Box::new(body),
+    }))
+}
+
+fn main() {
+    let e = elet("x", lit(3), plus(var("x"), lit(2)));
+
+    println!("{:?}", e.eval(&amp;HashMap::new()));
+}</code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="curiously-recurring-template-pattern-crtp"><a class="header" href="#curiously-recurring-template-pattern-crtp">Curiously recurring template pattern (CRTP)</a></h1>
 <p>The C++ <a href="https://en.cppreference.com/w/cpp/language/crtp">curiously recurring template
 pattern</a> is used to make the
@@ -9976,7 +10694,21 @@ types</a>. This contrasts with C++
 where a value may be used at any number of types which are concrete, and so it
 would not be clear which type something like <code>Self</code> should refer to.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;crtp&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Dynamic dispatch in Rust only occurs when invoking a method on a trait object.\nSome of the patterns used to ensure static dispatch is used in C++ are not\nneeded in Rust.\n&quot;,&quot;id&quot;:&quot;9dd51ab1-5e7a-441b-bc59-c80a73bde71f&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:[&quot;`total += shape.area(); // 2`\n&quot;]},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;`2.0 * self.area() // 1`\n&quot;,&quot;`println!(\&quot;{}\&quot;, triangle.twice_area()); // 3`\n&quot;,&quot;`println!(\&quot;{}\&quot;, square.twice_area()); // 4`\n&quot;,&quot;`2.0 * self.area() // 1` when invoked via `sum_areas`.\n&quot;],&quot;prompt&quot;:&quot;In the following Rust program, which calls are resolved using dynamic dispatch?\n\n```rust\ntrait Shape {\n    fn area(&amp;self) -&gt; f64;\n\n    fn twice_area(&amp;self) -&gt; f64 {\n        2.0 * self.area() // 1\n    }\n}\n\nstruct Triangle {\n    base: f64,\n    height: f64,\n}\n\nimpl Shape for Triangle {\n    fn area(&amp;self) -&gt; f64 {\n        0.5 * self.base * self.height\n    }\n}\n\nstruct Square {\n    side: f64,\n}\n\nimpl Shape for Square {\n    fn area(&amp;self) -&gt; f64 {\n        self.side * self.side\n    }\n}\n\nfn sum_areas(shapes: &amp;[&amp;dyn Shape]) -&gt; f64 {\n    let mut total = 0.0;\n    for shape in shapes {\n        total += shape.area(); // 2\n    }\n    total\n}\n\nfn main() {\n    let triangle = Triangle {\n        base: 2.0,\n        height: 1.0,\n    };\n    let square = Square { side: 2.0 };\n    println!(\&quot;{}\&quot;, triangle.twice_area()); // 3\n    println!(\&quot;{}\&quot;, square.twice_area()); // 4\n\n    println!(\n        \&quot;{}\&quot;,\n        sum_areas(&amp;[&amp;triangle, &amp;square])\n    );\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="libraries"><a class="header" href="#libraries">Libraries</a></h1>
+<script type="text/javascript" src="../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="pointer-to-implementation-pimpl"><a class="header" href="#pointer-to-implementation-pimpl">Pointer-to-implementation (PIMPL)</a></h1>
+<p>The <a href="https://en.cppreference.com/w/cpp/language/pimpl.html">PIMPL pattern</a> in
+C++ is usually used for the purpose of improving compilation times by removing
+implementation details from the ABI of a translation unit. It also can be used
+to hide implementation details that otherwise would be exposed in a header file.</p>
+<p>In Rust, the unit of separate compilation is the crate, rather than the file or
+module. Within a crate, the compiler minimizes compilation times via incremental
+compilation, rather than via separate compilation. Between crates, there is no
+guarantee of Rust-native ABI stability, so if an upstream crate changes,
+downstream crates need to be recompiled. Thus, for performance purposes, the
+PIMPL pattern does not apply.</p>
+<p>For the hiding of implementation details, <a href="patterns/../idioms/encapsulation.html">instead of excluding details from a
+header file, modules can be used to control
+visibility</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="libraries"><a class="header" href="#libraries">Libraries</a></h1>
 <p>C++ programs tend to either use libraries that come with operating system
 distributions or that are vendored.</p>
 <p>Rust programs tend to rely on a central registry of Rust libraries ("crates")

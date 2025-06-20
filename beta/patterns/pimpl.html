@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Libraries - C++ to Rust Phrasebook</title>
+        <title>Pointer-to-implementation (PIMPL) - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -163,52 +163,32 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="libraries"><a class="header" href="#libraries">Libraries</a></h1>
-<p>C++ programs tend to either use libraries that come with operating system
-distributions or that are vendored.</p>
-<p>Rust programs tend to rely on a central registry of Rust libraries ("crates")
-called <a href="https://crates.io/">crates.io</a> (along with a central documentation
-repository created from the in-code documentation of those crates called
-<a href="https://docs.rs/">docs.rs</a>). Dependencies on crates are managed using the
-<a href="https://doc.rust-lang.org/cargo/index.html">Cargo package manager</a>.</p>
-<p><a href="https://lib.rs/">Lib.rs</a> is a good resource for finding popular crates organized by category.</p>
-<h2 id="some-specific-alternatives"><a class="header" href="#some-specific-alternatives">Some specific alternatives</a></h2>
-<div class="table-wrapper"><table><thead><tr><th>C++ library</th><th>Rust alternative</th></tr></thead><tbody>
-<tr><td>STL UTF-16 and UTF-32 strings</td><td><a href="https://docs.rs/widestring/latest/widestring/">widestring</a></td></tr>
-<tr><td>STL random</td><td><a href="https://github.com/rust-random/rand">rand</a></td></tr>
-<tr><td>STL regex</td><td><a href="https://github.com/rust-lang/regex">regex</a></td></tr>
-<tr><td>Reflection</td><td><a href="https://docs.rs/bevy_reflect/latest/bevy_reflect/">bevy_reflect</a></td></tr>
-<tr><td>Boost.Test</td><td><a href="https://doc.rust-lang.org/book/ch11-01-writing-tests.html">cargo test</a></td></tr>
-<tr><td>pybind11</td><td><a href="https://pyo3.rs/">PyO3</a></td></tr>
-<tr><td>OpenSSL</td><td><a href="https://github.com/rustls/rustls">rustls</a></td></tr>
-</tbody></table>
-</div><!-- | STL `multiset`                |                                                             |
-| STL `multimap`                |                                                             | -->
-<p>If there is a C++ library that you use where you cannot find a Rust alternative,
-please leave feedback using the link below, letting us know the name and purpose
-of the library.</p>
-<h2 id="supply-chain-management"><a class="header" href="#supply-chain-management">Supply chain management</a></h2>
-<p>In situations where managing the library supply chain is important, Cargo can be
-used either with <a href="https://doc.rust-lang.org/cargo/reference/registries.html">custom self-managed or organization-managed
-registries</a> or with
-<a href="https://doc.rust-lang.org/cargo/commands/cargo-vendor.html">vendored versions of dependencies fetched from
-crates.io</a>.</p>
-<p>Both approaches provide mechanisms for reviewing dependencies as part supply
-chain security.</p>
-<p>Solutions for supply chain security that do not involve vendoring or custom
-registries are <a href="https://github.com/rust-lang/rfcs/pull/3724">in progress</a>.</p>
+                        <h1 id="pointer-to-implementation-pimpl"><a class="header" href="#pointer-to-implementation-pimpl">Pointer-to-implementation (PIMPL)</a></h1>
+<p>The <a href="https://en.cppreference.com/w/cpp/language/pimpl.html">PIMPL pattern</a> in
+C++ is usually used for the purpose of improving compilation times by removing
+implementation details from the ABI of a translation unit. It also can be used
+to hide implementation details that otherwise would be exposed in a header file.</p>
+<p>In Rust, the unit of separate compilation is the crate, rather than the file or
+module. Within a crate, the compiler minimizes compilation times via incremental
+compilation, rather than via separate compilation. Between crates, there is no
+guarantee of Rust-native ABI stability, so if an upstream crate changes,
+downstream crates need to be recompiled. Thus, for performance purposes, the
+PIMPL pattern does not apply.</p>
+<p>For the hiding of implementation details, <a href="../idioms/encapsulation.html">instead of excluding details from a
+header file, modules can be used to control
+visibility</a>.</p>
 
 
-                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Libraries">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Pointer-to-implementation (PIMPL)">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../patterns/pimpl.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../patterns/crtp.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../etc/tests.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../etc/libraries.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -218,11 +198,11 @@ registries are <a href="https://github.com/rust-lang/rfcs/pull/3724">in progress
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../patterns/pimpl.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../patterns/crtp.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../etc/tests.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../etc/libraries.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

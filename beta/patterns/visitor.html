@@ -1,0 +1,941 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Visitor pattern and double dispatch - C++ to Rust Phrasebook</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="visitor-pattern-and-double-dispatch"><a class="header" href="#visitor-pattern-and-double-dispatch">Visitor pattern and double dispatch</a></h1>
+<p>In C++ the visitor pattern is typically used to enable adding behaviors to a
+type without modifying the class definitions. In Rust, the same goal is
+conventionally accomplished by using Rust enums, which resemble C++ <a href="../idioms/data_modeling/tagged_unions.html">tagged
+unions</a>. While the chapter on tagged
+unions compares using Rust enums with C++ <code>std::variant</code>, this chapter <a href="#use-a-rust-enum-instead">compares
+using the visitor pattern in C++ with using Rust
+enums</a>.</p>
+<p>Since the visitor pattern and double dispatch may be useful for other purposes
+as well, a <a href="#visitors">Rust visitor pattern version of the example</a> is also
+given.</p>
+<p>Extensions of the visitor pattern are sometimes used in C++ to make it possible
+to extend both data and behavior without modifying the original definitions
+(i.e., to solve <a href="https://cs.brown.edu/~sk/Publications/Papers/Published/kff-synth-fp-oo/">the expression
+problem</a>).
+However, those solutions also make use of dynamic casting, and Rust does not
+support that form of RTTI. Instead, <a href="#varying-data-and-behavior">other approaches to solving the expression
+problem are more likely to be used in Rust</a>.</p>
+<h2 id="use-a-rust-enum-instead"><a class="header" href="#use-a-rust-enum-instead">Use a Rust enum instead</a></h2>
+<p>For the first case, where the variants are fixed but behaviors are not, the
+idiomatic approach in Rust is to implement the data structure as an enum instead
+of as many structs with a common interface. This is similar to using
+<code>std::variant</code> in C++.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;exception&gt;
+#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+#include &lt;unordered_map&gt;
+
+// Declare types that visitor can visit
+class Lit;
+class Plus;
+class Var;
+class Let;
+
+// Define abstract class for visitor
+struct Visitor {
+  virtual void visit(Lit &amp;e) = 0;
+  virtual void visit(Plus &amp;e) = 0;
+  virtual void visit(Var &amp;e) = 0;
+  virtual void visit(Let &amp;e) = 0;
+  virtual ~Visitor() = default;
+
+protected:
+  Visitor() = default;
+};
+
+// Define abstract class for expressions
+struct Exp {
+  virtual void accept(Visitor &amp;v) = 0;
+  virtual ~Exp() = default;
+};
+
+// Implement each expression variant
+struct Lit : public Exp {
+  int value;
+
+  Lit(int value) : value(value) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Plus : public Exp {
+  std::unique_ptr&lt;Exp&gt; lhs;
+  std::unique_ptr&lt;Exp&gt; rhs;
+
+  Plus(std::unique_ptr&lt;Exp&gt; lhs,
+       std::unique_ptr&lt;Exp&gt; rhs)
+      : lhs(std::move(lhs)), rhs(std::move(rhs)) {
+  }
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Var : public Exp {
+  std::string name;
+
+  Var(std::string name) : name(name) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Let : public Exp {
+  std::string name;
+  std::unique_ptr&lt;Exp&gt; exp;
+  std::unique_ptr&lt;Exp&gt; body;
+
+  Let(std::string name, std::unique_ptr&lt;Exp&gt; exp,
+      std::unique_ptr&lt;Exp&gt; body)
+      : name(std::move(name)),
+        exp(std::move(exp)),
+        body(std::move(body)) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+// Define Visitor for evaluating expressions
+
+// Exception for representing expression
+// evaluation errors
+struct UnknownVar : std::exception {
+  std::string name;
+
+  UnknownVar(std::string name) : name(name) {}
+
+  const char *what() const noexcept override {
+    return "Unknown variable";
+  }
+};
+
+// Define type for evaluation environment
+using Env = std::unordered_map&lt;std::string, int&gt;;
+
+// Define evaluator
+struct EvalVisitor : public Visitor {
+  // Return value. Results propagate up the stack.
+  int value = 0;
+
+  // Evaluation environment. Changes propagate
+  // down the stack
+  Env env;
+
+  // Define behavior for each case of the
+  // expression.
+  void visit(Lit &amp;e) override { value = e.value; }
+  void visit(Plus &amp;e) override {
+    e.lhs-&gt;accept(*this);
+    auto lhs = value;
+    e.rhs-&gt;accept(*this);
+    auto rhs = value;
+    value = lhs + rhs;
+  }
+  void visit(Var &amp;e) override {
+    try {
+      value = env.at(e.name);
+    } catch (std::out_of_range &amp;ex) {
+      throw UnknownVar(e.name);
+    }
+  }
+  void visit(Let &amp;e) override {
+    e.exp-&gt;accept(*this);
+    auto orig_env = env;
+    env[e.name] = value;
+    e.body-&gt;accept(*this);
+    env = orig_env;
+  }
+};
+
+int main() {
+  // Construct an expression
+  auto x = Plus(std::make_unique&lt;Let&gt;(
+                    std::string("x"),
+                    std::make_unique&lt;Lit&gt;(3),
+                    std::make_unique&lt;Var&gt;(
+                        std::string("x"))),
+                std::make_unique&lt;Lit&gt;(2));
+
+  // Construct the evaluator
+  EvalVisitor visitor;
+
+  // Run the evaluator
+  x.accept(visitor);
+
+  // Print the output
+  std::cout &lt;&lt; visitor.value &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashMap;
+
+// Define expressions.
+//
+// This covers the first 3 sections of the
+// C++ version.
+enum Exp {
+    Var(String),
+    Lit(i32),
+    Plus {
+        lhs: Box&lt;Exp&gt;,
+        rhs: Box&lt;Exp&gt;,
+    },
+    Let {
+        var: String,
+        exp: Box&lt;Exp&gt;,
+        body: Box&lt;Exp&gt;,
+    },
+}
+
+// Exception for representing expression
+// evaluation errors
+#[derive(Debug)]
+enum EvalError&lt;'a&gt; {
+    UnknownVar(&amp;'a str),
+}
+
+// Define type for evaluation environment
+type Env&lt;'a&gt; = HashMap&lt;&amp;'a str, i32&gt;;
+
+// Define evaluator
+fn eval&lt;'a&gt;(
+    env: &amp;Env&lt;'a&gt;,
+    e: &amp;'a Exp,
+) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+    match e {
+        Exp::Var(x) =&gt; env
+            .get(x.as_str())
+            .cloned()
+            .ok_or(EvalError::UnknownVar(x)),
+        Exp::Lit(n) =&gt; Ok(*n),
+        Exp::Plus { lhs, rhs } =&gt; {
+            let lv = eval(env, lhs)?;
+            let rv = eval(env, rhs)?;
+            Ok(lv + rv)
+        }
+        Exp::Let { var, exp, body } =&gt; {
+            let val = eval(env, exp)?;
+            let mut env = env.clone();
+            env.insert(var, val);
+            eval(&amp;env, body)
+        }
+    }
+}
+
+fn main() {
+    use Exp::*;
+
+    // Construct an expression
+    let e = Let {
+        var: "x".to_string(),
+        exp: Box::new(Lit(3)),
+        body: Box::new(Plus {
+            lhs: Box::new(Var("x".to_string())),
+            rhs: Box::new(Lit(2)),
+        }),
+    };
+
+    // Run the evaluator
+    let res = eval(&amp;HashMap::new(), &amp;e);
+
+    // Print the output
+    println!("{:?}", res);
+}</code></pre></pre>
+</div>
+<h2 id="visitors"><a class="header" href="#visitors">Visitors</a></h2>
+<p>If the visitor pattern is still needed for some reason, it can be implemented
+similarly to how it is in C++. This can make direct ports of programs that use
+the visitor pattern more feasible. However, the enum-based implementation should
+still be preferred.</p>
+<p>The following example shows how to implement the same program as in the previous
+example, but using a visitor in Rust. The C++ program is identical to the
+previous one.</p>
+<p>The example also demonstrates using double dispatch with trait objects in Rust.
+The expressions are represented as <code>dyn Exp</code> trait objects which accept a <code>dyn Visitor</code> trait object, and then call on the visitor the method specific to the
+type of expression.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;exception&gt;
+#include &lt;iostream&gt;
+#include &lt;memory&gt;
+#include &lt;string&gt;
+#include &lt;unordered_map&gt;
+
+// Declare types that visitor can visit
+class Lit;
+class Plus;
+class Var;
+class Let;
+
+// Define abstract class for visitor
+struct Visitor {
+  virtual void visit(Lit &amp;e) = 0;
+  virtual void visit(Plus &amp;e) = 0;
+  virtual void visit(Var &amp;e) = 0;
+  virtual void visit(Let &amp;e) = 0;
+  virtual ~Visitor() = default;
+
+protected:
+  Visitor() = default;
+};
+
+// Define abstract class for expressions
+struct Exp {
+  virtual void accept(Visitor &amp;v) = 0;
+  virtual ~Exp() = default;
+};
+
+// Implement each expression variant
+struct Lit : public Exp {
+  int value;
+
+  Lit(int value) : value(value) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Plus : public Exp {
+  std::unique_ptr&lt;Exp&gt; lhs;
+  std::unique_ptr&lt;Exp&gt; rhs;
+
+  Plus(std::unique_ptr&lt;Exp&gt; lhs,
+       std::unique_ptr&lt;Exp&gt; rhs)
+      : lhs(std::move(lhs)), rhs(std::move(rhs)) {
+  }
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Var : public Exp {
+  std::string name;
+
+  Var(std::string name) : name(name) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+struct Let : public Exp {
+  std::string name;
+  std::unique_ptr&lt;Exp&gt; exp;
+  std::unique_ptr&lt;Exp&gt; body;
+
+  Let(std::string name, std::unique_ptr&lt;Exp&gt; exp,
+      std::unique_ptr&lt;Exp&gt; body)
+      : name(std::move(name)),
+        exp(std::move(exp)),
+        body(std::move(body)) {}
+
+  void accept(Visitor &amp;v) override {
+    v.visit(*this);
+  }
+};
+
+// Define Visitor for evaluating expressions
+
+// Exception for representing expression
+// evaluation errors
+struct UnknownVar : std::exception {
+  std::string name;
+
+  UnknownVar(std::string name) : name(name) {}
+
+  const char *what() const noexcept override {
+    return "Unknown variable";
+  }
+};
+
+// Define type for evaluation environment
+using Env = std::unordered_map&lt;std::string, int&gt;;
+
+// Define evaluator
+struct EvalVisitor : public Visitor {
+  // Return value. Results propagate up the stack.
+  int value = 0;
+
+  // Evaluation environment. Changes propagate
+  // down the stack
+  Env env;
+
+  // Define behavior for each case of the
+  // expression.
+  void visit(Lit &amp;e) override { value = e.value; }
+  void visit(Plus &amp;e) override {
+    e.lhs-&gt;accept(*this);
+    auto lhs = value;
+    e.rhs-&gt;accept(*this);
+    auto rhs = value;
+    value = lhs + rhs;
+  }
+  void visit(Var &amp;e) override {
+    try {
+      value = env.at(e.name);
+    } catch (std::out_of_range &amp;ex) {
+      throw UnknownVar(e.name);
+    }
+  }
+  void visit(Let &amp;e) override {
+    e.exp-&gt;accept(*this);
+    auto orig_env = env;
+    env[e.name] = value;
+    e.body-&gt;accept(*this);
+    env = orig_env;
+  }
+};
+
+int main() {
+  // Construct an expression
+  auto x = Plus(std::make_unique&lt;Let&gt;(
+                    std::string("x"),
+                    std::make_unique&lt;Lit&gt;(3),
+                    std::make_unique&lt;Var&gt;(
+                        std::string("x"))),
+                std::make_unique&lt;Lit&gt;(2));
+
+  // Construct the evaluator
+  EvalVisitor visitor;
+
+  // Run the evaluator
+  x.accept(visitor);
+
+  // Print the output
+  std::cout &lt;&lt; visitor.value &lt;&lt; std::endl;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">// This is NOT an idiomatic translation. The
+// previous example using Rust enums is.
+
+use std::collections::HashMap;
+
+// Define types that the visitor can visit
+struct Lit(i32);
+struct Plus {
+    lhs: Box&lt;dyn Exp&gt;,
+    rhs: Box&lt;dyn Exp&gt;,
+}
+struct Var(String);
+struct Let {
+    name: String,
+    exp: Box&lt;dyn Exp&gt;,
+    body: Box&lt;dyn Exp&gt;,
+}
+
+// Define trait for expressions
+trait Exp {
+    // Much like C++ can't have virtual template
+    // methods, Rust can't have trait objects
+    // where the traits have generic methods.
+    //
+    // Therefore the visitor either has to be
+    // mutable to collect the results or the
+    // accept method has to be specialized to a
+    // specific return type.
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut dyn Visitor&lt;'a&gt;);
+}
+
+// Define trait for the visitor
+trait Visitor&lt;'a&gt; {
+    fn visit_lit(&amp;mut self, e: &amp;'a Lit);
+    fn visit_plus(&amp;mut self, e: &amp;'a Plus);
+    fn visit_var(&amp;mut self, e: &amp;'a Var);
+    fn visit_let(&amp;mut self, e: &amp;'a Let);
+}
+
+// Implement accept behavior for each expression variant
+impl Exp for Lit {
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut (dyn Visitor&lt;'a&gt;)) {
+        v.visit_lit(self);
+    }
+}
+
+impl Exp for Plus {
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut dyn Visitor&lt;'a&gt;) {
+        v.visit_plus(self);
+    }
+}
+
+impl Exp for Var {
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut dyn Visitor&lt;'a&gt;) {
+        v.visit_var(self);
+    }
+}
+
+impl Exp for Let {
+    fn accept&lt;'a&gt;(&amp;'a self, v: &amp;mut dyn Visitor&lt;'a&gt;) {
+        v.visit_let(self);
+    }
+}
+
+// Define Visitor for evaluating expressions
+
+// Error for representing expression evaluation
+// errors.
+//
+// Has a lifetime parameter beacause it borrows
+// the name from the expression.
+#[derive(Debug)]
+enum EvalError&lt;'a&gt; {
+    UnknownVar(&amp;'a str),
+}
+
+// Define type for evaluation environment
+//
+// Has a lifetime parameter because it borrows
+// the names from the expression.
+type Env&lt;'a&gt; = HashMap&lt;&amp;'a str, i32&gt;;
+
+// Define the evaluator
+struct EvalVisitor&lt;'a&gt; {
+    // Return value. Results propagate up the stack.
+    env: Env&lt;'a&gt;,
+
+    // Evaluation environment. Changes propagate
+    // down the stack
+    value: Result&lt;i32, EvalError&lt;'a&gt;&gt;,
+}
+
+// Define behavior for each case of the
+// expression.
+impl&lt;'a&gt; Visitor&lt;'a&gt; for EvalVisitor&lt;'a&gt; {
+    fn visit_lit(&amp;mut self, e: &amp;'a Lit) {
+        self.value = Ok(e.0);
+    }
+
+    fn visit_plus(&amp;mut self, e: &amp;'a Plus) {
+        e.lhs.accept(self);
+        let Ok(lv) = self.value else {
+            return;
+        };
+        e.rhs.accept(self);
+        let Ok(rv) = self.value else {
+            return;
+        };
+        self.value = Ok(lv + rv);
+    }
+
+    fn visit_var(&amp;mut self, e: &amp;'a Var) {
+        self.value = self
+            .env
+            .get(e.0.as_str())
+            .ok_or(EvalError::UnknownVar(&amp;e.0))
+            .copied();
+    }
+
+    fn visit_let(&amp;mut self, e: &amp;'a Let) {
+        e.exp.accept(self);
+        let Ok(val) = self.value else {
+            return;
+        };
+        let orig_env = self.env.clone();
+        self.env.insert(e.name.as_ref(), val);
+        e.body.accept(self);
+        self.env = orig_env;
+    }
+}
+
+fn main() {
+    // Construct an expression
+    let x = Plus {
+        lhs: Box::new(Let {
+            name: "x".to_string(),
+            exp: Box::new(Lit(3)),
+            body: Box::new(Var("x".to_string())),
+        }),
+        rhs: Box::new(Lit(2)),
+    };
+
+    // Construct the evaluator
+    let mut visitor = EvalVisitor {
+        value: Ok(0),
+        env: HashMap::new(),
+    };
+
+    // Run the evaluator
+    x.accept(&amp;mut visitor);
+
+    // Print the output
+    println!("{:?}", visitor.value);
+}</code></pre></pre>
+</div>
+<h2 id="varying-data-and-behavior"><a class="header" href="#varying-data-and-behavior">Varying data and behavior</a></h2>
+<p>In C++, extensions to the visitor pattern are sometimes used to handle
+situations where both data and behavior and vary. One of the alternative
+approaches to handle this situation in Rust, adopted from functional
+programming, is called <a href="https://www.cambridge.org/core/services/aop-cambridge-core/content/view/14416CB20C4637164EA9F77097909409/S0956796808006758a.pdf/data-types-a-la-carte.pdf">"data types à la
+carte"</a>.</p>
+<p>The following example shows a variation on the earlier examples using this
+pattern to make it so that two parts of the expression type can be defined
+separately and given evaluators separately. This approach can lead to
+performance problems (in large part due to the indirection through nested
+structures), so its necessity should be carefully evaluated before it is used.</p>
+<pre><pre class="playground"><code class="language-rust">use std::collections::HashMap;
+
+// A type for combining separately-defined
+// expressions. Defining individual expressions
+// completely separately and then using an
+// application-specific sum type instead of nesting
+// Sum can improve performance.
+enum Sum&lt;L, R&gt; {
+    Inl(L),
+    Inr(R),
+}
+
+// Define arithmetic expressions
+enum ArithExp&lt;E&gt; {
+    Lit(i32),
+    Plus { lhs: E, rhs: E },
+}
+
+// Define let bindings and variables
+enum LetExp&lt;E&gt; {
+    Var(String),
+    Let { name: String, exp: E, body: E },
+}
+
+// Combine the expressions
+type Sig&lt;E&gt; = Sum&lt;ArithExp&lt;E&gt;, LetExp&lt;E&gt;&gt;;
+
+// Define the fixed-point for recursive
+// expressions.
+struct Exp(Sig&lt;Box&lt;Exp&gt;&gt;);
+
+// Define an evaluator
+
+// The evaluation environment
+type Env&lt;'a&gt; = HashMap&lt;&amp;'a str, i32&gt;;
+
+// Evaluation errors
+#[derive(Debug)]
+enum EvalError&lt;'a&gt; {
+    UndefinedVar(&amp;'a str),
+}
+
+// A trait for expressions that can
+// be evaluated.
+trait Eval {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt;;
+}
+
+// Implement the evaluator trait for
+// the administrative types
+
+impl&lt;L: Eval, R: Eval&gt; Eval for Sum&lt;L, R&gt; {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        match self {
+            Sum::Inl(left) =&gt; left.eval(env),
+            Sum::Inr(right) =&gt; right.eval(env),
+        }
+    }
+}
+
+impl&lt;E: Eval&gt; Eval for Box&lt;E&gt; {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        self.as_ref().eval(env)
+    }
+}
+
+// Implement the trait for the desired variants.
+impl&lt;E: Eval&gt; Eval for ArithExp&lt;E&gt; {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        match self {
+            ArithExp::Lit(n) =&gt; Ok(*n),
+            ArithExp::Plus { lhs, rhs } =&gt; Ok(lhs.eval(env)? + rhs.eval(env)?),
+        }
+    }
+}
+
+impl&lt;E: Eval&gt; Eval for LetExp&lt;E&gt; {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        match self {
+            LetExp::Var(x) =&gt; env
+                .get(x.as_str())
+                .copied()
+                .ok_or(EvalError::UndefinedVar(x)),
+            LetExp::Let { name, exp, body } =&gt; {
+                let arg = exp.eval(env)?;
+                let mut env = env.clone();
+                env.insert(name, arg);
+                body.eval(&amp;env)
+            }
+        }
+    }
+}
+
+// Since the trait is implemented for everything
+// inside of Exp, it can be implemented for Exp.
+impl Eval for Exp {
+    fn eval&lt;'a&gt;(&amp;'a self, env: &amp;Env&lt;'a&gt;) -&gt; Result&lt;i32, EvalError&lt;'a&gt;&gt; {
+        self.0.eval(env)
+    }
+}
+
+// helpers for constructing expressions
+
+fn lit(n: i32) -&gt; Exp {
+    Exp(Sum::Inl(ArithExp::Lit(n)))
+}
+
+fn plus(lhs: Exp, rhs: Exp) -&gt; Exp {
+    Exp(Sum::Inl(ArithExp::Plus {
+        lhs: Box::new(lhs),
+        rhs: Box::new(rhs),
+    }))
+}
+
+fn var(x: &amp;str) -&gt; Exp {
+    Exp(Sum::Inr(LetExp::Var(x.to_string())))
+}
+
+fn elet(name: &amp;str, val: Exp, body: Exp) -&gt; Exp {
+    Exp(Sum::Inr(LetExp::Let {
+        name: name.to_string(),
+        exp: Box::new(val),
+        body: Box::new(body),
+    }))
+}
+
+fn main() {
+    let e = elet("x", lit(3), plus(var("x"), lit(2)));
+
+    println!("{:?}", e.eval(&amp;HashMap::new()));
+}</code></pre></pre>
+
+
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Visitor pattern and double dispatch">Click here to leave us feedback about this page.</a>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../patterns/adapter.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../patterns/crtp.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../patterns/adapter.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../patterns/crtp.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../telemetry/dist/telemetry.iife.js"></script>
+
+
+    </div>
+    </body>
+</html>
