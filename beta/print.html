@@ -5682,7 +5682,7 @@ types in Rust.</p>
 <tr><td>Shared owner, dynamic storage, immutable, not thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><code>std::rc::Rc&lt;T&gt;</code></td></tr>
 <tr><td>Shared owner, dynamic storage, immutable, thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><code>std::sync::Arc&lt;T&gt;</code></td></tr>
 <tr><td>Shared owner, dynamic storage, mutable, not thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><a href="https://doc.rust-lang.org/book/ch15-05-interior-mutability.html#having-multiple-owners-of-mutable-data-by-combining-rct-and-refcellt"><code>std::rc::Rc&lt;std::cell::RefCell&lt;T&gt;&gt;</code></a></td></tr>
-<tr><td>Shared owner, dynamic storage, mutable, thread-safe</td><td><code>std::shared_ptrM&lt;T&gt;</code> with a <code>std::mutex</code></td><td><a href="https://doc.rust-lang.org/book/ch16-03-shared-state.html"><code>std::sync::Arc&lt;std::mutex::Mutex&lt;T&gt;&gt;</code></a></td></tr>
+<tr><td>Shared owner, dynamic storage, mutable, thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code> with a <code>std::mutex</code></td><td><a href="https://doc.rust-lang.org/book/ch16-03-shared-state.html"><code>std::sync::Arc&lt;std::mutex::Mutex&lt;T&gt;&gt;</code></a></td></tr>
 <tr><td>Const reference</td><td><code>const &amp;T</code></td><td><code>&amp;T</code></td></tr>
 <tr><td>Mutable reference</td><td><code>&amp;T</code></td><td><code>&amp;mut T</code></td></tr>
 <tr><td>Const observer pointer</td><td><code>const *T</code></td><td><code>&amp;T</code></td></tr>
@@ -9661,7 +9661,395 @@ achieve the same results as when using slices of <code>MaybeUninit</code>, but w
 having to write any unsafe code. The IO APIs for avoiding unnecessary
 initialization use <code>BorrowedBuf</code> instead of slices of <code>MaybeUninit</code>.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;pre-allocated_buffers&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;id&quot;:&quot;5b23f54f-b4a2-46f5-87b4-5551a2c93be8&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\nlet mut buf = [0u8; 1024];\n\nwhile let Some(count) = fetch(&amp;mut buf) {\n    // use data in buf\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\nlet mut buf;\n\nwhile let Some(count) = fetch(&amp;mut buf) {\n    // use data in buf\n}\n```\n&quot;,&quot;```rust\nloop {\n    let mut buf = [0u8; 1024];\n    let Some(count) = fetch(&amp;mut buf) else {\n        break;\n    };\n    // use data in buf\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which of the following is the most idiomatic way in Rust to use the following\nfunction?\n\n```rust\n/// Fetches data into the given buffer. Returns the number of bytes populated,\n/// or `None` when the end of the data is reached. The contents of `buf` will\n/// not be read.\nfn fetch(buf: &amp;mut [u8]) -&gt; Option&lt;usize&gt;\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
-<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="adapter-pattern"><a class="header" href="#adapter-pattern">Adapter pattern</a></h1>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="rust-and-c-interoperability-ffi"><a class="header" href="#rust-and-c-interoperability-ffi">Rust and C++ interoperability (FFI)</a></h1>
+<p>The Rustonomicon <a href="https://doc.rust-lang.org/nomicon/ffi.html">contains a
+chapter</a> covering many of the
+concerns relevant to a C++ programmer that wants to call C (or C++ via <code>extern "C"</code> functions) from Rust or Rust from C or C++ code.</p>
+<p>Many C libraries have existing crates, both with low-level bindings and with
+high-level safe Rust abstractions. For example, for the libgit2 library there is
+both a low-level <a href="https://crates.io/crates/libgit2-sys">libgit2-sys crate</a> and a
+high-level <a href="https://crates.io/crates/git2">git2 crate</a>.</p>
+<p>Bindings to libraries can be generated from a C header file using
+<a href="https://rust-lang.github.io/rust-bindgen/"><code>bindgen</code></a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="nrvo-and-rvo"><a class="header" href="#nrvo-and-rvo">NRVO and RVO</a></h1>
+<div class="warning">
+<p>Some of the statements about Rust in this chapter are dependent on the specifics
+of how the compiler optimizes various programs. Unless otherwise state, the
+results presented here are based on rustc 1.87 using the <a href="https://doc.rust-lang.org/edition-guide/introduction.html">2024 language
+edition</a> and with
+<code>-O2</code> for C++ and <code>--opt-level=2</code> for Rust.</p>
+</div>
+<p>Unlike C++, Rust does not guarantee return value optimization (RVO). Neither
+language guarantees named return value optimization (NRVO). However, RVO and
+NRVO are usually applied in Rust where they would be in C++.</p>
+<h2 id="rvo"><a class="header" href="#rvo">RVO</a></h2>
+<p>The pattern where RVO and NRVO are likely most important is in static factory
+methods (which Rust calls <a href="idioms/./constructors.html">constructor methods</a>). In the
+following example, C++17 and later guarantee RVO. In Rust the optimization is
+performed reliably, but is not guaranteed.</p>
+<div class="comparison">
+<pre><code class="language-cpp">struct Widget {
+    signed char x;
+    double y;
+    long z;
+};
+
+Widget make(signed char x, double y, long z) {
+    return Widget{x, y, z};
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Widget {
+    x: i8,
+    y: f64,
+    z: i64,
+}
+
+impl Widget {
+    fn new(x: i8, y: f64, z: i64) -&gt; Self {
+        Widget { x, y, z }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>One can see in <a href="https://godbolt.org/#z:OYLghAFBqd5TKALEBjA9gEwKYFFMCWALugE4A0BIEAZgQDbYB2AhgLbYgDkAjF%2BTXRMiAZVQtGIHgBYBQogFUAztgAKAD24AGfgCsp5eiyahSAVyVFyKxqiIEh1ZpgDC6embZMQANnLOAGQImbAA5TwAjbFIpAFZyAAd0JWIHJjcPL19E5NShIJDwtiiYnnibbDs0kSIWUiIMz28/CqqhGrqiArDI6LjrWvrGrJbBruCe4r6ygEprdDNSVE4uS3M7AGoAdQJMYGwiDYBSAHYAISOtAEEN243NDYIADnJLm7uATxANmh9ZN7uGwAXt8CH9XtdTgARN5vAhsBL0ba7faHU4Xa6Ao4AJgAzEdYmczEwlCwaNgIEx0AB9NjGYCMGYEmGYu40JgbEIAdwgD2e5A2Xx%2B4OBoL%2BMw2AFojrjcMi9gdjucAYC7jsFWjlazVar1BD3jrAR99YbVUCTYboSrblbIScWVcuHN6NxYvxvFwdOR0NwAEoWQ5KBZLbDHPF8chEbROuYAaxAsWxADppD4TrEfLingBOHM8GS4wzcaT8NgJrTkD1en1cfhKEAVqOep3kOCwFAYHD4YhkSjUOiMVgcbgRwTCMQSTgyOTCZRqTTN8j6bGGeloHEXbFnazYWz2RwQZzDbwrwITIolEDZnIpffpdxNEArpK3tLdC99a%2BtO8dIYPrI8Due7VGM769KUAydMeBiWJ0YFTKUcxBosyzcGsZibOqqJKhiBobCkwAhJgGyoEgdT3DKuGApgCwRIwgqUdaGz0EIwDAoxdowriuFvNg6hENEHJYYqdKxhSBFESRZGkPcAo0WYdGhsazGscCErokxpAHIsQkogc6J6oKApAla3GwvaLYulwbqVtG3rcC4G4bvhwbLGGuLYvwTY6DMcxINgLA4DEEDOsWpblrZi41nWDaRtGvnkPGiYpmmGZZrm2b5tIhZWbi7p2dFcXNnMbYIPAEAdugCIMNEfYQBg1WMDEpA8E8JwVgOAmkPWEARHZETBHUXy8PwA2sKQHwAPIRLolRNhGDUcMIk1MPQw1ejgERmMALgSPQ9YjeQOB0iYkiLoQWlVAAbtgB1enxlRmAJdnBAJVlevQBARKQQ1uDgdlEKQ8IjvwN2kBEyTYFC2AnQywSgMVAhGMASgAGoENgXKTQkzAgzOojiJI05jooKgaHZ%2BiAUYJggOYliGF99aQHM6AJHeB2SpKLgbKzRCSowN30DKUKed6YNAzgTMhUBc1pE4TCuP%2B3g8KeCvwZefgvnk96ZMrz65He6t9C0u6y%2B0YzQSrMttEwv7jIU4HZLBf661IK7O/bkwa0hrlTqF1n5VF3AbHTRCoBsPBJm1SZaBsEDdiQMk4riPAzF58WtigCxEAkT11Q1CQ1aQoTsCsofh5H0f3YQie7AYJMTkTsgk3O5OLpT5Bcj9CQg/7NlVvwNaTU9ueHOgNAhwGFdRycMdx24jXRO5qfp8VcYgNIs%2BxB52U%2BDwWj708TyxC8VkluQZaxBWA/2bW1ixd5LalRVaBVYXTX52/RcgMAZSAZ10Qep9UXGNIaeNQETWmrNOweNFrMCICtNadlNrbV2vQfaeNjr0jOhtAgl17A3TuvwB6qAnorAjK9XcdlPrfV%2BlgFYXpAbA0OmDCGKhoaw0%2BjTRGNBkZowxljHGHpRzyEblOZu8hW4Li9MuVcNNUBOS3AzCIUsWZszSBzSwmBhYKK3BuPEUpJqi3QOLXYt14BIVNjbeWitXaATPA7BCBgtZ3ktjebWRsILfhAlBJWMErE/lAueR2gEPZuI9p4qQPsUKcGxH3QO1Zg7qCeD4SUfwNjAFQBXWISYeBxwTmQdycTV4%2BUziAbOo9P6L2LqXbgyTUnpMydk3JxCa5kDriuBuhNxH4ykRTJ8ndu69yLAHSKiSuDDxzk9HmE96lpOkBkrJEccl5IgAvd%2BS9k7FKKj5PyAUgrUH9ufS%2B18CrcBio2eK69N5Jm3tiXe%2B9D7H1PtwPKYzB7nJ2TGEZosb6FUfglMGKRHDSCAA%3D%3D">the assembly</a> that for both programs the value is
+written directly into the destination provided by the caller.</p>
+<div class="comparison">
+<pre><code class="language-asm">// C++
+make(signed char, double, long):
+        mov     BYTE PTR [rdi], sil
+        mov     rax, rdi
+        mov     QWORD PTR [rdi+16], rdx
+        movsd   QWORD PTR [rdi+8], xmm0
+        ret
+</code></pre>
+<pre><code class="language-asm">// Rust
+new:
+        mov     rax, rdi
+        mov     byte ptr [rdi + 16], sil
+        movsd   qword ptr [rdi], xmm0
+        mov     qword ptr [rdi + 8], rdx
+        ret
+</code></pre>
+</div>
+<h2 id="nrvo"><a class="header" href="#nrvo">NRVO</a></h2>
+<p>NRVO isn't guaranteed in either C++ or Rust, but the optimization often triggers
+in cases where it is commonly desired. For example, in both C++ and Rust
+when creating an array, initializing its contents, and then returning it, the
+initialization assigns directly to the return location.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;array&gt;
+
+std::array&lt;int, 10&gt; make() {
+    std::array&lt;int, 10&gt; v;
+    for (int i = 0; i &lt; 10; i++) {
+        v[i] = i;
+    }
+    return v;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[unsafe(no_mangle)]
+fn new() -&gt; [i32; 10] {
+    let mut v = [0; 10];
+    for i in 0..10 {
+        v[i] = i as i32;
+    }
+    v
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The <a href="https://godbolt.org/#z:OYLghAFBqd5TKALEBjA9gEwKYFFMCWALugE4A0BIEAZgQDbYB2AhgLbYgDkAjF%2BTXRMiAZVQtGIHgBYBQogFUAztgAKAD24AGfgCsp5eiyahSAVyVFyKxqiIEh1ZpgDC6embZMDzgDIEmbAA5TwAjbFIQAE5yAAd0JWIHJjcPLwN4xPshf0CQtnDImJtsO2SRIhZSIlTPbx5rbFtspgqqolzgsIjo60rq2vSGy3bO/MLogEprdDNSVE4uAFIAJgBmJYBWACEzJiUWGmwIJnQAfTZjYEZJrYARJa0AQRomAGpAgHcISbeAWiWa1wby22wIaxWgO2bx4WnuIIA7NtHk83mi3owiG82GYsQA3EFrO4gnZwtbQ2H3KEo9FvQSkN4ERnvLQAOlZsMRyOetNpeNBBHhgOJTJYSkZEOpPPRSwRD2laP5z1l8qeXGm9G4m343i4OnI6G4ACULFilLN5tgQes%2BOQiNp1dMANYgTYrVnSABsCM2nrWAA4ooGeDI1oZuNJ%2BGxXVpyLr9YauPwlCBY/a9eryHBYCgMDh8MQyJRqHRGKwONxbYJhGIJJwZHJhMo1JoM%2BR9CtDFc0KtkStto1msknExXO46iA1ptyH4Al0Cj1p5kkkJBt4p3EEiumGNupFpyUykI2gNx%2BkN4eWieOnPxou%2Bu015OD/0b3k967pua5gtuKs1gEqAeDghIuFUpAsAAnoCuAoiiliYCAIDgVBgIuAEVgwmSwKXE6xy/LK3KouiCFISh0FrOhwjkFhMFvPy5I0ui9JvBAGGMoSxJktCTJobR5KMr2vYEUiTG8vRApCkSgmMQqiKqrSpDYEQczvAxREqpmmpcNqcYOga3AuEJ/ZvN%2BlrWhC/DpjokzTEg2AsDgkQ/OGXCRuQ0abLG8b8ImyapnaDq2eQLpuh63q%2BgGQZRCG0hhtpaw6vpfmBRm0zZgg8AQLm6BsLEDARMWEAYHlBWRKQPD%2BgisalkQEQphAoT6aEARVJBlb8C1rCkJBADyoS6KU6a2iVHDCL1TD0O1bY4KEZjAGB9D0CmvD8DglwmJIM0EEpZR4tgK36tg6ilLiiz6hhTT6fQBChBBPVuDg%2BlEKQBDRqt5D7aQoQJNgdzYBt1wBKAaUCEYwBKAAagQ2CfL1sTMB1jaiOIkgNtWigqBo%2Bn6A0RgmCA5iWIYt0ppA0zoLELQrX8fwuG8lNEH8jD7fQworL5X2vTgZMuZew4QM4T6ejOo67gukQNsuLTC5uWTJOLEwNvzx6vrLKutK%2Bis9Mratnt4IsjNU2uS9IX4Wr%2BPAalqSVtombxE0QqAwqyVWslorEFiQDL/lbVlBVmKCzEQsS4kVJX5YwpBBOwiyO87PCuwi7v8NghDewQiENBjtZo7IGPNtjba4%2BQnwQbEHXWzptsJtwvW4qHWLoDQDumgnSfu6xbilVHFl%2B6lNnOiA0jJ5sEJxZ6sKwv6/qbP6rnuZ53nJdw/lpgHGXZWguWR4VVDFTvZUgMAPCbNnDB1aQDVNW2XVtUjd89f1g12Ejo3MEQE1Tfps3zYty1I3WlcLa%2BpCC7XsPtQ6qcTqoDOkjS62l9Q3Tum1R650rKvXeraL6P0VD/UBjdAmoMaDgyhjDOGCNdRVnkLnes%2Bd5CF1bPqDsXYCaoGMgOZBvMKZU2SDTBCwp2H9l7Osf4vUOYGi5pnA68AvxNCGgLIW%2BsQAIlFpgE2IARbS2SE%2BVR2ici3g/IbeRR5NaPmUaojW14NGGz1mkbwlitaGIlpo82P5OArCrrpHyBkuBvHUP6T0fxPTSDeMAVACdNgck9unMgFlPH%2B1BlvYOjdw6HyjjHCsXAAlBJCWEiJMIom2jToWbmIBOw51RnQ5GjCcblNLuXSurlvEry4PXEOuIGYtxycE0J4TInRIgN3XePt1gJIHo6cg9lHI9BctpReMY9J21XtYAK1lJkuhHqyMeKwJ5Ty0DPOerlEpLNrkmCZwVtISJ8SldZwUvqJEcNIIAA%3D%3D">generated assembly</a> for the two versions of the program are
+nearly identical, and both construct the array directly in the return location.</p>
+<div class="comparison">
+<pre><code class="language-asm">// C++
+make():
+        movdqa  xmm0, XMMWORD PTR .LC0[rip]
+        mov     rdx, QWORD PTR .LC2[rip]
+        mov     rax, rdi
+        movups  XMMWORD PTR [rdi], xmm0
+        movdqa  xmm0, XMMWORD PTR .LC1[rip]
+        mov     QWORD PTR [rdi+32], rdx
+        movups  XMMWORD PTR [rdi+16], xmm0
+        ret
+.LC0:
+        .long   0
+        .long   1
+        .long   2
+        .long   3
+.LC1:
+        .long   4
+        .long   5
+        .long   6
+        .long   7
+.LC2:
+        .long   8
+        .long   9
+</code></pre>
+<pre><code class="language-asm">// Rust
+.LCPI0_0:
+        .long   0
+        .long   1
+        .long   2
+        .long   3
+.LCPI0_1:
+        .long   4
+        .long   5
+        .long   6
+        .long   7
+new:
+        mov     rax, rdi
+        movaps  xmm0, xmmword ptr [rip + .LCPI0_0]
+        movups  xmmword ptr [rdi], xmm0
+        movaps  xmm0, xmmword ptr [rip + .LCPI0_1]
+        movups  xmmword ptr [rdi + 16], xmm0
+        movabs  rcx, 38654705672
+        mov     qword ptr [rdi + 32], rcx
+        ret
+</code></pre>
+</div>
+<h2 id="determining-whether-the-optimization-occurred"><a class="header" href="#determining-whether-the-optimization-occurred">Determining whether the optimization occurred</a></h2>
+<p>Tools like <a href="https://github.com/pacak/cargo-show-asm">cargo-show-asm</a> can be used
+to show the assembly for individual functions in order to confirm that RVO or
+NRVO was applied where desired.</p>
+<p>There are also high-quality <a href="https://bheisler.github.io/criterion.rs/book/index.html">benchmarking
+tools</a> for Rust, which
+can be used to ensure that changes do not unexpectedly result in worse
+performance.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="placement-new"><a class="header" href="#placement-new">Placement new</a></h1>
+<div class="warning">
+<p>Some of the statements about Rust in this chapter are dependent on the specifics
+of how the compiler optimizes various programs. Unless otherwise state, the
+results presented here are based on rustc 1.87 using the <a href="https://doc.rust-lang.org/edition-guide/introduction.html">2024 language
+edition</a>.</p>
+</div>
+<p>The primary purposes of placement new in C++ are</p>
+<ul>
+<li>situations where <a href="idioms/placement_new.html#custom-allocators-and-custom-containers">storage allocation is separate from
+initialization</a> such as in the
+implementation of <code>std::vector</code> or memory pools,</li>
+<li>situations where the structures need to be placed at a specific memory
+location, e.g., for <a href="idioms/placement_new.html#memory-mapped-registers-and-embedded-development">working with memory-mapped
+registers</a>, and</li>
+<li><a href="idioms/placement_new.html#performance-and-storage-reuse">storage reuse for performance reasons</a>.</li>
+</ul>
+<p>You also might have ended up on this page looking for <a href="idioms/placement_new.html#constructing-large-values-on-the-heap">how to construct large
+values directly on the heap in Rust</a>.</p>
+<p>There is an <a href="https://github.com/rust-lang/rfcs/pull/2884">open proposal</a> for
+adding the features analogous to placement new in Rust, but the design of the
+features is still under discussion. In the meantime, for many of the use cases
+of placement new, there are either alternatives in safe Rust or approaches that
+use unsafe Rust that can accomplish the required behaviors.</p>
+<h2 id="custom-allocators-and-custom-containers"><a class="header" href="#custom-allocators-and-custom-containers">Custom allocators and custom containers</a></h2>
+<p>It is uncommon to use placement new for the first reason because the major use
+cases are covered by using STL containers with custom allocators. Similarly,
+Rust's standard libraries can be used with custom allocators. However, in Rust
+the API for custom allocators is still
+<a href="https://github.com/rust-lang/rust/issues/32838">unstable</a>, and so they are only
+available when using the nightly compiler with <a href="https://doc.rust-lang.org/unstable-book/library-features/allocator-api.html">a feature
+flag</a>.
+The Rust Book has <a href="https://doc.rust-lang.org/book/appendix-07-nightly-rust.html#unstable-features">instructions on how to install the nightly
+toolchain</a>
+and the The Rust Unstable Book has <a href="https://doc.rust-lang.org/unstable-book/">instructions on how to use unstable
+features</a>.</p>
+<p>For stable Rust, there are libraries that cover many of the uses of allocators.
+For example, <a href="https://docs.rs/bumpalo/latest/bumpalo/">bumpalo</a> provides a safe
+interface to a bump allocation arena, a <a href="https://docs.rs/bumpalo/latest/bumpalo/collections/vec/struct.Vec.html">vector type using the
+arena</a>,
+and other utility types using the arena.</p>
+<p>For implementing custom collection types that involves separate allocation and
+initialization of memory, the chapters in the Rustonomicon on <a href="https://doc.rust-lang.org/nomicon/vec/vec.html">implementing
+<code>Vec</code></a> are a useful resource.</p>
+<h2 id="memory-mapped-registers-and-embedded-development"><a class="header" href="#memory-mapped-registers-and-embedded-development">Memory-mapped registers and embedded development</a></h2>
+<p>If you are using Rust for embedded development, you may want to additionally
+read the <a href="https://docs.rust-embedded.org/book/">Embedded Rust Book</a>. The
+chapters on
+<a href="https://docs.rust-embedded.org/book/peripherals/index.html">peripherals</a>
+discuss how to work with structures that are located at a specific address in
+memory.</p>
+<p>The Embedded rust Book also includes <a href="https://docs.rust-embedded.org/book/c-tips/index.html">a chapter on advice for embedded C
+programmers using Rust for embedded
+development</a>.</p>
+<h2 id="performance-and-storage-reuse"><a class="header" href="#performance-and-storage-reuse">Performance and storage reuse</a></h2>
+<p>This use of placement new in C++ for the purpose of reusing storage can usually
+be replaced in Rust by a simple assignment. Because <a href="idioms/./constructors/copy_and_move_constructors.html">assignment in Rust is
+always a move, and in Rust moves do not leave behind objects that require
+destruction</a>, the optimizer will
+usually produce code analogous to placement new for this use case. In some
+cases, this also depends on an <a href="idioms/./rvo.html">RVO or NRVO optimization</a>. While these
+optimizations are not guaranteed, they are reliable enough for common coding
+patterns, especially when combined with
+<a href="https://bheisler.github.io/criterion.rs/book/index.html">benchmarking</a> the
+performance-sensitive code to confirm that the desired optimization was
+performed. Additionally, the generated assembly for specific functions can be
+examined using a tool like
+<a href="https://github.com/pacak/cargo-show-asm">cargo-show-asm</a>.</p>
+<p>The Rust version of the following example relies on the optimizations <a href="https://godbolt.org/#z:OYLghAFBqd5TKALEBjA9gEwKYFFMCWALugE4A0BIEAZgQDbYB2AhgLbYgDkAjF%2BTXRMiAZVQtGIHgBYBQogFUAztgAKAD24AGfgCsp5eiyahSAVyVFyKxqiIEh1ZpgDC6embZMpATnLOAGQImbAA5TwAjbFIQADZyAAd0JWIHJjcPL19E5NShIJDwtiiY%2BJtsOzSRIhZSIgzPbx4/csqhatqiArDI6LjrGrqGrOaBzu6ikriASmt0M1JUTi4AUgAmAGYVgFYAIRxSAgA3bAgAEWwaFjN6Immds5WtAEFLczsAagDa4GwAdQImF%2BRA%2BKwA7Lsns8PjCPoCQB8LAQAF7YchQ8GPF4YzY7XZmJhKFg0U5MdAAfTYxmAjHu2yxzxoTA%2BmApAHcyABrCBshHrWJsMwg76kX4AoHYO6giFQ2EfQSkOFw5laAB0qp4Wi00shLzlcoAVGzQRszl8fv9AcCdbL9Xb4XD0Xq7dLHhtddCXQB6L2IlQfNm2u2WTAgEBIYJEMMRIyoTnkiLodQQfls%2B7uoOujFghlQpkfKnBCDTG3OmGMEGCkFKVCkFhEVBIE1mkViq2SsM4K43IjFlYZsss9lclNrAVCj41usNpDpj2YqFcWb0bjbfjeLg6cjobgAJQs1fmi2woM2fHIUc3S9mnJA2zWquksTB21iGwAHD5PzwZBtDNxpH4Ng7y0cgNy3HcuH4JQQFAy8dFmOBYBQDAcHwYgyEoag6EYVgOG4c9BGEMQJE4GQ5GEZQ1E0K9yH0NZDGpNB1khNZdmsbBbHsRwIGcYZvDWHh/CYTAJl6GJZCSFJuPSdxGhAQScmktIxOKPpZFaGSOiGOSskUzSqkGLpgh6NSJLGHTMgEoTLHGEzJnU2YlCPJZuHWDZglQDwcBNFxUBDLt%2B1wHEPKYLyzB8/sXBCQMNmC7EXjeMxPlbS0JRBcEPRhEMwxSVFyRBQF%2B3nHNioxF4iGwNgEiMSrfKIABPBJmHYE8ABUgqhbB1Eq0hmSOdBAQ%2BGMWDjXYkwgNrT1idQ53K54BqG1k/hHRbMA%2BA0p3rRsS0y20FQ%2BCAcpAPLsAKpV%2BzNLRioujYXA%2BTVrvdOEWJY3aZUHa4SA2tkIBiw6tpnEtUvFYFMtVIbLpenM5sHH0/RPQNBxGsaJrTMrBzZABaIKAD8QfbXtYc9BdsVKhLnkjAsWCLd6so%2BCQCGAVglAgRnmfQGgIAJ9LphLRtakzGEODYMgGrxU7Oe5i1QclOk3XptafubAsqrFjHPWWkd0YHZ5SeeJd/y4NcwO0fhIJcV62MnFyT3ctZ%2BHg69yCQbAWAOahlwAoCQNN2jIOg2CLzNvnyFve9H2fV8Py/Hwf2kP8Vy4DZ1zN7duEdkPyCQhB4AgFD0GqhhoiwiAMCLxgYlIHh3zBUCcN6mCIAiNOImCWoGoI/g29YUgGoAeQiXQKkvc9y44YR%2B6YehO9onAIjMYAXAkegYN4fgcCpExJDnghSBH45sDXrduoqIVli3SNOLT%2BgCAiOs%2B7cHA06IQ5gPX8gTlIRMVAuLeaWCKAK8swaBGGAEoAAagQbAbJ%2B7NQ3IReQJFJDkSIooFQGg076CEkYEwIBzCWEMHfGCkBZjoASDJNeWMsb3XIUQLGjATj0Eug7bcX9Dg4BIcWDiXE0hOBEvxAwgR7LiQMFJPIskrJiNyDJVSUwbKcQPu0IygiFG8OUXZQooibIqN0k0CyxktFmSkE5W2JijYm3AubbgHwCENgeqqWuqptQQHQiQRU7keDTEzsA7OKB5hEASEKUu5cEjF1IKEVq3A7GoAcU4k%2BhB3HwiEmg5BZFZBoKopg2i2DyBsjrAkLuXtjap39twfuQogkgk5rYg8sSeCOLBM4w6bgK7RFPBsLxPiEI3hANIJp2wNhrATrETUmp3zvm2O%2BI2gFyDAW2KBKx6coLWCDk7RCiB85oELmEyuISdnhJAMAHg2wUkMEbtQFutEe4dy7uQG5fdB7DzsHc8ezAiBTxnmneei9l70FXncze1Id5bkIPvSoJxj78FPqgc%2Bdyr5Jy3Lfe%2BHcn4X0dm/O5X8f7YD/sCwBWdQEsHAVAmBcDmB3NSeIFBGT5BZJolueijE8GoCtuxZFXCyEULSFQkMl1WVsRYpsD4WN%2B6sPQOwwER94BOUUW0bwvEBF6KESJORfQhLiJkqopSEi1UxDUUopg2l6jKoNfK41eqDC2UsvJHRmjTLyNMQsVyaximWLTpBD46h3yxCxrEaQHxgCoHqdsDUh03FkA6a67phstkBKqfstpESolcG9b6/1gbg0PVDeebAiSyDwgYlS0iUhaWUQwQyvQCk8kFKKRY0pEFymVInDUtNfqA1BpDWGiArTdntPtt44OwDZiu3dn0bhSdZnzMWR6jOqy4Ih16f01UgzhkbFGVocZkzplJxTn7RtKz1nFNYUsgOQ6emf2iCkRw0ggA%3D%3D">to
+achieve the desired behavior</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;cstddef&gt;
+#include &lt;new&gt;
+
+struct LargeWidget {
+  std::size_t id;
+};
+
+template &lt;typename T&gt;
+extern void blackBox(T &amp;x);
+
+void doWork(void *scratch) {
+  for (std::size_t i = 0; i &lt; 100; i++) {
+    auto *w(new (scratch) LargeWidget{.id = i});
+    // use w
+    blackBox(w);
+    w-&gt;~LargeWidget();
+  }
+}
+
+int main() {
+  alignas(alignof(LargeWidget)) char
+      memory[sizeof(LargeWidget)];
+  void *w = memory;
+  doWork(w);
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct LargeWidget {
+    id: usize,
+}
+
+fn do_work(w: &amp;mut LargeWidget) {
+    for i in 0..100 {
+        *w = LargeWidget { id: i };
+        // use w
+        std::hint::black_box(&amp;w);
+    }
+}
+
+fn main() {
+    let mut scratch = LargeWidget::default();
+    do_work(&amp;mut scratch);
+}</code></pre></pre>
+</div>
+<p>Adding in a <code>Drop</code> implementation for <code>LargeWidget</code> does result in the drop
+function being called on each loop iteration, but makes the generated assembly
+much harder to read, and so has been omitted from the example.</p>
+<h2 id="constructing-large-values-on-the-heap"><a class="header" href="#constructing-large-values-on-the-heap">Constructing large values on the heap</a></h2>
+<p><code>new</code> in C++ constructs objects directly in dynamic storage, and placement <code>new</code>
+constructs them directly in the provided location. In Rust, <code>Box::new</code> is a
+normal function, so the value is constructed on the stack and then moved to the
+heap (or to the storage provided by the custom allocator).</p>
+<p>While the initial construction of the value on the stack can sometimes be
+optimized away, in order to guarantee that the stack is not used for the large
+value requires the use of unsafe Rust and <code>MaybeUninit</code>. Additionally, the
+mechanisms available for initializing a value on the heap do not guarantee that
+the values will not be created on the stack and then moved to the heap. Instead,
+they just make it possible to incrementally initialize a structure (either
+field-by-field or element-by-element), so that the entire structure does not
+have to be on the stack at once. The same optimizations do apply, however, and
+so the additional copies might be avoided.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;memory&gt;
+
+int main() {
+  constexpr unsigned int SIZE = 8000000;
+  std::unique_ptr b = std::make_unique&lt;
+      std::array&lt;unsigned int, SIZE&gt;&gt;();
+  for (std::size_t i; i &lt; SIZE; ++i) {
+    (*b)[i] = 42;
+  }
+
+  // use b so that it isn't optimized away
+  for (std::size_t i; i &lt; SIZE; ++i) {
+    std::cout &lt;&lt; (*b)[i] &lt;&lt; std::endl;
+  }
+}
+</code></pre>
+<!-- must be no_run because mdbook test doesn't compile with opt-level=2 -->
+<pre><pre class="playground"><code class="language-rust no_run">fn main() {
+    const SIZE: usize = 8_000_000;
+
+    // optimization here makes it not overflow
+    // the stack with opt-level=2
+    let mut b = Box::new([0; SIZE]);
+    for i in 0..SIZE {
+        b[i] = 42;
+    }
+
+    // use b so that it isn't optimized away
+    std::hint::black_box(&amp;b);
+}</code></pre></pre>
+</div>
+<p>On the other hand, directly defining the array as <code>[42; SIZE]</code> does result in
+the value being first constructed on the stack, which produces an error when
+run.</p>
+<pre><pre class="playground"><code class="language-rust no_run">fn main() {
+    const SIZE: usize = 8_000_000;
+
+    let b = Box::new([42; SIZE]);
+
+    // use b so that it isn't optimized away
+    std::hint::black_box(&amp;b);
+}</code></pre></pre>
+<pre><code class="language-text">thread 'main' has overflowed its stack
+fatal runtime error: stack overflow
+Aborted (core dumped)
+</code></pre>
+<p>While construction of the values directly on the heap is not possible to
+enforce, it is possible to incrementally construct the value by using unsafe
+Rust, which avoids overflowing the stack. This technique relies on both
+<a href="https://doc.rust-lang.org/std/mem/union.MaybeUninit.html"><code>MaybeUninit</code></a> and
+<a href="https://doc.rust-lang.org/std/ptr/macro.addr_of_mut.html"><code>addr_of_mut!</code></a>.</p>
+<pre><pre class="playground"><code class="language-rust no_run">fn main() {
+    const SIZE: usize = 8_000_000;
+    let mut b = Box::&lt;[i32; SIZE]&gt;::new_uninit();
+    let bptr = b.as_mut_ptr();
+    for i in 0..SIZE {
+        unsafe {
+            std::ptr::addr_of_mut!(((*bptr)[i])).write(42);
+        }
+    }
+
+    let b2 = unsafe { b.assume_init() };
+
+    for i in 0..SIZE {
+        println!("{}", b2[i]);
+    }
+}</code></pre></pre>
+<p>Depending on what is need, this particular use can be generalized.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn init_with&lt;T, const SIZE: usize&gt;(
+    f: impl Fn(usize) -&gt; T,
+) -&gt; Box&lt;[T; SIZE]&gt; {
+    let mut b = Box::&lt;[T; SIZE]&gt;::new_uninit();
+    let bptr = b.as_mut_ptr();
+    for i in 0..SIZE {
+        unsafe {
+            std::ptr::addr_of_mut!(((*bptr)[i]))
+                .write(f(i));
+        }
+    }
+
+    unsafe { b.assume_init() }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Note that a more idiomatic way to deal with a large array on the heap is to
+represent it as either a boxed slice or a vector instead of a boxed array, in
+which case using iterators to define the value avoids constructing it on the
+stack, and does not require the use of unsafe Rust.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn init_with&lt;T, const SIZE: usize&gt;(
+    f: impl Fn(usize) -&gt; T,
+) -&gt; Box&lt;[T]&gt; {
+    (0..SIZE).map(f).collect()
+}
+<span class="boring">}</span></code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="adapter-pattern"><a class="header" href="#adapter-pattern">Adapter pattern</a></h1>
 <p>In C++, if an existing class needs to implement a new interface, the adapter
 pattern is normally used. The pattern involves defining a wrapper class that
 implements the interface by delegating to the methods on the original class.</p>
@@ -9773,9 +10161,8 @@ given.</p>
 to extend both data and behavior without modifying the original definitions
 (i.e., to solve <a href="https://cs.brown.edu/~sk/Publications/Papers/Published/kff-synth-fp-oo/">the expression
 problem</a>).
-However, those solutions also make use of dynamic casting, and Rust does not
-support that form of RTTI. Instead, <a href="patterns/visitor.html#varying-data-and-behavior">other approaches to solving the expression
-problem are more likely to be used in Rust</a>.</p>
+Other approaches, enabled by Rust's traits and generics, are <a href="patterns/visitor.html#varying-data-and-behavior">more likely to be
+used in Rust</a>.</p>
 <h2 id="use-a-rust-enum-instead"><a class="header" href="#use-a-rust-enum-instead">Use a Rust enum instead</a></h2>
 <p>For the first case, where the variants are fixed but behaviors are not, the
 idiomatic approach in Rust is to implement the data structure as an enum instead
@@ -10330,15 +10717,22 @@ fn main() {
 </div>
 <h2 id="varying-data-and-behavior"><a class="header" href="#varying-data-and-behavior">Varying data and behavior</a></h2>
 <p>In C++, extensions to the visitor pattern are sometimes used to handle
-situations where both data and behavior and vary. One of the alternative
-approaches to handle this situation in Rust, adopted from functional
-programming, is called <a href="https://www.cambridge.org/core/services/aop-cambridge-core/content/view/14416CB20C4637164EA9F77097909409/S0956796808006758a.pdf/data-types-a-la-carte.pdf">"data types à la
+situations where both data and behavior and vary. However, those solutions also
+make use of dynamic casting. In Rust that requires opting into RTTI by defining
+a method for converting the visited objects to <a href="patterns/./../idioms/rtti.html"><code>dyn Any</code> so that they can be
+downcast</a>. While this extension to the visitor pattern is
+possible to implement, the ergonomics of the approach make other approaches more
+common in Rust.</p>
+<p>One of the alternative approaches, adopted from functional programming and
+leveraging the design of traits and generics in Rust, is called <a href="https://www.cambridge.org/core/services/aop-cambridge-core/content/view/14416CB20C4637164EA9F77097909409/S0956796808006758a.pdf/data-types-a-la-carte.pdf">"data types à
+la
 carte"</a>.</p>
 <p>The following example shows a variation on the earlier examples using this
 pattern to make it so that two parts of the expression type can be defined
 separately and given evaluators separately. This approach can lead to
 performance problems (in large part due to the indirection through nested
-structures), so its necessity should be carefully evaluated before it is used.</p>
+structures) or increases in compilation time, so its necessity should be
+carefully evaluated before it is used.</p>
 <pre><pre class="playground"><code class="language-rust">use std::collections::HashMap;
 
 // A type for combining separately-defined
@@ -10470,6 +10864,8 @@ fn main() {
 
     println!("{:?}", e.eval(&amp;HashMap::new()));
 }</code></pre></pre>
+<p>One thing worth noting about the above implementation is that no dynamic
+dispatch was required.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="curiously-recurring-template-pattern-crtp"><a class="header" href="#curiously-recurring-template-pattern-crtp">Curiously recurring template pattern (CRTP)</a></h1>
 <p>The C++ <a href="https://en.cppreference.com/w/cpp/language/crtp">curiously recurring template
 pattern</a> is used to make the
@@ -10865,6 +11261,39 @@ and outside of the crate, purely in terms of the exposed API.</p>
 <p>See the <a href="https://doc.rust-lang.org/book/ch11-03-test-organization.html#integration-tests">Rust
 Book</a>
 for details on how to organize integration tests for Rust programs.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="build-systems-cmake"><a class="header" href="#build-systems-cmake">Build systems (CMake)</a></h1>
+<p>One major difference between the C++ and Rust ecosystems is that C++ and C
+libraries tend to be either provided by OS distributions or be included in the
+repository for a project, while Rust has a central language-specific package
+registry called <a href="https://crates.io/">crates.io</a>.</p>
+<p>This difference is amplified by the fact that the Rust build tool, Cargo, has a
+build in package manager that works with crates.io, private registries, local
+packages, and vendored sources.</p>
+<p>Cargo is documented in detail in the <a href="https://doc.rust-lang.org/cargo/">Cargo
+Book</a>.</p>
+<h2 id="packages-for-c-and-c-system-libraries"><a class="header" href="#packages-for-c-and-c-system-libraries">Packages for C and C++ system libraries</a></h2>
+<p>Many C libraries have crates on crates.io providing both low-level bindings and
+high-level safe Rust abstractions. For example, for the libgit2 library there is
+both a low-level <a href="https://crates.io/crates/libgit2-sys">libgit2-sys crate</a> and a
+high-level <a href="https://crates.io/crates/git2">git2 crate</a>. See the <a href="etc/../idioms/ffi.html">chapter on the
+Rust FFI</a> for more information on how to define these crates.</p>
+<h2 id="building-c-c-and-rust-code"><a class="header" href="#building-c-c-and-rust-code">Building C, C++, and Rust code</a></h2>
+<p>Cargo <a href="https://doc.rust-lang.org/cargo/reference/build-script-examples.html">build
+scripts</a>
+can be used to build C and C++ code as part of a Rust project. The linked
+chapter of the Cargo book includes links to resources handling the compilation
+of C, C++, and other code, working with <code>pkg-config</code>, etc.</p>
+<h2 id="testing-ctest"><a class="header" href="#testing-ctest">Testing (CTest)</a></h2>
+<p>Cargo includes support for <a href="https://doc.rust-lang.org/cargo/guide/tests.html">running
+tests</a>.</p>
+<h2 id="packaging-for-distribution-cpack"><a class="header" href="#packaging-for-distribution-cpack">Packaging for distribution (CPack)</a></h2>
+<p>Unlike CPack which is provided with CMake, Cargo does not come with tools for
+packaging for distribution to end users. However, there are third party Cargo
+helpers for packaging, such as <a href="https://crates.io/crates/cargo-deb">cargo-deb</a>
+for creating Debian package,
+<a href="https://crates.io/crates/cargo-generate-rpm">cargo-generate-rpm</a> for creating
+RPM packages, and <a href="https://crates.io/crates/cargo-wix">cargo-wix</a> for creating
+Windows installers.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="attribution-notices"><a class="header" href="#attribution-notices">Attribution notices</a></h1>
 <p>This book makes use of the Standard C++ Foundation logo under their posted
 <a href="https://isocpp.org/home/terms-of-use">terms of use</a>.</p>

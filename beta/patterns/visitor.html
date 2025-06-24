@@ -178,9 +178,8 @@ given.</p>
 to extend both data and behavior without modifying the original definitions
 (i.e., to solve <a href="https://cs.brown.edu/~sk/Publications/Papers/Published/kff-synth-fp-oo/">the expression
 problem</a>).
-However, those solutions also make use of dynamic casting, and Rust does not
-support that form of RTTI. Instead, <a href="#varying-data-and-behavior">other approaches to solving the expression
-problem are more likely to be used in Rust</a>.</p>
+Other approaches, enabled by Rust's traits and generics, are <a href="#varying-data-and-behavior">more likely to be
+used in Rust</a>.</p>
 <h2 id="use-a-rust-enum-instead"><a class="header" href="#use-a-rust-enum-instead">Use a Rust enum instead</a></h2>
 <p>For the first case, where the variants are fixed but behaviors are not, the
 idiomatic approach in Rust is to implement the data structure as an enum instead
@@ -735,15 +734,22 @@ fn main() {
 </div>
 <h2 id="varying-data-and-behavior"><a class="header" href="#varying-data-and-behavior">Varying data and behavior</a></h2>
 <p>In C++, extensions to the visitor pattern are sometimes used to handle
-situations where both data and behavior and vary. One of the alternative
-approaches to handle this situation in Rust, adopted from functional
-programming, is called <a href="https://www.cambridge.org/core/services/aop-cambridge-core/content/view/14416CB20C4637164EA9F77097909409/S0956796808006758a.pdf/data-types-a-la-carte.pdf">"data types à la
+situations where both data and behavior and vary. However, those solutions also
+make use of dynamic casting. In Rust that requires opting into RTTI by defining
+a method for converting the visited objects to <a href="./../idioms/rtti.html"><code>dyn Any</code> so that they can be
+downcast</a>. While this extension to the visitor pattern is
+possible to implement, the ergonomics of the approach make other approaches more
+common in Rust.</p>
+<p>One of the alternative approaches, adopted from functional programming and
+leveraging the design of traits and generics in Rust, is called <a href="https://www.cambridge.org/core/services/aop-cambridge-core/content/view/14416CB20C4637164EA9F77097909409/S0956796808006758a.pdf/data-types-a-la-carte.pdf">"data types à
+la
 carte"</a>.</p>
 <p>The following example shows a variation on the earlier examples using this
 pattern to make it so that two parts of the expression type can be defined
 separately and given evaluators separately. This approach can lead to
 performance problems (in large part due to the indirection through nested
-structures), so its necessity should be carefully evaluated before it is used.</p>
+structures) or increases in compilation time, so its necessity should be
+carefully evaluated before it is used.</p>
 <pre><pre class="playground"><code class="language-rust">use std::collections::HashMap;
 
 // A type for combining separately-defined
@@ -875,6 +881,8 @@ fn main() {
 
     println!("{:?}", e.eval(&amp;HashMap::new()));
 }</code></pre></pre>
+<p>One thing worth noting about the above implementation is that no dynamic
+dispatch was required.</p>
 
 
                         <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Visitor pattern and double dispatch">Click here to leave us feedback about this page.</a>

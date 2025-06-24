@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Tests - C++ to Rust Phrasebook</title>
+        <title>Build systems (CMake) - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -163,141 +163,51 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="tests"><a class="header" href="#tests">Tests</a></h1>
-<p>This chapter gives a small example of testing in Rust by comparison to
-<a href="https://github.com/boostorg/test">Boost.Test</a> for C++. A more thorough guide to
-testing in Rust is available as part of the <a href="https://doc.rust-lang.org/book/ch11-00-testing.html">Rust
-Book</a>, including
-information on <a href="https://doc.rust-lang.org/stable/book/ch14-02-publishing-to-crates-io.html#documentation-comments-as-tests">documentation
-testing</a>.
-Details on the built-in support for testing in
-<a href="https://doc.rust-lang.org/rustc/tests/index.html">rustc</a> and
-<a href="https://doc.rust-lang.org/cargo/commands/cargo-test.html">Cargo</a> are available
-in their respective manuals.</p>
-<h2 id="unit-tests"><a class="header" href="#unit-tests">Unit tests</a></h2>
-<p>When using C++ test frameworks such as Boost.Test, tests are defined as
-functions which are registered with the framework. The tests are compiled
-against a test driver provided by the framework.</p>
-<p>In Rust, testing is handled similarly. Unlike with C++, the test registration
-mechanism and test driver are both provided by Rust itself.</p>
-<p>Additionally, the way that tests are organized is different. In C++, unit tests
-are defined in separate files from the units under test. In Rust, they are
-typically defined in the same file, usually in a <code>test</code> sub-module, with
-inclusion of the module controlled by the <code>test</code> feature flag via the
-<code>#[cfg(test)]</code> annotation.</p>
-<p>The example below defines a small class and tests for that class. In C++ this
-involves creating three separate files: a header file for the interface, the
-implementation of the interface, and the test driver. In Rust, this is all done
-in a single file.</p>
-<div class="comparison">
-<pre><code class="language-cpp">// counter.h
-#ifndef COUNTER_H
-#define COUNTER_H
-
-class Counter {
-  unsigned int count;
-
-public:
-  Counter();
-  unsigned int get();
-  void increment();
-};
-
-#endif
-
-// counter.cc
-#include "counter.h"
-Counter::Counter() : count(0) {}
-
-unsigned int Counter::get() {
-  return count;
-}
-
-void Counter::increment() {
-  ++count;
-}
-
-// test_main.cc
-#define BOOST_TEST_MODULE my_tests
-#include &lt;boost/test/included/unit_test.hpp&gt;
-#include "counter.h"
-
-BOOST_AUTO_TEST_CASE(test_counter_initialize) {
-  Counter c;
-  BOOST_TEST(c.get() == 0);
-}
-
-BOOST_AUTO_TEST_CASE(test_counter_increment) {
-  Counter c;
-  c.increment();
-  BOOST_TEST(c.get() == 1);
-}
-</code></pre>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// counter.rs
-pub struct Counter(u32);
-
-impl Counter {
-    pub fn new() -&gt; Counter {
-        Counter(0)
-    }
-
-    pub fn get(&amp;self) -&gt; u32 {
-        self.0
-    }
-
-    pub fn increment(&amp;mut self) {
-        self.0 += 1;
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn counter_initialize() {
-        let c = Counter::new();
-        assert_eq!(0, c.get());
-    }
-
-    #[test]
-    fn counter_increment() {
-        let mut c = Counter::new();
-        c.increment();
-        assert_eq!(1, c.get());
-    }
-}
-<span class="boring">}</span></code></pre></pre>
-</div>
-<p>Defining unit tests within the module being tested has the benefit of making
-internals of the module under test visible to the test code. This makes it
-possible to unit test internal components without exposing them to the rest of
-the program, as one would have to in C++ by including declarations in the header
-file and by declaring test fixtures as <code>friend</code>s.</p>
-<p>Running the tests in C++ involves linking against <code>boost_unit_test_framework</code>.
-In Rust, the tests can be run with <code>cargo test</code>. If not using Cargo, the tests
-can be compiled by passing the flag <code>--test</code> to rustc, and running the
-executable produced.</p>
-<h2 id="integration-tests"><a class="header" href="#integration-tests">Integration tests</a></h2>
-<p>Integration tests as supported by Cargo, are still defined outside of the module
-and outside of the crate, purely in terms of the exposed API.</p>
-<p>See the <a href="https://doc.rust-lang.org/book/ch11-03-test-organization.html#integration-tests">Rust
-Book</a>
-for details on how to organize integration tests for Rust programs.</p>
+                        <h1 id="build-systems-cmake"><a class="header" href="#build-systems-cmake">Build systems (CMake)</a></h1>
+<p>One major difference between the C++ and Rust ecosystems is that C++ and C
+libraries tend to be either provided by OS distributions or be included in the
+repository for a project, while Rust has a central language-specific package
+registry called <a href="https://crates.io/">crates.io</a>.</p>
+<p>This difference is amplified by the fact that the Rust build tool, Cargo, has a
+build in package manager that works with crates.io, private registries, local
+packages, and vendored sources.</p>
+<p>Cargo is documented in detail in the <a href="https://doc.rust-lang.org/cargo/">Cargo
+Book</a>.</p>
+<h2 id="packages-for-c-and-c-system-libraries"><a class="header" href="#packages-for-c-and-c-system-libraries">Packages for C and C++ system libraries</a></h2>
+<p>Many C libraries have crates on crates.io providing both low-level bindings and
+high-level safe Rust abstractions. For example, for the libgit2 library there is
+both a low-level <a href="https://crates.io/crates/libgit2-sys">libgit2-sys crate</a> and a
+high-level <a href="https://crates.io/crates/git2">git2 crate</a>. See the <a href="../idioms/ffi.html">chapter on the
+Rust FFI</a> for more information on how to define these crates.</p>
+<h2 id="building-c-c-and-rust-code"><a class="header" href="#building-c-c-and-rust-code">Building C, C++, and Rust code</a></h2>
+<p>Cargo <a href="https://doc.rust-lang.org/cargo/reference/build-script-examples.html">build
+scripts</a>
+can be used to build C and C++ code as part of a Rust project. The linked
+chapter of the Cargo book includes links to resources handling the compilation
+of C, C++, and other code, working with <code>pkg-config</code>, etc.</p>
+<h2 id="testing-ctest"><a class="header" href="#testing-ctest">Testing (CTest)</a></h2>
+<p>Cargo includes support for <a href="https://doc.rust-lang.org/cargo/guide/tests.html">running
+tests</a>.</p>
+<h2 id="packaging-for-distribution-cpack"><a class="header" href="#packaging-for-distribution-cpack">Packaging for distribution (CPack)</a></h2>
+<p>Unlike CPack which is provided with CMake, Cargo does not come with tools for
+packaging for distribution to end users. However, there are third party Cargo
+helpers for packaging, such as <a href="https://crates.io/crates/cargo-deb">cargo-deb</a>
+for creating Debian package,
+<a href="https://crates.io/crates/cargo-generate-rpm">cargo-generate-rpm</a> for creating
+RPM packages, and <a href="https://crates.io/crates/cargo-wix">cargo-wix</a> for creating
+Windows installers.</p>
 
 
-                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Tests">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Build systems (CMake)">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../etc/libraries.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../etc/tests.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../etc/build-systems.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../notices.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -307,11 +217,11 @@ for details on how to organize integration tests for Rust programs.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../etc/libraries.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../etc/tests.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../etc/build-systems.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../notices.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
