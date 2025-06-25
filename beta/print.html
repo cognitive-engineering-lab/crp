@@ -11261,7 +11261,171 @@ and outside of the crate, purely in terms of the exposed API.</p>
 <p>See the <a href="https://doc.rust-lang.org/book/ch11-03-test-organization.html#integration-tests">Rust
 Book</a>
 for details on how to organize integration tests for Rust programs.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="build-systems-cmake"><a class="header" href="#build-systems-cmake">Build systems (CMake)</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="documentation-eg-doxygen"><a class="header" href="#documentation-eg-doxygen">Documentation (e.g., Doxygen)</a></h1>
+<p>While C++ has several documentation tools, such as Doxygen and Sphinx, Rust has
+a single documentation tool,
+<a href="https://doc.rust-lang.org/rustdoc/index.html">Rustdoc</a>. Rustdoc is supported by
+<a href="https://docs.rs/"><code>docs.rs</code></a>, cargo,
+<a href="https://rust-analyzer.github.io/">rust-analyzer</a>, and is the tool used for
+documenting <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#blanket-implementations">the standard
+library</a>.
+Rustdoc is installed by default with the Rust toolchain for most distributions.</p>
+<p>The features and options available for Rustdoc are documented in the <a href="https://doc.rust-lang.org/rustdoc/">Rustdoc
+Book</a>. The book also documents <a href="https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html">best
+practices for documenting Rust
+code</a>, which
+differ slightly from the recommended practices for documenting C++ code using
+Doxygen.</p>
+<p>The Cargo integration is documented at in the Cargo book under the <a href="https://doc.rust-lang.org/cargo/commands/cargo-doc.html"><code>cargo doc</code></a> and <a href="https://doc.rust-lang.org/cargo/commands/cargo-rustdoc.html"><code>cargo rustdoc</code></a> commands,
+as well as in the <a href="https://doc.rust-lang.org/cargo/commands/cargo-test.html#documentation-tests">doctests
+section</a>
+of the <code>cargo test</code> command.</p>
+<p>This chapter compares some aspects of Rustdoc with Doxygen in order to help with
+understanding what to expect when using Rustdoc when coming from Doxygen or
+similar C++ documentation tools.</p>
+<h2 id="output-formats"><a class="header" href="#output-formats">Output formats</a></h2>
+<p>Unlike Doxygen which can also produce PDF and man page output, Rustdoc only
+produces HTML output. The produced documentation does include client-side
+searching, which includes the ability to search by type signature.</p>
+<p>The <a href="https://rust-analyzer.github.io/">rust-analyzer</a> language server supports
+Rustdoc comments, and makes them available to editors with language server
+protocol support on hover, even for Rustdoc comments in the current project.</p>
+<h2 id="rustdoc-comment-syntax"><a class="header" href="#rustdoc-comment-syntax">Rustdoc comment syntax</a></h2>
+<p>Unlike Doxygen, which has several supported comment syntaxes for C++, Rustup
+supports a single comment syntax. Comments beginning with <code>//!</code> document the
+top-level module or crate. Comments beginning with <code>///</code> document the following
+item.</p>
+<div class="comparison">
+<pre><code class="language-cpp">/**
+ * @file myheader.h
+ * @brief A description of this file.
+ *
+ * A longer description, with examples, etc.
+ */
+
+/**
+ * @brief A description of this class.
+ *
+ * A longr description, with examples, etc.
+ */
+struct MyClass {
+  // ...
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>//! A description of this module or crate.
+//!
+//! A longer description, with examples, etc.
+
+/// A description of this type.
+///
+/// A longer description, with examples, etc.
+struct MyClass {
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<h3 id="special-forms"><a class="header" href="#special-forms">Special forms</a></h3>
+<p>The content of the comment up until the first blank line is treated similarly to
+the <code>@brief</code> form in Doxygen.</p>
+<p>Aside from that, Rustdoc does not have special forms for documenting various
+parts of an item, such as the parameters of a function. Instead, <a href="https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html#markdown">Markdown
+syntax can be
+used</a>
+to format the documentation, which is otherwise given in prose.</p>
+<p>There are several common conventions used for structuring documentation
+comments. The most common convention is to include sections (defined using
+Markdown header syntax) for whichever of the following are necessary for the
+item being documented:</p>
+<ul>
+<li>panics (for functions that panic, e.g., on
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#panics-32"><code>Vec::split_at</code></a>),</li>
+<li>safety (for unsafe functions, e.g., on
+<a href="https://doc.rust-lang.org/std/primitive.slice.html#safety-10"><code>Vec::split_at_unchecked</code></a>),
+and</li>
+<li>examples (e.g., on <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#examples-105"><code>Vec::split_at</code></a>).</li>
+</ul>
+<p>The following comment compares documentation for a C++ function using Doxygen to
+documentation for a Rust function using Rustdoc.</p>
+<div class="comparison">
+<a id="special-forms-comparison"></a>
+<pre><code class="language-cpp">/**
+ * @brief Computes the factorial.
+ *
+ * Computes the factorial in a stack-safe way.
+ * The factorial is defined as...
+ *
+ * @code
+ * #include &lt;cassert&gt;
+ * #include "factorial.h"
+ *
+ * int main() {
+ *    int res = factorial(3);
+ *    assert(6 == res);
+ * }
+ * @endcode
+ *
+ * @param n The number of which to take the factorial
+ *
+ * @return The factorial
+ *
+ * @exception domain_error If n &lt; 0
+ */
+int factorial(int n);
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>/// Computes the factorial.
+///
+/// Computes the factorial in a stack-safe way.
+/// The factorial is defined as...
+///
+/// # Examples
+///
+/// ```
+/// let res = factorial(3);
+/// assert_eq!(6, res);
+/// ```
+///
+/// # Panics
+///
+/// Requires that `n &gt;= 0`, otherwise panics.
+/// For the non-panicking version see
+/// [`factorial_checked`].
+fn factorial(n: i32) -&gt; i32 {
+    // ...
+<span class="boring">   todo!()
+</span>}
+<span class="boring">}</span></code></pre></pre>
+<div>
+<h3 id="automatic-documentation"><a class="header" href="#automatic-documentation">Automatic documentation</a></h3>
+<p>Many of the things that can be derived from the code are automatically included
+by Rustdoc. A major one is that trait implementations (e.g., on
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#trait-implementations"><code>Vec</code></a>),
+including blanket implementations (e.g., on
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#blanket-implementations"><code>Vec</code></a>),
+for a type do not have to be documented manually because implementations that
+are visible in the crate are automatically discovered and included by Rustdoc.</p>
+<h1 id="additional-features"><a class="header" href="#additional-features">Additional features</a></h1>
+<p>Some valuable Rustdoc features may not be expected by someone coming from using
+Doxygen. Because those features provide significant benefit, they are pointed
+out here.</p>
+<h2 id="doctest-support-via-rustdoc-and-cargo-test"><a class="header" href="#doctest-support-via-rustdoc-and-cargo-test">Doctest support via Rustdoc and <code>cargo test</code></a></h2>
+<p>One specific benefit of including examples when documenting Rust programs using
+Rustdoc is that <a href="https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html">the examples can be included in the test suite when running
+<code>cargo test</code></a>.</p>
+<p>The handling of examples as tests in Rustdoc includes logic for handling partial
+programs, so that even <a href="etc/documentation.html#special-forms-comparison">the code example in the earlier
+comparison</a> can serve as a test.</p>
+<h2 id="local-documentation-for-project-and-installed-libraries"><a class="header" href="#local-documentation-for-project-and-installed-libraries">Local documentation for project and installed libraries</a></h2>
+<p>Local documentation for both the working project and dependent libraries can be
+viewed in-browser using <code>cargo doc --open</code>. Private items for the project can be
+included in the documentation by using <code>cargo doc --open --document-private-items</code>. Because Rustdoc comments are also used by the
+<a href="https://rust-analyzer.github.io/">rust-analyzer</a> language server to provide
+documentation on hover in compatible editors, it is often worth it to document
+private items using Rustdoc comments.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="build-systems-eg-cmake"><a class="header" href="#build-systems-eg-cmake">Build systems (e.g., CMake)</a></h1>
 <p>One major difference between the C++ and Rust ecosystems is that C++ and C
 libraries tend to be either provided by OS distributions or be included in the
 repository for a project, while Rust has a central language-specific package

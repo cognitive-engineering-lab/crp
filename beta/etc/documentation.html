@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Tests - C++ to Rust Phrasebook</title>
+        <title>Documentation (e.g., Doxygen) - C++ to Rust Phrasebook</title>
 
 
         <!-- Custom HTML head -->
@@ -163,141 +163,182 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="tests"><a class="header" href="#tests">Tests</a></h1>
-<p>This chapter gives a small example of testing in Rust by comparison to
-<a href="https://github.com/boostorg/test">Boost.Test</a> for C++. A more thorough guide to
-testing in Rust is available as part of the <a href="https://doc.rust-lang.org/book/ch11-00-testing.html">Rust
-Book</a>, including
-information on <a href="https://doc.rust-lang.org/stable/book/ch14-02-publishing-to-crates-io.html#documentation-comments-as-tests">documentation
-testing</a>.
-Details on the built-in support for testing in
-<a href="https://doc.rust-lang.org/rustc/tests/index.html">rustc</a> and
-<a href="https://doc.rust-lang.org/cargo/commands/cargo-test.html">Cargo</a> are available
-in their respective manuals.</p>
-<h2 id="unit-tests"><a class="header" href="#unit-tests">Unit tests</a></h2>
-<p>When using C++ test frameworks such as Boost.Test, tests are defined as
-functions which are registered with the framework. The tests are compiled
-against a test driver provided by the framework.</p>
-<p>In Rust, testing is handled similarly. Unlike with C++, the test registration
-mechanism and test driver are both provided by Rust itself.</p>
-<p>Additionally, the way that tests are organized is different. In C++, unit tests
-are defined in separate files from the units under test. In Rust, they are
-typically defined in the same file, usually in a <code>test</code> sub-module, with
-inclusion of the module controlled by the <code>test</code> feature flag via the
-<code>#[cfg(test)]</code> annotation.</p>
-<p>The example below defines a small class and tests for that class. In C++ this
-involves creating three separate files: a header file for the interface, the
-implementation of the interface, and the test driver. In Rust, this is all done
-in a single file.</p>
+                        <h1 id="documentation-eg-doxygen"><a class="header" href="#documentation-eg-doxygen">Documentation (e.g., Doxygen)</a></h1>
+<p>While C++ has several documentation tools, such as Doxygen and Sphinx, Rust has
+a single documentation tool,
+<a href="https://doc.rust-lang.org/rustdoc/index.html">Rustdoc</a>. Rustdoc is supported by
+<a href="https://docs.rs/"><code>docs.rs</code></a>, cargo,
+<a href="https://rust-analyzer.github.io/">rust-analyzer</a>, and is the tool used for
+documenting <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#blanket-implementations">the standard
+library</a>.
+Rustdoc is installed by default with the Rust toolchain for most distributions.</p>
+<p>The features and options available for Rustdoc are documented in the <a href="https://doc.rust-lang.org/rustdoc/">Rustdoc
+Book</a>. The book also documents <a href="https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html">best
+practices for documenting Rust
+code</a>, which
+differ slightly from the recommended practices for documenting C++ code using
+Doxygen.</p>
+<p>The Cargo integration is documented at in the Cargo book under the <a href="https://doc.rust-lang.org/cargo/commands/cargo-doc.html"><code>cargo doc</code></a> and <a href="https://doc.rust-lang.org/cargo/commands/cargo-rustdoc.html"><code>cargo rustdoc</code></a> commands,
+as well as in the <a href="https://doc.rust-lang.org/cargo/commands/cargo-test.html#documentation-tests">doctests
+section</a>
+of the <code>cargo test</code> command.</p>
+<p>This chapter compares some aspects of Rustdoc with Doxygen in order to help with
+understanding what to expect when using Rustdoc when coming from Doxygen or
+similar C++ documentation tools.</p>
+<h2 id="output-formats"><a class="header" href="#output-formats">Output formats</a></h2>
+<p>Unlike Doxygen which can also produce PDF and man page output, Rustdoc only
+produces HTML output. The produced documentation does include client-side
+searching, which includes the ability to search by type signature.</p>
+<p>The <a href="https://rust-analyzer.github.io/">rust-analyzer</a> language server supports
+Rustdoc comments, and makes them available to editors with language server
+protocol support on hover, even for Rustdoc comments in the current project.</p>
+<h2 id="rustdoc-comment-syntax"><a class="header" href="#rustdoc-comment-syntax">Rustdoc comment syntax</a></h2>
+<p>Unlike Doxygen, which has several supported comment syntaxes for C++, Rustup
+supports a single comment syntax. Comments beginning with <code>//!</code> document the
+top-level module or crate. Comments beginning with <code>///</code> document the following
+item.</p>
 <div class="comparison">
-<pre><code class="language-cpp">// counter.h
-#ifndef COUNTER_H
-#define COUNTER_H
+<pre><code class="language-cpp">/**
+ * @file myheader.h
+ * @brief A description of this file.
+ *
+ * A longer description, with examples, etc.
+ */
 
-class Counter {
-  unsigned int count;
-
-public:
-  Counter();
-  unsigned int get();
-  void increment();
+/**
+ * @brief A description of this class.
+ *
+ * A longr description, with examples, etc.
+ */
+struct MyClass {
+  // ...
 };
-
-#endif
-
-// counter.cc
-#include "counter.h"
-Counter::Counter() : count(0) {}
-
-unsigned int Counter::get() {
-  return count;
-}
-
-void Counter::increment() {
-  ++count;
-}
-
-// test_main.cc
-#define BOOST_TEST_MODULE my_tests
-#include &lt;boost/test/included/unit_test.hpp&gt;
-#include "counter.h"
-
-BOOST_AUTO_TEST_CASE(test_counter_initialize) {
-  Counter c;
-  BOOST_TEST(c.get() == 0);
-}
-
-BOOST_AUTO_TEST_CASE(test_counter_increment) {
-  Counter c;
-  c.increment();
-  BOOST_TEST(c.get() == 1);
-}
 </code></pre>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>// counter.rs
-pub struct Counter(u32);
+</span>//! A description of this module or crate.
+//!
+//! A longer description, with examples, etc.
 
-impl Counter {
-    pub fn new() -&gt; Counter {
-        Counter(0)
-    }
-
-    pub fn get(&amp;self) -&gt; u32 {
-        self.0
-    }
-
-    pub fn increment(&amp;mut self) {
-        self.0 += 1;
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn counter_initialize() {
-        let c = Counter::new();
-        assert_eq!(0, c.get());
-    }
-
-    #[test]
-    fn counter_increment() {
-        let mut c = Counter::new();
-        c.increment();
-        assert_eq!(1, c.get());
-    }
+/// A description of this type.
+///
+/// A longer description, with examples, etc.
+struct MyClass {
+    // ...
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>Defining unit tests within the module being tested has the benefit of making
-internals of the module under test visible to the test code. This makes it
-possible to unit test internal components without exposing them to the rest of
-the program, as one would have to in C++ by including declarations in the header
-file and by declaring test fixtures as <code>friend</code>s.</p>
-<p>Running the tests in C++ involves linking against <code>boost_unit_test_framework</code>.
-In Rust, the tests can be run with <code>cargo test</code>. If not using Cargo, the tests
-can be compiled by passing the flag <code>--test</code> to rustc, and running the
-executable produced.</p>
-<h2 id="integration-tests"><a class="header" href="#integration-tests">Integration tests</a></h2>
-<p>Integration tests as supported by Cargo, are still defined outside of the module
-and outside of the crate, purely in terms of the exposed API.</p>
-<p>See the <a href="https://doc.rust-lang.org/book/ch11-03-test-organization.html#integration-tests">Rust
-Book</a>
-for details on how to organize integration tests for Rust programs.</p>
+<h3 id="special-forms"><a class="header" href="#special-forms">Special forms</a></h3>
+<p>The content of the comment up until the first blank line is treated similarly to
+the <code>@brief</code> form in Doxygen.</p>
+<p>Aside from that, Rustdoc does not have special forms for documenting various
+parts of an item, such as the parameters of a function. Instead, <a href="https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html#markdown">Markdown
+syntax can be
+used</a>
+to format the documentation, which is otherwise given in prose.</p>
+<p>There are several common conventions used for structuring documentation
+comments. The most common convention is to include sections (defined using
+Markdown header syntax) for whichever of the following are necessary for the
+item being documented:</p>
+<ul>
+<li>panics (for functions that panic, e.g., on
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#panics-32"><code>Vec::split_at</code></a>),</li>
+<li>safety (for unsafe functions, e.g., on
+<a href="https://doc.rust-lang.org/std/primitive.slice.html#safety-10"><code>Vec::split_at_unchecked</code></a>),
+and</li>
+<li>examples (e.g., on <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#examples-105"><code>Vec::split_at</code></a>).</li>
+</ul>
+<p>The following comment compares documentation for a C++ function using Doxygen to
+documentation for a Rust function using Rustdoc.</p>
+<div class="comparison">
+<a id="special-forms-comparison"></a>
+<pre><code class="language-cpp">/**
+ * @brief Computes the factorial.
+ *
+ * Computes the factorial in a stack-safe way.
+ * The factorial is defined as...
+ *
+ * @code
+ * #include &lt;cassert&gt;
+ * #include "factorial.h"
+ *
+ * int main() {
+ *    int res = factorial(3);
+ *    assert(6 == res);
+ * }
+ * @endcode
+ *
+ * @param n The number of which to take the factorial
+ *
+ * @return The factorial
+ *
+ * @exception domain_error If n &lt; 0
+ */
+int factorial(int n);
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>/// Computes the factorial.
+///
+/// Computes the factorial in a stack-safe way.
+/// The factorial is defined as...
+///
+/// # Examples
+///
+/// ```
+/// let res = factorial(3);
+/// assert_eq!(6, res);
+/// ```
+///
+/// # Panics
+///
+/// Requires that `n &gt;= 0`, otherwise panics.
+/// For the non-panicking version see
+/// [`factorial_checked`].
+fn factorial(n: i32) -&gt; i32 {
+    // ...
+<span class="boring">   todo!()
+</span>}
+<span class="boring">}</span></code></pre></pre>
+<div>
+<h3 id="automatic-documentation"><a class="header" href="#automatic-documentation">Automatic documentation</a></h3>
+<p>Many of the things that can be derived from the code are automatically included
+by Rustdoc. A major one is that trait implementations (e.g., on
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#trait-implementations"><code>Vec</code></a>),
+including blanket implementations (e.g., on
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#blanket-implementations"><code>Vec</code></a>),
+for a type do not have to be documented manually because implementations that
+are visible in the crate are automatically discovered and included by Rustdoc.</p>
+<h1 id="additional-features"><a class="header" href="#additional-features">Additional features</a></h1>
+<p>Some valuable Rustdoc features may not be expected by someone coming from using
+Doxygen. Because those features provide significant benefit, they are pointed
+out here.</p>
+<h2 id="doctest-support-via-rustdoc-and-cargo-test"><a class="header" href="#doctest-support-via-rustdoc-and-cargo-test">Doctest support via Rustdoc and <code>cargo test</code></a></h2>
+<p>One specific benefit of including examples when documenting Rust programs using
+Rustdoc is that <a href="https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html">the examples can be included in the test suite when running
+<code>cargo test</code></a>.</p>
+<p>The handling of examples as tests in Rustdoc includes logic for handling partial
+programs, so that even <a href="#special-forms-comparison">the code example in the earlier
+comparison</a> can serve as a test.</p>
+<h2 id="local-documentation-for-project-and-installed-libraries"><a class="header" href="#local-documentation-for-project-and-installed-libraries">Local documentation for project and installed libraries</a></h2>
+<p>Local documentation for both the working project and dependent libraries can be
+viewed in-browser using <code>cargo doc --open</code>. Private items for the project can be
+included in the documentation by using <code>cargo doc --open --document-private-items</code>. Because Rustdoc comments are also used by the
+<a href="https://rust-analyzer.github.io/">rust-analyzer</a> language server to provide
+documentation on hover in compatible editors, it is often worth it to document
+private items using Rustdoc comments.</p>
 
 
-                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Tests">Click here to leave us feedback about this page.</a>
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Documentation (e.g., Doxygen)">Click here to leave us feedback about this page.</a>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../etc/libraries.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../etc/tests.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../etc/documentation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../etc/build-systems.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -307,11 +348,11 @@ for details on how to organize integration tests for Rust programs.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../etc/libraries.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../etc/tests.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../etc/documentation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../etc/build-systems.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
