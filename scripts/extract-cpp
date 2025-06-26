@@ -1,0 +1,2 @@
+#!/bin/sh
+find src -name "*.md" | xargs -n 1 ./scripts/extract.hs
