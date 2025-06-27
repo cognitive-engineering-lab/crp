@@ -11426,38 +11426,6 @@ included in the documentation by using <code>cargo doc --open --document-private
 documentation on hover in compatible editors, it is often worth it to document
 private items using Rustdoc comments.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="build-systems-eg-cmake"><a class="header" href="#build-systems-eg-cmake">Build systems (e.g., CMake)</a></h1>
-<p>One major difference between the C++ and Rust ecosystems is that C++ and C
-libraries tend to be either provided by OS distributions or be included in the
-repository for a project, while Rust has a central language-specific package
-registry called <a href="https://crates.io/">crates.io</a>.</p>
-<p>This difference is amplified by the fact that the Rust build tool, Cargo, has a
-build in package manager that works with crates.io, private registries, local
-packages, and vendored sources.</p>
-<p>Cargo is documented in detail in the <a href="https://doc.rust-lang.org/cargo/">Cargo
-Book</a>.</p>
-<h2 id="packages-for-c-and-c-system-libraries"><a class="header" href="#packages-for-c-and-c-system-libraries">Packages for C and C++ system libraries</a></h2>
-<p>Many C libraries have crates on crates.io providing both low-level bindings and
-high-level safe Rust abstractions. For example, for the libgit2 library there is
-both a low-level <a href="https://crates.io/crates/libgit2-sys">libgit2-sys crate</a> and a
-high-level <a href="https://crates.io/crates/git2">git2 crate</a>. See the <a href="etc/../idioms/ffi.html">chapter on the
-Rust FFI</a> for more information on how to define these crates.</p>
-<h2 id="building-c-c-and-rust-code"><a class="header" href="#building-c-c-and-rust-code">Building C, C++, and Rust code</a></h2>
-<p>Cargo <a href="https://doc.rust-lang.org/cargo/reference/build-script-examples.html">build
-scripts</a>
-can be used to build C and C++ code as part of a Rust project. The linked
-chapter of the Cargo book includes links to resources handling the compilation
-of C, C++, and other code, working with <code>pkg-config</code>, etc.</p>
-<h2 id="testing-ctest"><a class="header" href="#testing-ctest">Testing (CTest)</a></h2>
-<p>Cargo includes support for <a href="https://doc.rust-lang.org/cargo/guide/tests.html">running
-tests</a>.</p>
-<h2 id="packaging-for-distribution-cpack"><a class="header" href="#packaging-for-distribution-cpack">Packaging for distribution (CPack)</a></h2>
-<p>Unlike CPack which is provided with CMake, Cargo does not come with tools for
-packaging for distribution to end users. However, there are third party Cargo
-helpers for packaging, such as <a href="https://crates.io/crates/cargo-deb">cargo-deb</a>
-for creating Debian package,
-<a href="https://crates.io/crates/cargo-generate-rpm">cargo-generate-rpm</a> for creating
-RPM packages, and <a href="https://crates.io/crates/cargo-wix">cargo-wix</a> for creating
-Windows installers.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="attribution-notices"><a class="header" href="#attribution-notices">Attribution notices</a></h1>
 <p>This book makes use of the Standard C++ Foundation logo under their posted
 <a href="https://isocpp.org/home/terms-of-use">terms of use</a>.</p>
