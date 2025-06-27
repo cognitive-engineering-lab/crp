@@ -735,11 +735,11 @@ fn main() {
 <h2 id="varying-data-and-behavior"><a class="header" href="#varying-data-and-behavior">Varying data and behavior</a></h2>
 <p>In C++, extensions to the visitor pattern are sometimes used to handle
 situations where both data and behavior and vary. However, those solutions also
-make use of dynamic casting. In Rust that requires opting into RTTI by defining
-a method for converting the visited objects to <a href="./../idioms/rtti.html"><code>dyn Any</code> so that they can be
-downcast</a>. While this extension to the visitor pattern is
-possible to implement, the ergonomics of the approach make other approaches more
-common in Rust.</p>
+make use of dynamic casting. In Rust, that requires opting into
+<a href="./../idioms/rtti.html">RTTI</a> by making <code>Any</code> a supertrait of the trait for the
+visitors, so they can be downcast. While this extension to the visitor pattern
+is possible to implement, the ergonomics of the approach make other approaches
+more common in Rust.</p>
 <p>One of the alternative approaches, adopted from functional programming and
 leveraging the design of traits and generics in Rust, is called <a href="https://www.cambridge.org/core/services/aop-cambridge-core/content/view/14416CB20C4637164EA9F77097909409/S0956796808006758a.pdf/data-types-a-la-carte.pdf">"data types à
 la
