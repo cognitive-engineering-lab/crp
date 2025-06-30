@@ -112,3 +112,5 @@ fn main() {
 
 The `map` method returns a different type than `iter`, but `middle` can be
 called on the result of either one.
+
+{{#quiz adapter.toml}}

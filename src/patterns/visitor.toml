@@ -1,0 +1,31 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which are true trade-offs are made when defining free functions over an enum
+instead of using the visitor pattern in Rust?
+"""
+prompt.distractors = [
+"""
+Adding behaviors requires changing the enum definition.
+""",
+"""
+Adding behaviors requires changing existing behaviors.
+""",
+"""
+RTTI is necessary to add new variants.
+"""
+]
+answer.answer = [
+"""
+Adding variants requires changing the enum definition.
+""",
+"""
+Adding variants requires changing existing behaviors.
+"""
+]
+context = """
+The compiler checks for exhasutiveness in handling the cases of a Rust
+enum. This makes it easy to determine where in the code additional logic is
+needed to handle the new variants, making the trade-offs easier to live with.
+"""
+id = "8435b363-2e95-42e7-a518-d5746ffef385"

@@ -1429,3 +1429,5 @@ closure. The example involving `FnOnce` functions in [the previous
 section](#closures-ownership-and-fnonce) may be a point of frustration
 initially, but the behavior has the benefit of reducing the documentation and reasoning
 burdens.
+
+{{#quiz closures.toml}}

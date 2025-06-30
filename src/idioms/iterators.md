@@ -980,3 +980,5 @@ iterators](https://doc.rust-lang.org/std/iter/trait.DoubleEndedIterator.html),
 which allow consuming items from the back of the iterator. However, each item
 can still only be consumed once: when the front and back meet in the middle,
 iteration is over.
+
+{{#quiz iterators.toml}}

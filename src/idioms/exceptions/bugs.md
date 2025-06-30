@@ -265,3 +265,5 @@ default panic handler. Instead one must be specified using the
 The Embedded Rust Book [chapter on handling
 panics](https://docs.rust-embedded.org/book/start/panicking.html) has more
 details on implementing panic handlers for in `no_std` programs.
+
+{{#quiz bugs.toml}}

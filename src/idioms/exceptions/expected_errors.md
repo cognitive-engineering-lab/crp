@@ -724,3 +724,5 @@ Both [thiserror](https://docs.rs/thiserror/latest/thiserror/) and
 [anyhow](https://docs.rs/anyhow/latest/anyhow/) have support for conveniently
 adding backtrace information to errors. Instructions for including backtraces
 are given on the main documentation page for each crate.
+
+{{#quiz expected_errors.toml}}

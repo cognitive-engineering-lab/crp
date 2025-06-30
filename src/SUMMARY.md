@@ -8,7 +8,6 @@
   - [Default constructors](./idioms/constructors/default_constructors.md)
   - [Copy and move constructors](./idioms/constructors/copy_and_move_constructors.md)
   - [Rule of three/five/zero](./idioms/constructors/rule_of_three_five_zero.md)
-  <!-- - [Separate construction and initialization](./idioms/constructors/partial_initialzation.md) -->
 - [Destructors and resource cleanup](./idioms/destructors.md)
 - [Data modeling](./idioms/data_modeling.md)
   - [Abstract classes, interfaces, and dynamic dispatch](./idioms/data_modeling/abstract_classes.md)
@@ -43,26 +42,24 @@
   - [Multiple return values](./idioms/out_params/multiple_return.md)
   - [Optional return values](./idioms/out_params/optional_return.md)
   - [Pre-allocated buffers](./idioms/out_params/pre-allocated_buffers.md)
-- [Varargs]()
-- [Attributes]()
-- [Calling C (FFI)]()
-- [NRVO, RVO, and placement new]()
+- [Rust and C++ interoperability (FFI)](./idioms/ffi.md)
+- [NRVO and RVO](./idioms/rvo.md)
+- [Placement new](./idioms/placement_new.md)
 - [Concurrency (threads and async)]()
 
 # Patterns
 
 - [Adapter pattern](./patterns/adapter.md)
-- [Visitor pattern and double dispatch]()
+- [Visitor pattern and double dispatch](./patterns/visitor.md)
 - [Curiously recurring template pattern (CRTP)](./patterns/crtp.md)
-- [Pointer-to-implementation (PImpl)]()
-- [X macros]()
+- [Pointer-to-implementation (PIMPL)](./patterns/pimpl.md)
 
 # Ecosystem
 
 - [Libraries](./etc/libraries.md)
 - [Tests](./etc/tests.md)
-- [Documentation (Doxygen)]()
-- [Build systems (CMake)]()
+- [Documentation (e.g., Doxygen)](./etc/documentation.md)
+- [Build systems (e.g., CMake)](./etc/build_systems.md)
 
 ---
 

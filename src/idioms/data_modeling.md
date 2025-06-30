@@ -43,12 +43,18 @@ Additionally, despite it not being strictly necessary to model a fixed set of
 variants, the visitor pattern is sometimes used for this situation, especially
 when using versions of the C++ standard before the introduction of
 `std::variant`. In most of these cases the idiomatic Rust solution is the same
-as what one would do when converting a C++ solution that uses tagged unions. The
-chapter on the visitor pattern<!-- LINKME --> describes when to use a
-Rust version of the visitor pattern or when to use Rust's enums (which are
-closer to `std::variant` than to C++ enums) to model the data.
+as what one would do when converting a C++ solution that uses [tagged
+unions](./data_modeling/tagged_unions.md). The chapter on the [visitor
+pattern](../patterns/visitor.md) describes when to use a Rust version of the
+visitor pattern or when to use Rust's enums (which are closer to `std::variant`
+than to C++ enums) to model the data.
 
 ## Varying data and operations
 
-When both data and operations may be extended by a client, the visitor pattern
-is used in both C++ and in Rust<!-- LINKME -->.
+When both data and operations may be extended by a client, the required
+solutions are more complex. In C++, the approach usually involves some kind of
+extension to the [visitor pattern](../patterns/visitor.md) along with dynamic
+casting. Because Rust does not support the kind of RTTI necessary for a dynamic
+cast operator, different approaches need to be used. Some of those approaches
+are discussed in the [chapter on the visitor
+pattern](../patterns/visitor.md#expression-problem).

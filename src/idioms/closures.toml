@@ -1,0 +1,80 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Does the following Rust program compile? If not, why not?
+
+```rust
+fn main() {
+    let s = String::from("hi");
+
+    for x in (0..10).map(|_| s) {
+        println!("{}", x);
+    }
+}
+```
+"""
+prompt.distractors = [
+# Thinking in terms of C copy semantics.
+"""
+The program compiles.
+""",
+# Thinking that `FnOnce` has to do with the number of calls rather than
+# ownership.
+"""
+The program does not compile because `|_| s` is a `FnOnce` closure, but is
+called 10 times because the range is `0..10`.
+"""
+]
+answer.answer = """
+The program does not compile because the `|_| s` is a `FnOnce` closure, but
+`map` takes a `FnMut` closure.
+"""
+context = """
+The compiler will actually infer the equivalent problem that the closure is
+`FnMut` and then state that captured variables cannot be moved out of a `FnMut`
+closure.
+
+The way to fix the problem depends on whether the closure needs to return owned
+`String` values, or if `&str` is enough. In the latter case, the closure can be
+`|_| &s` instead. In the former case, the closure needs to return a clone of
+`s`.
+"""
+id = "15d61c38-0bd1-45eb-bb2f-db9d357995e3"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Does the following Rust program compile? If not, why not?
+
+```rust
+fn main() {
+    let n: i32 = 42;
+
+    for x in (0..10).map(|_| n) {
+        println!("{}", x);
+    }
+}
+```
+"""
+prompt.distractors = [
+# Not seeing the difference with the previous question.
+"""
+The program does not compile because the `|_| s` is a `FnOnce` closure, but
+`map` takes a `FnMut` closure.
+""",
+# Thinking that `FnOnce` has to do with the number of calls rather than
+# ownership.
+"""
+The program does not compile because `|_| s` is a `FnOnce` closure, but is
+called 10 times because the range is `0..10`.
+"""
+]
+answer.answer = """
+The program compiles.
+"""
+context = """
+Because `i32` implements the `Copy` trait, returning `n` implicitly copies `n`,
+making the closure a `Fn` closure instead of a `FnOnce` closure. `Fn` closures
+implement `FnMut`, and so can be used with `map`.
+"""
+id = "798f623e-0802-4b29-8516-09d443dbb7e8"
