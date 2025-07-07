@@ -197,13 +197,19 @@ in Rust</a>.</p>
 variants, the visitor pattern is sometimes used for this situation, especially
 when using versions of the C++ standard before the introduction of
 <code>std::variant</code>. In most of these cases the idiomatic Rust solution is the same
-as what one would do when converting a C++ solution that uses tagged unions. The
-chapter on the visitor pattern<!-- LINKME --> describes when to use a
-Rust version of the visitor pattern or when to use Rust's enums (which are
-closer to <code>std::variant</code> than to C++ enums) to model the data.</p>
+as what one would do when converting a C++ solution that uses <a href="./data_modeling/tagged_unions.html">tagged
+unions</a>. The chapter on the <a href="../patterns/visitor.html">visitor
+pattern</a> describes when to use a Rust version of the
+visitor pattern or when to use Rust's enums (which are closer to <code>std::variant</code>
+than to C++ enums) to model the data.</p>
 <h2 id="varying-data-and-operations"><a class="header" href="#varying-data-and-operations">Varying data and operations</a></h2>
-<p>When both data and operations may be extended by a client, the visitor pattern
-is used in both C++ and in Rust<!-- LINKME -->.</p>
+<p>When both data and operations may be extended by a client, the required
+solutions are more complex. In C++, the approach usually involves some kind of
+extension to the <a href="../patterns/visitor.html">visitor pattern</a> along with dynamic
+casting. Because Rust does not support the kind of RTTI necessary for a dynamic
+cast operator, different approaches need to be used. Some of those approaches
+are discussed in the <a href="../patterns/visitor.html#expression-problem">chapter on the visitor
+pattern</a>.</p>
 
 
                         <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Data modeling">Click here to leave us feedback about this page.</a>

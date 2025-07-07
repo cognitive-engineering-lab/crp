@@ -346,7 +346,7 @@ types in Rust.</p>
 <tr><td>Shared owner, dynamic storage, immutable, not thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><code>std::rc::Rc&lt;T&gt;</code></td></tr>
 <tr><td>Shared owner, dynamic storage, immutable, thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><code>std::sync::Arc&lt;T&gt;</code></td></tr>
 <tr><td>Shared owner, dynamic storage, mutable, not thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code></td><td><a href="https://doc.rust-lang.org/book/ch15-05-interior-mutability.html#having-multiple-owners-of-mutable-data-by-combining-rct-and-refcellt"><code>std::rc::Rc&lt;std::cell::RefCell&lt;T&gt;&gt;</code></a></td></tr>
-<tr><td>Shared owner, dynamic storage, mutable, thread-safe</td><td><code>std::shared_ptrM&lt;T&gt;</code> with a <code>std::mutex</code></td><td><a href="https://doc.rust-lang.org/book/ch16-03-shared-state.html"><code>std::sync::Arc&lt;std::mutex::Mutex&lt;T&gt;&gt;</code></a></td></tr>
+<tr><td>Shared owner, dynamic storage, mutable, thread-safe</td><td><code>std::shared_ptr&lt;T&gt;</code> with a <code>std::mutex</code></td><td><a href="https://doc.rust-lang.org/book/ch16-03-shared-state.html"><code>std::sync::Arc&lt;std::mutex::Mutex&lt;T&gt;&gt;</code></a></td></tr>
 <tr><td>Const reference</td><td><code>const &amp;T</code></td><td><code>&amp;T</code></td></tr>
 <tr><td>Mutable reference</td><td><code>&amp;T</code></td><td><code>&amp;mut T</code></td></tr>
 <tr><td>Const observer pointer</td><td><code>const *T</code></td><td><code>&amp;T</code></td></tr>
