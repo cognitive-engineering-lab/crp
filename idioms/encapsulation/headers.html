@@ -175,6 +175,8 @@ declarations. Instead, Rust modules control visibility and linkage
 simultaneously and expose public definitions for use by other modules.</p>
 <div class="comparison">
 <pre><code class="language-cpp">// person.h
+#include &lt;string&gt;
+
 class Person {
   std::string name;
 
@@ -184,7 +186,6 @@ public:
 };
 
 // person.cc
-#include &lt;string&gt;
 #include "person.h"
 
 const std::string &amp;Person::getName() {
