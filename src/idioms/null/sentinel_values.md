@@ -1,6 +1,6 @@
 # Sentinel values
 
-Sentinel values are in-band value that indicates a special situation, such as
+Sentinel values are in-band values that indicate a special situation, such as
 having reached the end of valid data in an iterator.
 
 ## `nullptr`
