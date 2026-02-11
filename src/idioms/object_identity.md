@@ -40,7 +40,7 @@ struct Person
     Person& operator=(const Person& other) {
         // compare object identity first
         if (this != &other) {
-            this.name = other.name;
+            this->name = other.name;
             // copy the other expensive-to-copy fields
         }
 

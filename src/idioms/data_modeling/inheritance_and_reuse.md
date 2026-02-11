@@ -33,12 +33,12 @@ class Printer : public Device {
     bool powered = false;
 public:
     void powerOn() override {
-        this.powered = true;
+        this->powered = true;
         std::cout << "Printer is powered on." << std::endl;
     }
 
     void powerOff() override {
-        this.powered = false;
+        this->powered = false;
         std::cout << "Printer is powered off." << std::endl;
     }
 };
