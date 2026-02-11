@@ -91,7 +91,7 @@ In C++ functions and static member functions are automatically converted to
 function pointers.
 
 Rust performs the same conversion. In addition to functions and members that do
-not take `self` as an argument, constructors (proper constructors) also have
+not take `self` as an argument, tuple struct constructors also have
 function type and can be converted to function pointers. Non-capturing closures
 do not have function type, but can also be converted to function pointers.
 
@@ -285,9 +285,9 @@ fn main() {
 ### `isize` and `usize`
 
 In the Rust standard library the `isize` and `usize` types are used for values
-intended to used be indices (much like `size_t` in C++). However, their use for
+intended to be used as indices (much like `size_t` in C++). However, their use for
 other purposes is usually discouraged in favor of using explicitly sized types
-such as `u32`. This results a situation where values of type `u32` have to be
+such as `u32`. This results in a situation where values of type `u32` have to be
 converted to `usize` for use in indexing, but `Into<usize>` is not implemented
 for `u32`.
 
