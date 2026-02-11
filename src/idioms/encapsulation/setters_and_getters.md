@@ -139,7 +139,7 @@ impl Normalized {
 
 A significant limitation that arises from the way that getter methods interact
 with the borrow checker is that it isn't possible to mutably borrow multiple
-elements from an indexed structure like a vector using a methods like
+elements from an indexed structure like a vector using a method like
 `Vec::get_mut`.
 
 The built-in indexed types have several methods for creating split views onto a
