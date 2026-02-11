@@ -119,7 +119,7 @@ fn sqrt_approx_zero(x: f64) -> bool {
 
 impl Normalized {
     pub fn from_vec2(v: Vec2) -> Option<Self> {
-        if sqrt_approx_zero(v.x * v.x + v.y * v.x - 1.0) {
+        if sqrt_approx_zero(v.x * v.x + v.y * v.y - 1.0) {
             Some(Self(v))
         } else {
             None
