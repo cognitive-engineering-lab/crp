@@ -152,22 +152,22 @@ impl MyPair {
 
 fn main() {
     // convert a function to a function pointer
-    let twicePtr: fn(i32) -> i32 = twice;
-    let res = twicePtr(5);
+    let twice_ptr: fn(i32) -> i32 = twice;
+    let res = twice_ptr(5);
 
     // convert a constructor to a function pointer
-    let ctorPtr: fn(i32, i32) -> MyPair = MyPair;
-    let pair = ctorPtr(10, 20);
+    let ctor_ptr: fn(i32, i32) -> MyPair = MyPair;
+    let pair = ctor_ptr(10, 20);
 
     // convert a static method to a function
     // pointer
-    let methodPtr: fn() -> MyPair = MyPair::new;
-    let pair2 = methodPtr();
+    let method_ptr: fn() -> MyPair = MyPair::new;
+    let pair2 = method_ptr();
 
     // convert a non-capturing closure to a
     // function pointer
     let closure: fn(i32) -> i32 = |x: i32| x * 5;
-    let closureRes = closure(2);
+    let closure_res = closure(2);
 }
 ```
 
