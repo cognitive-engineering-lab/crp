@@ -110,7 +110,7 @@ class of `BinaryTree`.
 
 In Rust, however, both types can be defined in the same module, and so have
 access to each other's private fields and methods. The module as a whole
-provides a collection of types, methods, and functions that together define a
+provides a collection of types, methods, and functions that together define an
 encapsulated concept.
 
 <div class="comparison">
