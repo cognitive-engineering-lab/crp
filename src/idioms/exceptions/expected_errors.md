@@ -480,7 +480,7 @@ impl Display for ErrorA {
 
 impl Error for ErrorA {}
 
-fn might_throw_A() -> Result<(), ErrorA> {
+fn might_throw_a() -> Result<(), ErrorA> {
     Ok(())
 }
 
@@ -498,7 +498,7 @@ impl Display for ErrorB {
 
 impl Error for ErrorB {}
 
-fn might_throw_B() -> Result<(), ErrorB> {
+fn might_throw_b() -> Result<(), ErrorB> {
     Ok(())
 }
 
@@ -537,8 +537,8 @@ impl From<ErrorB> for ErrorAOrB {
 
 fn process() -> Result<(), ErrorAOrB> {
     // the ? operator uses the From instance
-    might_throw_A()?;
-    might_throw_B()?;
+    might_throw_a()?;
+    might_throw_b()?;
     Ok(())
 }
 ```
@@ -586,7 +586,7 @@ use thiserror::Error;
 #[error("ErrorA was produced")]
 struct ErrorA;
 
-fn might_throw_A() -> Result<(), ErrorA> {
+fn might_throw_a() -> Result<(), ErrorA> {
     Ok(())
 }
 
@@ -594,7 +594,7 @@ fn might_throw_A() -> Result<(), ErrorA> {
 #[error("ErrorB was produced")]
 struct ErrorB;
 
-fn might_throw_B() -> Result<(), ErrorB> {
+fn might_throw_b() -> Result<(), ErrorB> {
     Ok(())
 }
 
@@ -607,8 +607,8 @@ enum ErrorAOrB {
 }
 
 fn process() -> Result<(), ErrorAOrB> {
-    might_throw_A()?;
-    might_throw_B()?;
+    might_throw_a()?;
+    might_throw_b()?;
     Ok(())
 }
 ```
@@ -676,7 +676,7 @@ use thiserror::Error;
 #[error("ErrorA was produced")]
 struct ErrorA;
 
-fn might_throw_A() -> Result<(), ErrorA> {
+fn might_throw_a() -> Result<(), ErrorA> {
     Ok(())
 }
 
@@ -684,13 +684,13 @@ fn might_throw_A() -> Result<(), ErrorA> {
 #[error("ErrorB was produced")]
 struct ErrorB;
 
-fn might_throw_B() -> Result<(), ErrorB> {
+fn might_throw_b() -> Result<(), ErrorB> {
     Ok(())
 }
 
 fn process() -> anyhow::Result<()> {
-    might_throw_A()?;
-    might_throw_B()?;
+    might_throw_a()?;
+    might_throw_b()?;
     Ok(())
 }
 
