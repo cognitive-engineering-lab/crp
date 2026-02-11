@@ -119,7 +119,7 @@ fn main() {
 ```
 
 One exception to this is when the methods are all from the same generic trait
-with with different type parameters for the implementations. In that case, if
+with different type parameters for the implementations. In that case, if
 the signature is sufficient to determine which implementation to use, the trait
 does not need to be specified to resolve the method. This is common when using
 the [`From` trait](https://doc.rust-lang.org/std/convert/trait.From.html).
@@ -149,10 +149,10 @@ fn main() {
 
 ## Overloaded operators
 
-In C++ most operators can either be overloaded either with a free-standing
+In C++ most operators can be overloaded either with a free-standing
 function or by providing a method defining the operator on a class.
 
-Rust provides operator via implementation of specific traits. Implementing a
+Rust provides operators via implementation of specific traits. Implementing a
 method of the same name as required by the trait will not make a type usable
 with the operator if the trait is not implemented.
 
@@ -227,7 +227,7 @@ impl std::ops::Add<&Vec2> for &Vec2 {
     }
 }
 
-// If Vec2 weren't so small, it might be desireable to re-use space in the below
+// If Vec2 weren't so small, it might be desirable to re-use space in the below
 // implementations, since they take ownership.
 
 impl std::ops::Add<Vec2> for &Vec2 {
