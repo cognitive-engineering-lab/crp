@@ -109,7 +109,7 @@ fn main() {
 In C++, the only way to handle exceptions is `catch`. In Rust, all of the
 features for dealing with [tagged
 unions](../data_modeling/tagged_unions.md) can be used with `Result` and
-`Option`. The most approach depends on the intention of the program.
+`Option`. The best approach depends on the intention of the program.
 
 The basic way of handling an error indicated by a `Result` in Rust is by using
 `match`.
