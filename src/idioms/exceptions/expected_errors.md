@@ -447,7 +447,7 @@ struct ErrorA : public std::exception {
 void mightThrowA() {}
 
 struct ErrorB : public std::exception {
-  const char *msg = "ErrorA was produced";
+  const char *msg = "ErrorB was produced";
   const char *what() const noexcept override {
     return msg;
   }
@@ -565,7 +565,7 @@ struct ErrorA : public std::exception {
 void mightThrowA() {}
 
 struct ErrorB : public std::exception {
-  const char *msg = "ErrorA was produced";
+  const char *msg = "ErrorB was produced";
   const char *what() const noexcept override {
     return msg;
   }
@@ -645,7 +645,7 @@ struct ErrorA : public std::exception {
 void mightThrowA() {}
 
 struct ErrorB : public std::exception {
-  const char *msg = "ErrorA was produced";
+  const char *msg = "ErrorB was produced";
   const char *what() const noexcept override {
     return msg;
   }
