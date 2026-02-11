@@ -6,7 +6,7 @@ repository for a project, while Rust has a central language-specific package
 registry called [crates.io](https://crates.io/).
 
 This difference is amplified by the fact that the Rust build tool, Cargo, has a
-build in package manager that works with crates.io, private registries, local
+built-in package manager that works with crates.io, private registries, local
 packages, and vendored sources.
 
 Cargo is documented in detail in the [Cargo
