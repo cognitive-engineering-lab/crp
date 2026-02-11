@@ -99,7 +99,7 @@ do not have function type, but can also be converted to function pointers.
 
 ```cpp
 int twice(int n) {
-  return n * n;
+  return n * 2;
 }
 
 struct MyPair {
@@ -139,7 +139,7 @@ int main() {
 
 ```rust
 fn twice(x: i32) -> i32 {
-    x * x
+    x * 2
 }
 
 struct MyPair(i32, i32);
