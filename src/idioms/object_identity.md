@@ -11,8 +11,8 @@ between specific instances of an object that otherwise have the same properties.
 For example, representing a labeled graph where there may be distinct nodes that
 have the same label.
 
-In Rust, some of these cases are not applicable, and others cases are typically
-handled by instead by implementing a synthetic notion of identity for the
+In Rust, some of these cases are not applicable, and other cases are typically
+handled instead by implementing a synthetic notion of identity for the
 values.
 
 ## Overloading copy assignment and equality comparison operators
