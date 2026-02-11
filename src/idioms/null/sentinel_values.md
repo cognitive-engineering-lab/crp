@@ -53,7 +53,7 @@ The `Box<T>` type has the same meaning as `std::unique_ptr<T>` in terms of being
 a uniquely owned pointer to some `T` on the heap, but unlike `std::unique_ptr`,
 it cannot be null. Rust's `Option<T>` (which is similar to `std::optional<T>` in
 C++) can represent optional pointers when used in conjunction with `Box<T>`, as
-in `Optional<Box<T>>`. In [those cases (and in some other
+in `Option<Box<T>>`. In [those cases (and in some other
 cases)](../data_modeling/template_specialization.md#niche-optimization) the
 compiler optimizes the representation to be the same size as `Box<T>` by
 leveraging the fact that `Box` cannot be null.
