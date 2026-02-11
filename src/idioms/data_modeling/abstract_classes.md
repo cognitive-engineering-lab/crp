@@ -165,7 +165,7 @@ given by a user defined `Drop` implementation or not) required for the value.
 
 ## Vtables and Rust trait object types
 
-C++ and Rust both requires some kind of indirection to perform dynamic dispatch
+C++ and Rust both require some kind of indirection to perform dynamic dispatch
 against an interface. In C++ this indirection takes the form of a pointer to the
 abstract class (instead of the derived concrete class), making use of a vtable
 to resolve the virtual method.
