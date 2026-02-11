@@ -130,7 +130,7 @@ fn handle_event(e: Event) {
 
 </div>
 
-Even when the a client of the library is needs to be able to define custom
+Even when a client of the library needs to be able to define custom
 events, it is usually possible to make use of an event enum. This is the
 approach taken by the [winit
 crate](https://docs.rs/winit/latest/winit/event/enum.Event.html), which does
@@ -238,14 +238,14 @@ fn handle_event(e: Event<UserEvent>) {
 </div>
 
 When representing events as an enum truly isn't feasible, sometimes double
-dispatch <!-- TODO: link to visitor --> can be used instead. Otherwise it may be
+dispatch ([the visitor pattern](../patterns/visitor.md)) can be used instead. Otherwise it may be
 necessary to use the `Any` trait or to define an `Event` trait that exposes a
-type identifier that an be used for safe downcasting (via `Any`) or unsafe
+type identifier that can be used for safe downcasting (via `Any`) or unsafe
 downcasting behind a safe interface.[^safe-event-handler]
 
 [^safe-event-handler]: Such an interface usually involves providing individual
     event handling functions for specific types, rather than a single large
-    event handling function, so that the underlying implementation can managing
+    event handling function, so that the underlying implementation can manage
     the enforcement of the invariants required to make the casting safe.
 
 ## Library support for reflection via macros
