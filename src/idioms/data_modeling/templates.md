@@ -91,7 +91,7 @@ impl<Label> DirectedGraph<Label> {
 </div>
 
 In the use case demonstrated in the above example, there are few practical
-differences between using C++ template to define a class and using and Rust's
+differences between using a C++ template to define a class and using Rust's
 generics to define a struct. Whenever one would use a template that takes a
 `typename` or `class` parameter in C++, one can instead take a type parameter in
 Rust.
@@ -197,7 +197,7 @@ impl<Label> DirectedGraph<Label> {
     where
         Label: Ord,
     {
-        // Matches the C++, but is not the idomatic
+        // Matches the C++, but is not the idiomatic
         // implementation!
         if self.node_labels.is_empty() {
             None
@@ -390,7 +390,7 @@ because both are part of the type of the produced array.
 
 ## Rust's `Self` type
 
-Within a Rust struct defintion, `impl` block, or `impl` trait block, there is a
+Within a Rust struct definition, `impl` block, or `impl` trait block, there is a
 `Self` type that is in scope. The `Self` type is the type of the class being
 defined with all of the generic type parameters filled in. It can be useful to
 refer to this type especially in cases where there are many parameters that
