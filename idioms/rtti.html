@@ -278,7 +278,7 @@ fn handle_event(e: Event) {
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>Even when the a client of the library is needs to be able to define custom
+<p>Even when a client of the library needs to be able to define custom
 events, it is usually possible to make use of an event enum. This is the
 approach taken by the <a href="https://docs.rs/winit/latest/winit/event/enum.Event.html">winit
 crate</a>, which does
@@ -381,9 +381,9 @@ fn handle_event(e: Event&lt;UserEvent&gt;) {
 <span class="boring">}</span></code></pre></pre>
 </div>
 <p>When representing events as an enum truly isn't feasible, sometimes double
-dispatch <!-- TODO: link to visitor --> can be used instead. Otherwise it may be
+dispatch (<a href="../patterns/visitor.html">the visitor pattern</a>) can be used instead. Otherwise it may be
 necessary to use the <code>Any</code> trait or to define an <code>Event</code> trait that exposes a
-type identifier that an be used for safe downcasting (via <code>Any</code>) or unsafe
+type identifier that can be used for safe downcasting (via <code>Any</code>) or unsafe
 downcasting behind a safe interface.<sup class="footnote-reference" id="fr-safe-event-handler-1"><a href="#footnote-safe-event-handler">1</a></sup></p>
 <h2 id="library-support-for-reflection-via-macros"><a class="header" href="#library-support-for-reflection-via-macros">Library support for reflection via macros</a></h2>
 <p>Some of the use cases of RTTI can be achieved in Rust by using one of the third-party
@@ -399,7 +399,7 @@ this approach makes it more difficult to integrate third-party types that lack t
 <ol class="footnote-definition"><li id="footnote-safe-event-handler">
 <p>Such an interface usually involves providing individual
 event handling functions for specific types, rather than a single large
-event handling function, so that the underlying implementation can managing
+event handling function, so that the underlying implementation can manage
 the enforcement of the invariants required to make the casting safe. <a href="#fr-safe-event-handler-1">↩</a></p>
 </li>
 </ol>

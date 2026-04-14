@@ -248,7 +248,7 @@ impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
 <span class="boring">}</span></code></pre></pre>
 </div>
 <p>In the use case demonstrated in the above example, there are few practical
-differences between using C++ template to define a class and using and Rust's
+differences between using a C++ template to define a class and using Rust's
 generics to define a struct. Whenever one would use a template that takes a
 <code>typename</code> or <code>class</code> parameter in C++, one can instead take a type parameter in
 Rust.</p>
@@ -349,7 +349,7 @@ class DirectedGraph {
     where
         Label: Ord,
     {
-        // Matches the C++, but is not the idomatic
+        // Matches the C++, but is not the idiomatic
         // implementation!
         if self.node_labels.is_empty() {
             None
@@ -524,7 +524,7 @@ to construct the array. <code>from_fn</code> itself takes as type parameters the
 type and the constant. Those arguments are elided because Rust can infer them,
 because both are part of the type of the produced array.</p>
 <h2 id="rusts-self-type"><a class="header" href="#rusts-self-type">Rust's <code>Self</code> type</a></h2>
-<p>Within a Rust struct defintion, <code>impl</code> block, or <code>impl</code> trait block, there is a
+<p>Within a Rust struct definition, <code>impl</code> block, or <code>impl</code> trait block, there is a
 <code>Self</code> type that is in scope. The <code>Self</code> type is the type of the class being
 defined with all of the generic type parameters filled in. It can be useful to
 refer to this type especially in cases where there are many parameters that

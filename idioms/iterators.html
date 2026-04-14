@@ -166,7 +166,7 @@
                         <h1 id="iterators-and-ranges"><a class="header" href="#iterators-and-ranges">Iterators and ranges</a></h1>
 <p>Rust iterators resemble C++
 <a href="https://en.cppreference.com/w/cpp/ranges.html">ranges</a> in that they represent
-iterable sequence and can be manipulated similarly to using
+an iterable sequence and can be manipulated similarly to using
 range views. Since C++ ranges are defined using iterators and ranges were only
 introduced in C++20, this chapter compares Rust iterators with both C++
 iterators and with C++ ranges.</p>
@@ -339,7 +339,7 @@ mutable reference in Rust.</p>
         println!("{}", x);
     }
 
-    // since v was borrowed, not moved, it is still accessiable here.
+    // since v was borrowed, not moved, it is still accessible here.
     println!("{:?}", v);
 
     for x in &amp;mut v {
@@ -347,7 +347,7 @@ mutable reference in Rust.</p>
         x.push('!');
     }
 
-    // since v was borrowed, not moved, it is still accessiable here.
+    // since v was borrowed, not moved, it is still accessible here.
     // however, the content of v has been modified
     println!("{:?}", v);
 
@@ -446,7 +446,7 @@ int main() {
 </div>
 <h2 id="iterator-invalidation"><a class="header" href="#iterator-invalidation">Iterator invalidation</a></h2>
 <p>In C++, operations sometimes only invalidate some iterators on a value, such as
-the <code>erase</code> method on <code>std::vector</code> only invaliding iterators to the erased
+the <code>erase</code> method on <code>std::vector</code> only invalidating iterators to the erased
 element and those after it, but not the ones before it.</p>
 <p>In Rust, the fact that iterators borrow the whole iterated value means that no
 operations modifying the value itself (such as erasing values from a vector) can

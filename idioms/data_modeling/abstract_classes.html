@@ -314,7 +314,7 @@ This is further described <a href="#vtables-and-rust-trait-object-types">below</
 declaration because in Rust every vtable includes the drop behavior (whether
 given by a user defined <code>Drop</code> implementation or not) required for the value.</p>
 <h2 id="vtables-and-rust-trait-object-types"><a class="header" href="#vtables-and-rust-trait-object-types">Vtables and Rust trait object types</a></h2>
-<p>C++ and Rust both requires some kind of indirection to perform dynamic dispatch
+<p>C++ and Rust both require some kind of indirection to perform dynamic dispatch
 against an interface. In C++ this indirection takes the form of a pointer to the
 abstract class (instead of the derived concrete class), making use of a vtable
 to resolve the virtual method.</p>

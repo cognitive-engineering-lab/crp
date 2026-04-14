@@ -1338,7 +1338,7 @@ This is further described <a href="idioms/data_modeling/abstract_classes.html#vt
 declaration because in Rust every vtable includes the drop behavior (whether
 given by a user defined <code>Drop</code> implementation or not) required for the value.</p>
 <h2 id="vtables-and-rust-trait-object-types"><a class="header" href="#vtables-and-rust-trait-object-types">Vtables and Rust trait object types</a></h2>
-<p>C++ and Rust both requires some kind of indirection to perform dynamic dispatch
+<p>C++ and Rust both require some kind of indirection to perform dynamic dispatch
 against an interface. In C++ this indirection takes the form of a pointer to the
 abstract class (instead of the derived concrete class), making use of a vtable
 to resolve the virtual method.</p>
@@ -2536,12 +2536,12 @@ class Printer : public Device {
     bool powered = false;
 public:
     void powerOn() override {
-        this.powered = true;
+        this-&gt;powered = true;
         std::cout &lt;&lt; "Printer is powered on." &lt;&lt; std::endl;
     }
 
     void powerOff() override {
-        this.powered = false;
+        this-&gt;powered = false;
         std::cout &lt;&lt; "Printer is powered off." &lt;&lt; std::endl;
     }
 };
@@ -2597,7 +2597,7 @@ dispatch</a> or <a href="idioms/data_modeling/./concepts.html">static
 dispatch</a> (with <a href="idioms/data_modeling/./abstract_classes.html#vtables-and-rust-trait-object-types">no vtable overhead in the
 static dispatch
 case</a>).</p>
-<p>Rust traits differ from abstract classes in few more ways. For example,
+<p>Rust traits differ from abstract classes in a few more ways. For example,
 Rust traits cannot define data members and cannot define private or protected
 methods. This limits the effectiveness of using traits to implement the template
 method pattern.</p>
@@ -2607,7 +2607,7 @@ visible as methods on the type.</p>
 <p>Traits can, however, inherit from each other, including multiple inheritance. As
 in modern C++, inheritance hierarchies in Rust tend to be shallow. In situations
 with complex multiple inheritance, however, the diamond problem cannot arise in
-Rust because traits cannot override other traits implementations. Therefore, all
+Rust because traits cannot override other trait implementations. Therefore, all
 paths to a common parent trait resolve to the same implementation.</p>
 <div class="quiz-placeholder" data-quiz-name="&quot;inheritance_and_reuse&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Unlike with a C++ parent class, the default method is not part of `BareLogger`,\neven when accessed statically via the trait.\n&quot;,&quot;id&quot;:&quot;2bc058d0-99e4-44e0-9abe-5497b713731e&quot;,&quot;type&quot;:&quot;Tracing&quot;,&quot;answer&quot;:{&quot;doesCompile&quot;:true,&quot;stdout&quot;:&quot;a message\nan error\nanother message\nanother error\n&quot;},&quot;prompt&quot;:{&quot;program&quot;:&quot;trait Logger {\n    fn log(&amp;self, message: &amp;str);\n\n    fn error(&amp;self, message: &amp;str) {\n        self.log(&amp;format!(\&quot;ERROR: {}\&quot;, message));\n    }\n}\n\nstruct BareLogger;\n\nimpl Logger for BareLogger {\n    fn log(&amp;self, message: &amp;str) {\n        println!(\&quot;{}\&quot;, message);\n    }\n\n    fn error(&amp;self, message: &amp;str) {\n        // Omits the ERROR: prefix\n        println!(\&quot;{}\&quot;, message)\n    }\n}\n\nfn main() {\n    let logger = BareLogger;\n    logger.log(\&quot;a message\&quot;);\n    logger.error(\&quot;an error\&quot;);\n    &lt;BareLogger as Logger&gt;::log(&amp;logger, \&quot;another message\&quot;);\n    &lt;BareLogger as Logger&gt;::error(&amp;logger, \&quot;another error\&quot;);\n}\n&quot;}},{&quot;context&quot;:&quot;A trait only defines an interface, with the ability to define default methods as\na convenience for when some methods on the trait can be defined in terms of\nothers.\n&quot;,&quot;id&quot;:&quot;78c03495-5d3d-4faf-8375-b9f338a377ff&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because in Rust traits cannot have fields.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile, because `health` isn't initialized when `Enemy` implements\n`Damageable`.\n&quot;,&quot;It does not compile, because `e.health` isn't initialized before using `e` in\n`main`.\n&quot;],&quot;prompt&quot;:&quot;Does the following program compile? If not, why not?\n\n```rust\ntrait Damageable {\n    health: u32;\n\n    fn take_damage(&amp;mut self, damage: u32) {\n        self.health = self.health.saturating_sub(damage);\n    }\n}\n\nstruct Enemy;\n\nimpl Damageable for Enemy {}\n\nfn main() {\n    let e = Enemy;\n    e.take_damage(10);\n}\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
 <script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css"><div style="break-before: page; page-break-before: always;"></div><h1 id="template-classes-functions-and-methods"><a class="header" href="#template-classes-functions-and-methods">Template classes, functions, and methods</a></h1>
@@ -2695,7 +2695,7 @@ impl&lt;Label&gt; DirectedGraph&lt;Label&gt; {
 <span class="boring">}</span></code></pre></pre>
 </div>
 <p>In the use case demonstrated in the above example, there are few practical
-differences between using C++ template to define a class and using and Rust's
+differences between using a C++ template to define a class and using Rust's
 generics to define a struct. Whenever one would use a template that takes a
 <code>typename</code> or <code>class</code> parameter in C++, one can instead take a type parameter in
 Rust.</p>
@@ -2796,7 +2796,7 @@ class DirectedGraph {
     where
         Label: Ord,
     {
-        // Matches the C++, but is not the idomatic
+        // Matches the C++, but is not the idiomatic
         // implementation!
         if self.node_labels.is_empty() {
             None
@@ -2971,7 +2971,7 @@ to construct the array. <code>from_fn</code> itself takes as type parameters the
 type and the constant. Those arguments are elided because Rust can infer them,
 because both are part of the type of the produced array.</p>
 <h2 id="rusts-self-type"><a class="header" href="#rusts-self-type">Rust's <code>Self</code> type</a></h2>
-<p>Within a Rust struct defintion, <code>impl</code> block, or <code>impl</code> trait block, there is a
+<p>Within a Rust struct definition, <code>impl</code> block, or <code>impl</code> trait block, there is a
 <code>Self</code> type that is in scope. The <code>Self</code> type is the type of the class being
 defined with all of the generic type parameters filled in. It can be useful to
 refer to this type especially in cases where there are many parameters that
@@ -3262,7 +3262,7 @@ optimization</a>
 for when <code>Option</code> is used with a reference (<code>&amp;</code> or <code>&amp;mut ref</code>), <code>Box</code>
 (equivalent of <code>unique_ptr</code>), and <code>NonNull</code> (a non-null raw pointer).</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="sentinel-values"><a class="header" href="#sentinel-values">Sentinel values</a></h1>
-<p>Sentinel values are in-band value that indicates a special situation, such as
+<p>Sentinel values are in-band values that indicate a special situation, such as
 having reached the end of valid data in an iterator.</p>
 <h2 id="nullptr"><a class="header" href="#nullptr"><code>nullptr</code></a></h2>
 <p>Many designs in C++ borrow the convention from C of using a null pointer as a
@@ -3307,7 +3307,7 @@ fn parse(
 a uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
 it cannot be null. Rust's <code>Option&lt;T&gt;</code> (which is similar to <code>std::optional&lt;T&gt;</code> in
 C++) can represent optional pointers when used in conjunction with <code>Box&lt;T&gt;</code>, as
-in <code>Optional&lt;Box&lt;T&gt;&gt;</code>. In <a href="idioms/null/../data_modeling/template_specialization.html#niche-optimization">those cases (and in some other
+in <code>Option&lt;Box&lt;T&gt;&gt;</code>. In <a href="idioms/null/../data_modeling/template_specialization.html#niche-optimization">those cases (and in some other
 cases)</a> the
 compiler optimizes the representation to be the same size as <code>Box&lt;T&gt;</code> by
 leveraging the fact that <code>Box</code> cannot be null.</p>
@@ -3799,7 +3799,7 @@ This would be required even if the <code>TreeNode</code> class were defined as a
 class of <code>BinaryTree</code>.</p>
 <p>In Rust, however, both types can be defined in the same module, and so have
 access to each other's private fields and methods. The module as a whole
-provides a collection of types, methods, and functions that together define a
+provides a collection of types, methods, and functions that together define an
 encapsulated concept.</p>
 <div class="comparison">
 <pre><code class="language-cpp">#include &lt;memory&gt;
@@ -4225,7 +4225,7 @@ fn main() {
     let carol =
         Person::new("Carol".to_string(), 20);
     // Can match on the public fields, and then
-    // use .. to ignore the remaning ones.
+    // use .. to ignore the remaining ones.
     let Person { name, age, .. } = carol;
 }</code></pre></pre>
 </div>
@@ -4284,7 +4284,7 @@ their fields.</p>
 use shape::*;
 
 fn main() {
-    // Variant constructor is accesssible despite not being marked pub.
+    // Variant constructor is accessible despite not being marked pub.
     let triangle = Shape::Triangle {
         base: 1.0,
         height: 2.0,
@@ -4292,7 +4292,7 @@ fn main() {
 
     let circle = Shape::Circle { radius: 1.0 };
 
-    // Fields accessbile despite not being marked pub.
+    // Fields accessible despite not being marked pub.
     match circle {
         Shape::Triangle { base, height } =&gt; {
             println!("Triangle: {}, {}", base, height);
@@ -4483,7 +4483,7 @@ pub enum Shape {
 <span class="boring">}</span></code></pre></pre>
 <p>The attribute is more typically used to force clients of a library to include
 the wildcard when matching on the struct fields, making it so that adding
-additional fields to a struct is not breaking change (i.e., that it does not
+additional fields to a struct is not a breaking change (i.e., that it does not
 <a href="https://doc.rust-lang.org/cargo/reference/semver.html">require the increase of the major version component when using semantic
 versioning</a>).</p>
 <p>Applying the <code>#[non_exhaustive]</code> attribute to the enum itself makes it as if one
@@ -4598,7 +4598,7 @@ fn sqrt_approx_zero(x: f64) -&gt; bool {
 
 impl Normalized {
     pub fn from_vec2(v: Vec2) -&gt; Option&lt;Self&gt; {
-        if sqrt_approx_zero(v.x * v.x + v.y * v.x - 1.0) {
+        if sqrt_approx_zero(v.x * v.x + v.y * v.y - 1.0) {
             Some(Self(v))
         } else {
             None
@@ -4615,7 +4615,7 @@ impl Normalized {
 <h2 id="borrowing-from-indexed-structures"><a class="header" href="#borrowing-from-indexed-structures">Borrowing from indexed structures</a></h2>
 <p>A significant limitation that arises from the way that getter methods interact
 with the borrow checker is that it isn't possible to mutably borrow multiple
-elements from an indexed structure like a vector using a methods like
+elements from an indexed structure like a vector using a method like
 <code>Vec::get_mut</code>.</p>
 <p>The built-in indexed types have several methods for creating split views onto a
 structure. These can be used to create helper functions that match the
@@ -4767,7 +4767,7 @@ fn main() {
 <p>In C++, the only way to handle exceptions is <code>catch</code>. In Rust, all of the
 features for dealing with <a href="idioms/exceptions/../data_modeling/tagged_unions.html">tagged
 unions</a> can be used with <code>Result</code> and
-<code>Option</code>. The most approach depends on the intention of the program.</p>
+<code>Option</code>. The best approach depends on the intention of the program.</p>
 <p>The basic way of handling an error indicated by a <code>Result</code> in Rust is by using
 <code>match</code>.</p>
 <p>Using <code>match</code> is the most general approach, because it enables handling
@@ -5031,7 +5031,7 @@ struct ErrorA : public std::exception {
 void mightThrowA() {}
 
 struct ErrorB : public std::exception {
-  const char *msg = "ErrorA was produced";
+  const char *msg = "ErrorB was produced";
   const char *what() const noexcept override {
     return msg;
   }
@@ -5064,7 +5064,7 @@ impl Display for ErrorA {
 
 impl Error for ErrorA {}
 
-fn might_throw_A() -&gt; Result&lt;(), ErrorA&gt; {
+fn might_throw_a() -&gt; Result&lt;(), ErrorA&gt; {
     Ok(())
 }
 
@@ -5082,7 +5082,7 @@ impl Display for ErrorB {
 
 impl Error for ErrorB {}
 
-fn might_throw_B() -&gt; Result&lt;(), ErrorB&gt; {
+fn might_throw_b() -&gt; Result&lt;(), ErrorB&gt; {
     Ok(())
 }
 
@@ -5121,8 +5121,8 @@ impl From&lt;ErrorB&gt; for ErrorAOrB {
 
 fn process() -&gt; Result&lt;(), ErrorAOrB&gt; {
     // the ? operator uses the From instance
-    might_throw_A()?;
-    might_throw_B()?;
+    might_throw_a()?;
+    might_throw_b()?;
     Ok(())
 }
 <span class="boring">}</span></code></pre></pre>
@@ -5144,7 +5144,7 @@ struct ErrorA : public std::exception {
 void mightThrowA() {}
 
 struct ErrorB : public std::exception {
-  const char *msg = "ErrorA was produced";
+  const char *msg = "ErrorB was produced";
   const char *what() const noexcept override {
     return msg;
   }
@@ -5163,7 +5163,7 @@ void process() {
 #[error("ErrorA was produced")]
 struct ErrorA;
 
-fn might_throw_A() -&gt; Result&lt;(), ErrorA&gt; {
+fn might_throw_a() -&gt; Result&lt;(), ErrorA&gt; {
     Ok(())
 }
 
@@ -5171,7 +5171,7 @@ fn might_throw_A() -&gt; Result&lt;(), ErrorA&gt; {
 #[error("ErrorB was produced")]
 struct ErrorB;
 
-fn might_throw_B() -&gt; Result&lt;(), ErrorB&gt; {
+fn might_throw_b() -&gt; Result&lt;(), ErrorB&gt; {
     Ok(())
 }
 
@@ -5184,8 +5184,8 @@ enum ErrorAOrB {
 }
 
 fn process() -&gt; Result&lt;(), ErrorAOrB&gt; {
-    might_throw_A()?;
-    might_throw_B()?;
+    might_throw_a()?;
+    might_throw_b()?;
     Ok(())
 }</code></pre>
 </div>
@@ -5214,7 +5214,7 @@ struct ErrorA : public std::exception {
 void mightThrowA() {}
 
 struct ErrorB : public std::exception {
-  const char *msg = "ErrorA was produced";
+  const char *msg = "ErrorB was produced";
   const char *what() const noexcept override {
     return msg;
   }
@@ -5243,7 +5243,7 @@ int main() {
 #[error("ErrorA was produced")]
 struct ErrorA;
 
-fn might_throw_A() -&gt; Result&lt;(), ErrorA&gt; {
+fn might_throw_a() -&gt; Result&lt;(), ErrorA&gt; {
     Ok(())
 }
 
@@ -5251,13 +5251,13 @@ fn might_throw_A() -&gt; Result&lt;(), ErrorA&gt; {
 #[error("ErrorB was produced")]
 struct ErrorB;
 
-fn might_throw_B() -&gt; Result&lt;(), ErrorB&gt; {
+fn might_throw_b() -&gt; Result&lt;(), ErrorB&gt; {
     Ok(())
 }
 
 fn process() -&gt; anyhow::Result&lt;()&gt; {
-    might_throw_A()?;
-    might_throw_B()?;
+    might_throw_a()?;
+    might_throw_b()?;
     Ok(())
 }
 
@@ -5838,12 +5838,12 @@ kind of <a href="idioms/./user-defined_conversions.html">user-defined conversion
 <p>In C++ functions and static member functions are automatically converted to
 function pointers.</p>
 <p>Rust performs the same conversion. In addition to functions and members that do
-not take <code>self</code> as an argument, constructors (proper constructors) also have
+not take <code>self</code> as an argument, tuple struct constructors also have
 function type and can be converted to function pointers. Non-capturing closures
 do not have function type, but can also be converted to function pointers.</p>
 <div class="comparison">
 <pre><code class="language-cpp">int twice(int n) {
-  return n * n;
+  return n * 2;
 }
 
 struct MyPair {
@@ -5881,7 +5881,7 @@ int main() {
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust">fn twice(x: i32) -&gt; i32 {
-    x * x
+    x * 2
 }
 
 struct MyPair(i32, i32);
@@ -5894,22 +5894,22 @@ impl MyPair {
 
 fn main() {
     // convert a function to a function pointer
-    let twicePtr: fn(i32) -&gt; i32 = twice;
-    let res = twicePtr(5);
+    let twice_ptr: fn(i32) -&gt; i32 = twice;
+    let res = twice_ptr(5);
 
     // convert a constructor to a function pointer
-    let ctorPtr: fn(i32, i32) -&gt; MyPair = MyPair;
-    let pair = ctorPtr(10, 20);
+    let ctor_ptr: fn(i32, i32) -&gt; MyPair = MyPair;
+    let pair = ctor_ptr(10, 20);
 
     // convert a static method to a function
     // pointer
-    let methodPtr: fn() -&gt; MyPair = MyPair::new;
-    let pair2 = methodPtr();
+    let method_ptr: fn() -&gt; MyPair = MyPair::new;
+    let pair2 = method_ptr();
 
     // convert a non-capturing closure to a
     // function pointer
     let closure: fn(i32) -&gt; i32 = |x: i32| x * 5;
-    let closureRes = closure(2);
+    let closure_res = closure(2);
 }</code></pre></pre>
 </div>
 <h2 id="numeric-promotion-and-numeric-conversion"><a class="header" href="#numeric-promotion-and-numeric-conversion">Numeric promotion and numeric conversion</a></h2>
@@ -5995,9 +5995,9 @@ int main() {
 </div>
 <h3 id="isize-and-usize"><a class="header" href="#isize-and-usize"><code>isize</code> and <code>usize</code></a></h3>
 <p>In the Rust standard library the <code>isize</code> and <code>usize</code> types are used for values
-intended to used be indices (much like <code>size_t</code> in C++). However, their use for
+intended to be used as indices (much like <code>size_t</code> in C++). However, their use for
 other purposes is usually discouraged in favor of using explicitly sized types
-such as <code>u32</code>. This results a situation where values of type <code>u32</code> have to be
+such as <code>u32</code>. This results in a situation where values of type <code>u32</code> have to be
 converted to <code>usize</code> for use in indexing, but <code>Into&lt;usize&gt;</code> is not implemented
 for <code>u32</code>.</p>
 <p>In these cases, best practice is to use <code>TryInto</code>, and if further error handling
@@ -6274,7 +6274,7 @@ fn main() {
     process(p2.into());
 }</code></pre></pre>
 </div>
-<p>Conversion functions are is often used to implement the safe bool pattern in
+<p>Conversion functions are often used to implement the safe bool pattern in
 C++, <a href="idioms/./promotions_and_conversions.html#safe-bools">which is addressed in a different way in
 Rust</a>.</p>
 <h2 id="borrowing-conversions"><a class="header" href="#borrowing-conversions">Borrowing conversions</a></h2>
@@ -6438,7 +6438,7 @@ for <code>TryInto</code> for everything that implements <code>TryFrom</code>.</p
 coercions</a>,
 provided by the <a href="https://doc.rust-lang.org/std/ops/trait.Deref.html"><code>Deref</code>
 trait</a> and
-<a href="https://doc.rust-lang.org/std/ops/trait.DerefMut.html"><code>DerefMut</code>trait</a>. These
+<a href="https://doc.rust-lang.org/std/ops/trait.DerefMut.html"><code>DerefMut</code> trait</a>. These
 coercions exist for making pointer-like types more ergonomic to use.</p>
 <p>An <a href="https://doc.rust-lang.org/book/ch15-02-deref.html">example</a> of implementing
 the traits for a custom pointer-like type is given in the Rust book.</p>
@@ -6549,7 +6549,7 @@ fn main() {
     println!("{}", TraitB::go(&amp;my_struct));
 }</code></pre></pre>
 <p>One exception to this is when the methods are all from the same generic trait
-with with different type parameters for the implementations. In that case, if
+with different type parameters for the implementations. In that case, if
 the signature is sufficient to determine which implementation to use, the trait
 does not need to be specified to resolve the method. This is common when using
 the <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code> trait</a>.</p>
@@ -6574,9 +6574,9 @@ fn main() {
     let w2 = Widget::from(1.0);
 }</code></pre></pre>
 <h2 id="overloaded-operators"><a class="header" href="#overloaded-operators">Overloaded operators</a></h2>
-<p>In C++ most operators can either be overloaded either with a free-standing
+<p>In C++ most operators can be overloaded either with a free-standing
 function or by providing a method defining the operator on a class.</p>
-<p>Rust provides operator via implementation of specific traits. Implementing a
+<p>Rust provides operators via implementation of specific traits. Implementing a
 method of the same name as required by the trait will not make a type usable
 with the operator if the trait is not implemented.</p>
 <div class="comparison">
@@ -6640,7 +6640,7 @@ impl std::ops::Add&lt;&amp;Vec2&gt; for &amp;Vec2 {
     }
 }
 
-// If Vec2 weren't so small, it might be desireable to re-use space in the below
+// If Vec2 weren't so small, it might be desirable to re-use space in the below
 // implementations, since they take ownership.
 
 impl std::ops::Add&lt;Vec2&gt; for &amp;Vec2 {
@@ -6901,7 +6901,7 @@ fn handle_event(e: Event) {
 }
 <span class="boring">}</span></code></pre></pre>
 </div>
-<p>Even when the a client of the library is needs to be able to define custom
+<p>Even when a client of the library needs to be able to define custom
 events, it is usually possible to make use of an event enum. This is the
 approach taken by the <a href="https://docs.rs/winit/latest/winit/event/enum.Event.html">winit
 crate</a>, which does
@@ -7004,9 +7004,9 @@ fn handle_event(e: Event&lt;UserEvent&gt;) {
 <span class="boring">}</span></code></pre></pre>
 </div>
 <p>When representing events as an enum truly isn't feasible, sometimes double
-dispatch <!-- TODO: link to visitor --> can be used instead. Otherwise it may be
+dispatch (<a href="idioms/../patterns/visitor.html">the visitor pattern</a>) can be used instead. Otherwise it may be
 necessary to use the <code>Any</code> trait or to define an <code>Event</code> trait that exposes a
-type identifier that an be used for safe downcasting (via <code>Any</code>) or unsafe
+type identifier that can be used for safe downcasting (via <code>Any</code>) or unsafe
 downcasting behind a safe interface.<sup class="footnote-reference" id="fr-safe-event-handler-1"><a href="#footnote-safe-event-handler">1</a></sup></p>
 <h2 id="library-support-for-reflection-via-macros"><a class="header" href="#library-support-for-reflection-via-macros">Library support for reflection via macros</a></h2>
 <p>Some of the use cases of RTTI can be achieved in Rust by using one of the third-party
@@ -7022,13 +7022,13 @@ this approach makes it more difficult to integrate third-party types that lack t
 <ol class="footnote-definition"><li id="footnote-safe-event-handler">
 <p>Such an interface usually involves providing individual
 event handling functions for specific types, rather than a single large
-event handling function, so that the underlying implementation can managing
+event handling function, so that the underlying implementation can manage
 the enforcement of the invariants required to make the casting safe. <a href="#fr-safe-event-handler-1">↩</a></p>
 </li>
 </ol><div style="break-before: page; page-break-before: always;"></div><h1 id="iterators-and-ranges"><a class="header" href="#iterators-and-ranges">Iterators and ranges</a></h1>
 <p>Rust iterators resemble C++
 <a href="https://en.cppreference.com/w/cpp/ranges.html">ranges</a> in that they represent
-iterable sequence and can be manipulated similarly to using
+an iterable sequence and can be manipulated similarly to using
 range views. Since C++ ranges are defined using iterators and ranges were only
 introduced in C++20, this chapter compares Rust iterators with both C++
 iterators and with C++ ranges.</p>
@@ -7201,7 +7201,7 @@ mutable reference in Rust.</p>
         println!("{}", x);
     }
 
-    // since v was borrowed, not moved, it is still accessiable here.
+    // since v was borrowed, not moved, it is still accessible here.
     println!("{:?}", v);
 
     for x in &amp;mut v {
@@ -7209,7 +7209,7 @@ mutable reference in Rust.</p>
         x.push('!');
     }
 
-    // since v was borrowed, not moved, it is still accessiable here.
+    // since v was borrowed, not moved, it is still accessible here.
     // however, the content of v has been modified
     println!("{:?}", v);
 
@@ -7308,7 +7308,7 @@ int main() {
 </div>
 <h2 id="iterator-invalidation"><a class="header" href="#iterator-invalidation">Iterator invalidation</a></h2>
 <p>In C++, operations sometimes only invalidate some iterators on a value, such as
-the <code>erase</code> method on <code>std::vector</code> only invaliding iterators to the erased
+the <code>erase</code> method on <code>std::vector</code> only invalidating iterators to the erased
 element and those after it, but not the ones before it.</p>
 <p>In Rust, the fact that iterators borrow the whole iterated value means that no
 operations modifying the value itself (such as erasing values from a vector) can
@@ -9068,8 +9068,8 @@ copy assignment operator.</p>
 between specific instances of an object that otherwise have the same properties.
 For example, representing a labeled graph where there may be distinct nodes that
 have the same label.</p>
-<p>In Rust, some of these cases are not applicable, and others cases are typically
-handled by instead by implementing a synthetic notion of identity for the
+<p>In Rust, some of these cases are not applicable, and other cases are typically
+handled instead by implementing a synthetic notion of identity for the
 values.</p>
 <h2 id="overloading-copy-assignment-and-equality-comparison-operators"><a class="header" href="#overloading-copy-assignment-and-equality-comparison-operators">Overloading copy assignment and equality comparison operators</a></h2>
 <p>For example, when implementing the copy-assignment operator, one might
@@ -9091,7 +9091,7 @@ referring to the same object.</p>
     Person&amp; operator=(const Person&amp; other) {
         // compare object identity first
         if (this != &amp;other) {
-            this.name = other.name;
+            this-&gt;name = other.name;
             // copy the other expensive-to-copy fields
         }
 
@@ -9679,7 +9679,7 @@ high-level <a href="https://crates.io/crates/git2">git2 crate</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="nrvo-and-rvo"><a class="header" href="#nrvo-and-rvo">NRVO and RVO</a></h1>
 <div class="warning">
 <p>Some of the statements about Rust in this chapter are dependent on the specifics
-of how the compiler optimizes various programs. Unless otherwise state, the
+of how the compiler optimizes various programs. Unless otherwise stated, the
 results presented here are based on rustc 1.87 using the <a href="https://doc.rust-lang.org/edition-guide/introduction.html">2024 language
 edition</a> and with
 <code>-O2</code> for C++ and <code>--opt-level=2</code> for Rust.</p>
@@ -9826,7 +9826,7 @@ performance.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="placement-new"><a class="header" href="#placement-new">Placement new</a></h1>
 <div class="warning">
 <p>Some of the statements about Rust in this chapter are dependent on the specifics
-of how the compiler optimizes various programs. Unless otherwise state, the
+of how the compiler optimizes various programs. Unless otherwise stated, the
 results presented here are based on rustc 1.87 using the <a href="https://doc.rust-lang.org/edition-guide/introduction.html">2024 language
 edition</a>.</p>
 </div>
@@ -9857,7 +9857,7 @@ available when using the nightly compiler with <a href="https://doc.rust-lang.or
 flag</a>.
 The Rust Book has <a href="https://doc.rust-lang.org/book/appendix-07-nightly-rust.html#unstable-features">instructions on how to install the nightly
 toolchain</a>
-and the The Rust Unstable Book has <a href="https://doc.rust-lang.org/unstable-book/">instructions on how to use unstable
+and the Rust Unstable Book has <a href="https://doc.rust-lang.org/unstable-book/">instructions on how to use unstable
 features</a>.</p>
 <p>For stable Rust, there are libraries that cover many of the uses of allocators.
 For example, <a href="https://docs.rs/bumpalo/latest/bumpalo/">bumpalo</a> provides a safe
@@ -9963,12 +9963,12 @@ int main() {
   constexpr unsigned int SIZE = 8000000;
   std::unique_ptr b = std::make_unique&lt;
       std::array&lt;unsigned int, SIZE&gt;&gt;();
-  for (std::size_t i; i &lt; SIZE; ++i) {
+  for (std::size_t i = 0; i &lt; SIZE; ++i) {
     (*b)[i] = 42;
   }
 
   // use b so that it isn't optimized away
-  for (std::size_t i; i &lt; SIZE; ++i) {
+  for (std::size_t i = 0; i &lt; SIZE; ++i) {
     std::cout &lt;&lt; (*b)[i] &lt;&lt; std::endl;
   }
 }
@@ -10024,7 +10024,7 @@ Rust, which avoids overflowing the stack. This technique relies on both
         println!("{}", b2[i]);
     }
 }</code></pre></pre>
-<p>Depending on what is need, this particular use can be generalized.</p>
+<p>Depending on what is needed, this particular use can be generalized.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>fn init_with&lt;T, const SIZE: usize&gt;(
@@ -10635,7 +10635,7 @@ impl Exp for Let {
 // Error for representing expression evaluation
 // errors.
 //
-// Has a lifetime parameter beacause it borrows
+// Has a lifetime parameter because it borrows
 // the name from the expression.
 #[derive(Debug)]
 enum EvalError&lt;'a&gt; {
@@ -11283,7 +11283,7 @@ practices for documenting Rust
 code</a>, which
 differ slightly from the recommended practices for documenting C++ code using
 Doxygen.</p>
-<p>The Cargo integration is documented at in the Cargo book under the <a href="https://doc.rust-lang.org/cargo/commands/cargo-doc.html"><code>cargo doc</code></a> and <a href="https://doc.rust-lang.org/cargo/commands/cargo-rustdoc.html"><code>cargo rustdoc</code></a> commands,
+<p>The Cargo integration is documented in the Cargo book under the <a href="https://doc.rust-lang.org/cargo/commands/cargo-doc.html"><code>cargo doc</code></a> and <a href="https://doc.rust-lang.org/cargo/commands/cargo-rustdoc.html"><code>cargo rustdoc</code></a> commands,
 as well as in the <a href="https://doc.rust-lang.org/cargo/commands/cargo-test.html#documentation-tests">doctests
 section</a>
 of the <code>cargo test</code> command.</p>
@@ -11438,7 +11438,7 @@ libraries tend to be either provided by OS distributions or be included in the
 repository for a project, while Rust has a central language-specific package
 registry called <a href="https://crates.io/">crates.io</a>.</p>
 <p>This difference is amplified by the fact that the Rust build tool, Cargo, has a
-build in package manager that works with crates.io, private registries, local
+built-in package manager that works with crates.io, private registries, local
 packages, and vendored sources.</p>
 <p>Cargo is documented in detail in the <a href="https://doc.rust-lang.org/cargo/">Cargo
 Book</a>.</p>

@@ -164,7 +164,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="sentinel-values"><a class="header" href="#sentinel-values">Sentinel values</a></h1>
-<p>Sentinel values are in-band value that indicates a special situation, such as
+<p>Sentinel values are in-band values that indicate a special situation, such as
 having reached the end of valid data in an iterator.</p>
 <h2 id="nullptr"><a class="header" href="#nullptr"><code>nullptr</code></a></h2>
 <p>Many designs in C++ borrow the convention from C of using a null pointer as a
@@ -209,7 +209,7 @@ fn parse(
 a uniquely owned pointer to some <code>T</code> on the heap, but unlike <code>std::unique_ptr</code>,
 it cannot be null. Rust's <code>Option&lt;T&gt;</code> (which is similar to <code>std::optional&lt;T&gt;</code> in
 C++) can represent optional pointers when used in conjunction with <code>Box&lt;T&gt;</code>, as
-in <code>Optional&lt;Box&lt;T&gt;&gt;</code>. In <a href="../data_modeling/template_specialization.html#niche-optimization">those cases (and in some other
+in <code>Option&lt;Box&lt;T&gt;&gt;</code>. In <a href="../data_modeling/template_specialization.html#niche-optimization">those cases (and in some other
 cases)</a> the
 compiler optimizes the representation to be the same size as <code>Box&lt;T&gt;</code> by
 leveraging the fact that <code>Box</code> cannot be null.</p>

@@ -231,12 +231,12 @@ kind of <a href="./user-defined_conversions.html">user-defined conversion</a>.</
 <p>In C++ functions and static member functions are automatically converted to
 function pointers.</p>
 <p>Rust performs the same conversion. In addition to functions and members that do
-not take <code>self</code> as an argument, constructors (proper constructors) also have
+not take <code>self</code> as an argument, tuple struct constructors also have
 function type and can be converted to function pointers. Non-capturing closures
 do not have function type, but can also be converted to function pointers.</p>
 <div class="comparison">
 <pre><code class="language-cpp">int twice(int n) {
-  return n * n;
+  return n * 2;
 }
 
 struct MyPair {
@@ -274,7 +274,7 @@ int main() {
 }
 </code></pre>
 <pre><pre class="playground"><code class="language-rust">fn twice(x: i32) -&gt; i32 {
-    x * x
+    x * 2
 }
 
 struct MyPair(i32, i32);
@@ -287,22 +287,22 @@ impl MyPair {
 
 fn main() {
     // convert a function to a function pointer
-    let twicePtr: fn(i32) -&gt; i32 = twice;
-    let res = twicePtr(5);
+    let twice_ptr: fn(i32) -&gt; i32 = twice;
+    let res = twice_ptr(5);
 
     // convert a constructor to a function pointer
-    let ctorPtr: fn(i32, i32) -&gt; MyPair = MyPair;
-    let pair = ctorPtr(10, 20);
+    let ctor_ptr: fn(i32, i32) -&gt; MyPair = MyPair;
+    let pair = ctor_ptr(10, 20);
 
     // convert a static method to a function
     // pointer
-    let methodPtr: fn() -&gt; MyPair = MyPair::new;
-    let pair2 = methodPtr();
+    let method_ptr: fn() -&gt; MyPair = MyPair::new;
+    let pair2 = method_ptr();
 
     // convert a non-capturing closure to a
     // function pointer
     let closure: fn(i32) -&gt; i32 = |x: i32| x * 5;
-    let closureRes = closure(2);
+    let closure_res = closure(2);
 }</code></pre></pre>
 </div>
 <h2 id="numeric-promotion-and-numeric-conversion"><a class="header" href="#numeric-promotion-and-numeric-conversion">Numeric promotion and numeric conversion</a></h2>
@@ -388,9 +388,9 @@ int main() {
 </div>
 <h3 id="isize-and-usize"><a class="header" href="#isize-and-usize"><code>isize</code> and <code>usize</code></a></h3>
 <p>In the Rust standard library the <code>isize</code> and <code>usize</code> types are used for values
-intended to used be indices (much like <code>size_t</code> in C++). However, their use for
+intended to be used as indices (much like <code>size_t</code> in C++). However, their use for
 other purposes is usually discouraged in favor of using explicitly sized types
-such as <code>u32</code>. This results a situation where values of type <code>u32</code> have to be
+such as <code>u32</code>. This results in a situation where values of type <code>u32</code> have to be
 converted to <code>usize</code> for use in indexing, but <code>Into&lt;usize&gt;</code> is not implemented
 for <code>u32</code>.</p>
 <p>In these cases, best practice is to use <code>TryInto</code>, and if further error handling

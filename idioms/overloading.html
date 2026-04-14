@@ -265,7 +265,7 @@ fn main() {
     println!("{}", TraitB::go(&amp;my_struct));
 }</code></pre></pre>
 <p>One exception to this is when the methods are all from the same generic trait
-with with different type parameters for the implementations. In that case, if
+with different type parameters for the implementations. In that case, if
 the signature is sufficient to determine which implementation to use, the trait
 does not need to be specified to resolve the method. This is common when using
 the <a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code> trait</a>.</p>
@@ -290,9 +290,9 @@ fn main() {
     let w2 = Widget::from(1.0);
 }</code></pre></pre>
 <h2 id="overloaded-operators"><a class="header" href="#overloaded-operators">Overloaded operators</a></h2>
-<p>In C++ most operators can either be overloaded either with a free-standing
+<p>In C++ most operators can be overloaded either with a free-standing
 function or by providing a method defining the operator on a class.</p>
-<p>Rust provides operator via implementation of specific traits. Implementing a
+<p>Rust provides operators via implementation of specific traits. Implementing a
 method of the same name as required by the trait will not make a type usable
 with the operator if the trait is not implemented.</p>
 <div class="comparison">
@@ -356,7 +356,7 @@ impl std::ops::Add&lt;&amp;Vec2&gt; for &amp;Vec2 {
     }
 }
 
-// If Vec2 weren't so small, it might be desireable to re-use space in the below
+// If Vec2 weren't so small, it might be desirable to re-use space in the below
 // implementations, since they take ownership.
 
 impl std::ops::Add&lt;Vec2&gt; for &amp;Vec2 {

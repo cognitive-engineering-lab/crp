@@ -166,7 +166,7 @@
                         <h1 id="placement-new"><a class="header" href="#placement-new">Placement new</a></h1>
 <div class="warning">
 <p>Some of the statements about Rust in this chapter are dependent on the specifics
-of how the compiler optimizes various programs. Unless otherwise state, the
+of how the compiler optimizes various programs. Unless otherwise stated, the
 results presented here are based on rustc 1.87 using the <a href="https://doc.rust-lang.org/edition-guide/introduction.html">2024 language
 edition</a>.</p>
 </div>
@@ -197,7 +197,7 @@ available when using the nightly compiler with <a href="https://doc.rust-lang.or
 flag</a>.
 The Rust Book has <a href="https://doc.rust-lang.org/book/appendix-07-nightly-rust.html#unstable-features">instructions on how to install the nightly
 toolchain</a>
-and the The Rust Unstable Book has <a href="https://doc.rust-lang.org/unstable-book/">instructions on how to use unstable
+and the Rust Unstable Book has <a href="https://doc.rust-lang.org/unstable-book/">instructions on how to use unstable
 features</a>.</p>
 <p>For stable Rust, there are libraries that cover many of the uses of allocators.
 For example, <a href="https://docs.rs/bumpalo/latest/bumpalo/">bumpalo</a> provides a safe
@@ -303,12 +303,12 @@ int main() {
   constexpr unsigned int SIZE = 8000000;
   std::unique_ptr b = std::make_unique&lt;
       std::array&lt;unsigned int, SIZE&gt;&gt;();
-  for (std::size_t i; i &lt; SIZE; ++i) {
+  for (std::size_t i = 0; i &lt; SIZE; ++i) {
     (*b)[i] = 42;
   }
 
   // use b so that it isn't optimized away
-  for (std::size_t i; i &lt; SIZE; ++i) {
+  for (std::size_t i = 0; i &lt; SIZE; ++i) {
     std::cout &lt;&lt; (*b)[i] &lt;&lt; std::endl;
   }
 }
@@ -364,7 +364,7 @@ Rust, which avoids overflowing the stack. This technique relies on both
         println!("{}", b2[i]);
     }
 }</code></pre></pre>
-<p>Depending on what is need, this particular use can be generalized.</p>
+<p>Depending on what is needed, this particular use can be generalized.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>fn init_with&lt;T, const SIZE: usize&gt;(

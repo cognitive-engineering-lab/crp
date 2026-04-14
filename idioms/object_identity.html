@@ -172,8 +172,8 @@ copy assignment operator.</p>
 between specific instances of an object that otherwise have the same properties.
 For example, representing a labeled graph where there may be distinct nodes that
 have the same label.</p>
-<p>In Rust, some of these cases are not applicable, and others cases are typically
-handled by instead by implementing a synthetic notion of identity for the
+<p>In Rust, some of these cases are not applicable, and other cases are typically
+handled instead by implementing a synthetic notion of identity for the
 values.</p>
 <h2 id="overloading-copy-assignment-and-equality-comparison-operators"><a class="header" href="#overloading-copy-assignment-and-equality-comparison-operators">Overloading copy assignment and equality comparison operators</a></h2>
 <p>For example, when implementing the copy-assignment operator, one might
@@ -195,7 +195,7 @@ referring to the same object.</p>
     Person&amp; operator=(const Person&amp; other) {
         // compare object identity first
         if (this != &amp;other) {
-            this.name = other.name;
+            this-&gt;name = other.name;
             // copy the other expensive-to-copy fields
         }
 
