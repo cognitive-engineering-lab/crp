@@ -139,7 +139,7 @@ fn main() {
 
 </div>
 
-Conversion functions are is often used to implement the safe bool pattern in
+Conversion functions are often used to implement the safe bool pattern in
 C++, [which is addressed in a different way in
 Rust](./promotions_and_conversions.md#safe-bools).
 
@@ -332,7 +332,7 @@ Rust does have one kind of user-defined implicit conversion, called [deref
 coercions](https://doc.rust-lang.org/std/ops/trait.Deref.html#deref-coercion),
 provided by the [`Deref`
 trait](https://doc.rust-lang.org/std/ops/trait.Deref.html) and
-[`DerefMut`trait](https://doc.rust-lang.org/std/ops/trait.DerefMut.html). These
+[`DerefMut` trait](https://doc.rust-lang.org/std/ops/trait.DerefMut.html). These
 coercions exist for making pointer-like types more ergonomic to use.
 
 An [example](https://doc.rust-lang.org/book/ch15-02-deref.html) of implementing

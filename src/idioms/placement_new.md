@@ -3,7 +3,7 @@
 <div class="warning">
 
 Some of the statements about Rust in this chapter are dependent on the specifics
-of how the compiler optimizes various programs. Unless otherwise state, the
+of how the compiler optimizes various programs. Unless otherwise stated, the
 results presented here are based on rustc 1.87 using the [2024 language
 edition](https://doc.rust-lang.org/edition-guide/introduction.html).
 
@@ -39,7 +39,7 @@ available when using the nightly compiler with [a feature
 flag](https://doc.rust-lang.org/unstable-book/library-features/allocator-api.html).
 The Rust Book has [instructions on how to install the nightly
 toolchain](https://doc.rust-lang.org/book/appendix-07-nightly-rust.html#unstable-features)
-and the The Rust Unstable Book has [instructions on how to use unstable
+and the Rust Unstable Book has [instructions on how to use unstable
 features](https://doc.rust-lang.org/unstable-book/).
 
 For stable Rust, there are libraries that cover many of the uses of allocators.
@@ -169,12 +169,12 @@ int main() {
   constexpr unsigned int SIZE = 8000000;
   std::unique_ptr b = std::make_unique<
       std::array<unsigned int, SIZE>>();
-  for (std::size_t i; i < SIZE; ++i) {
+  for (std::size_t i = 0; i < SIZE; ++i) {
     (*b)[i] = 42;
   }
 
   // use b so that it isn't optimized away
-  for (std::size_t i; i < SIZE; ++i) {
+  for (std::size_t i = 0; i < SIZE; ++i) {
     std::cout << (*b)[i] << std::endl;
   }
 }
@@ -246,7 +246,7 @@ fn main() {
 }
 ```
 
-Depending on what is need, this particular use can be generalized.
+Depending on what is needed, this particular use can be generalized.
 
 ```rust
 fn init_with<T, const SIZE: usize>(

@@ -119,7 +119,7 @@ fn sqrt_approx_zero(x: f64) -> bool {
 
 impl Normalized {
     pub fn from_vec2(v: Vec2) -> Option<Self> {
-        if sqrt_approx_zero(v.x * v.x + v.y * v.x - 1.0) {
+        if sqrt_approx_zero(v.x * v.x + v.y * v.y - 1.0) {
             Some(Self(v))
         } else {
             None
@@ -139,7 +139,7 @@ impl Normalized {
 
 A significant limitation that arises from the way that getter methods interact
 with the borrow checker is that it isn't possible to mutably borrow multiple
-elements from an indexed structure like a vector using a methods like
+elements from an indexed structure like a vector using a method like
 `Vec::get_mut`.
 
 The built-in indexed types have several methods for creating split views onto a

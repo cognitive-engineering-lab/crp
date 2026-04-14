@@ -3,7 +3,7 @@
 <div class="warning">
 
 Some of the statements about Rust in this chapter are dependent on the specifics
-of how the compiler optimizes various programs. Unless otherwise state, the
+of how the compiler optimizes various programs. Unless otherwise stated, the
 results presented here are based on rustc 1.87 using the [2024 language
 edition](https://doc.rust-lang.org/edition-guide/introduction.html) and with
 `-O2` for C++ and `--opt-level=2` for Rust.

@@ -45,7 +45,7 @@
 - [Rust and C++ interoperability (FFI)](./idioms/ffi.md)
 - [NRVO and RVO](./idioms/rvo.md)
 - [Placement new](./idioms/placement_new.md)
-- [Concurrency (threads and async)]()
+- Concurrency (threads and async)
 
 # Patterns
 

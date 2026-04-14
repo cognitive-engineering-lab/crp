@@ -109,7 +109,7 @@ fn main() {
 In C++, the only way to handle exceptions is `catch`. In Rust, all of the
 features for dealing with [tagged
 unions](../data_modeling/tagged_unions.md) can be used with `Result` and
-`Option`. The most approach depends on the intention of the program.
+`Option`. The best approach depends on the intention of the program.
 
 The basic way of handling an error indicated by a `Result` in Rust is by using
 `match`.
@@ -447,7 +447,7 @@ struct ErrorA : public std::exception {
 void mightThrowA() {}
 
 struct ErrorB : public std::exception {
-  const char *msg = "ErrorA was produced";
+  const char *msg = "ErrorB was produced";
   const char *what() const noexcept override {
     return msg;
   }
@@ -480,7 +480,7 @@ impl Display for ErrorA {
 
 impl Error for ErrorA {}
 
-fn might_throw_A() -> Result<(), ErrorA> {
+fn might_throw_a() -> Result<(), ErrorA> {
     Ok(())
 }
 
@@ -498,7 +498,7 @@ impl Display for ErrorB {
 
 impl Error for ErrorB {}
 
-fn might_throw_B() -> Result<(), ErrorB> {
+fn might_throw_b() -> Result<(), ErrorB> {
     Ok(())
 }
 
@@ -537,8 +537,8 @@ impl From<ErrorB> for ErrorAOrB {
 
 fn process() -> Result<(), ErrorAOrB> {
     // the ? operator uses the From instance
-    might_throw_A()?;
-    might_throw_B()?;
+    might_throw_a()?;
+    might_throw_b()?;
     Ok(())
 }
 ```
@@ -565,7 +565,7 @@ struct ErrorA : public std::exception {
 void mightThrowA() {}
 
 struct ErrorB : public std::exception {
-  const char *msg = "ErrorA was produced";
+  const char *msg = "ErrorB was produced";
   const char *what() const noexcept override {
     return msg;
   }
@@ -586,7 +586,7 @@ use thiserror::Error;
 #[error("ErrorA was produced")]
 struct ErrorA;
 
-fn might_throw_A() -> Result<(), ErrorA> {
+fn might_throw_a() -> Result<(), ErrorA> {
     Ok(())
 }
 
@@ -594,7 +594,7 @@ fn might_throw_A() -> Result<(), ErrorA> {
 #[error("ErrorB was produced")]
 struct ErrorB;
 
-fn might_throw_B() -> Result<(), ErrorB> {
+fn might_throw_b() -> Result<(), ErrorB> {
     Ok(())
 }
 
@@ -607,8 +607,8 @@ enum ErrorAOrB {
 }
 
 fn process() -> Result<(), ErrorAOrB> {
-    might_throw_A()?;
-    might_throw_B()?;
+    might_throw_a()?;
+    might_throw_b()?;
     Ok(())
 }
 ```
@@ -645,7 +645,7 @@ struct ErrorA : public std::exception {
 void mightThrowA() {}
 
 struct ErrorB : public std::exception {
-  const char *msg = "ErrorA was produced";
+  const char *msg = "ErrorB was produced";
   const char *what() const noexcept override {
     return msg;
   }
@@ -676,7 +676,7 @@ use thiserror::Error;
 #[error("ErrorA was produced")]
 struct ErrorA;
 
-fn might_throw_A() -> Result<(), ErrorA> {
+fn might_throw_a() -> Result<(), ErrorA> {
     Ok(())
 }
 
@@ -684,13 +684,13 @@ fn might_throw_A() -> Result<(), ErrorA> {
 #[error("ErrorB was produced")]
 struct ErrorB;
 
-fn might_throw_B() -> Result<(), ErrorB> {
+fn might_throw_b() -> Result<(), ErrorB> {
     Ok(())
 }
 
 fn process() -> anyhow::Result<()> {
-    might_throw_A()?;
-    might_throw_B()?;
+    might_throw_a()?;
+    might_throw_b()?;
     Ok(())
 }
 

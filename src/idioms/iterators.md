@@ -2,7 +2,7 @@
 
 Rust iterators resemble C++
 [ranges](https://en.cppreference.com/w/cpp/ranges.html) in that they represent
-iterable sequence and can be manipulated similarly to using
+an iterable sequence and can be manipulated similarly to using
 range views. Since C++ ranges are defined using iterators and ranges were only
 introduced in C++20, this chapter compares Rust iterators with both C++
 iterators and with C++ ranges.
@@ -222,7 +222,7 @@ fn main() {
         println!("{}", x);
     }
 
-    // since v was borrowed, not moved, it is still accessiable here.
+    // since v was borrowed, not moved, it is still accessible here.
     println!("{:?}", v);
 
     for x in &mut v {
@@ -230,7 +230,7 @@ fn main() {
         x.push('!');
     }
 
-    // since v was borrowed, not moved, it is still accessiable here.
+    // since v was borrowed, not moved, it is still accessible here.
     // however, the content of v has been modified
     println!("{:?}", v);
 
@@ -351,7 +351,7 @@ fn main() {
 ## Iterator invalidation
 
 In C++, operations sometimes only invalidate some iterators on a value, such as
-the `erase` method on `std::vector` only invaliding iterators to the erased
+the `erase` method on `std::vector` only invalidating iterators to the erased
 element and those after it, but not the ones before it.
 
 In Rust, the fact that iterators borrow the whole iterated value means that no

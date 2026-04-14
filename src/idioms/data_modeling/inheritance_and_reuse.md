@@ -33,12 +33,12 @@ class Printer : public Device {
     bool powered = false;
 public:
     void powerOn() override {
-        this.powered = true;
+        this->powered = true;
         std::cout << "Printer is powered on." << std::endl;
     }
 
     void powerOff() override {
-        this.powered = false;
+        this->powered = false;
         std::cout << "Printer is powered off." << std::endl;
     }
 };
@@ -100,7 +100,7 @@ dispatch](./concepts.md) (with [no vtable overhead in the
 static dispatch
 case](./abstract_classes.md#vtables-and-rust-trait-object-types)).
 
-Rust traits differ from abstract classes in few more ways. For example,
+Rust traits differ from abstract classes in a few more ways. For example,
 Rust traits cannot define data members and cannot define private or protected
 methods. This limits the effectiveness of using traits to implement the template
 method pattern.
@@ -112,7 +112,7 @@ visible as methods on the type.
 Traits can, however, inherit from each other, including multiple inheritance. As
 in modern C++, inheritance hierarchies in Rust tend to be shallow. In situations
 with complex multiple inheritance, however, the diamond problem cannot arise in
-Rust because traits cannot override other traits implementations. Therefore, all
+Rust because traits cannot override other trait implementations. Therefore, all
 paths to a common parent trait resolve to the same implementation.
 
 {{#quiz inheritance_and_reuse.toml}}

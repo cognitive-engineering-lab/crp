@@ -503,7 +503,7 @@ impl Exp for Let {
 // Error for representing expression evaluation
 // errors.
 //
-// Has a lifetime parameter beacause it borrows
+// Has a lifetime parameter because it borrows
 // the name from the expression.
 #[derive(Debug)]
 enum EvalError<'a> {

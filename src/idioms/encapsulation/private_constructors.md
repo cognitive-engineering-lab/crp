@@ -78,7 +78,7 @@ fn main() {
     let carol =
         Person::new("Carol".to_string(), 20);
     // Can match on the public fields, and then
-    // use .. to ignore the remaning ones.
+    // use .. to ignore the remaining ones.
     let Person { name, age, .. } = carol;
 }
 ```
@@ -146,7 +146,7 @@ mod shape {
 use shape::*;
 
 fn main() {
-    // Variant constructor is accesssible despite not being marked pub.
+    // Variant constructor is accessible despite not being marked pub.
     let triangle = Shape::Triangle {
         base: 1.0,
         height: 2.0,
@@ -154,7 +154,7 @@ fn main() {
 
     let circle = Shape::Circle { radius: 1.0 };
 
-    // Fields accessbile despite not being marked pub.
+    // Fields accessible despite not being marked pub.
     match circle {
         Shape::Triangle { base, height } => {
             println!("Triangle: {}, {}", base, height);
@@ -363,7 +363,7 @@ pub enum Shape {
 
 The attribute is more typically used to force clients of a library to include
 the wildcard when matching on the struct fields, making it so that adding
-additional fields to a struct is not breaking change (i.e., that it does not
+additional fields to a struct is not a breaking change (i.e., that it does not
 [require the increase of the major version component when using semantic
 versioning](https://doc.rust-lang.org/cargo/reference/semver.html)).
 
