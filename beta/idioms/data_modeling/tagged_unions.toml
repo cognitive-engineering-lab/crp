@@ -1,0 +1,112 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which of the following Rust programs is the most idiomatic translation of the
+given C++ program?
+
+```c++
+#include <chrono>
+#include <string>
+
+enum class MediaType { Text, Image, Video };
+
+class MediaFile {
+public:
+  MediaType type;
+  union {
+    struct {
+      std::string language;
+      size_t length;
+    } text;
+    struct {
+      size_t height;
+      size_t width;
+    } image;
+    struct {
+      size_t height;
+      size_t width;
+      std::chrono::nanoseconds duration;
+    } video;
+  };
+
+  // constructors omitted for brevity
+
+  size_t size() const {
+    switch (type) {
+    case MediaType::Text:
+      return text.length;
+    case MediaType::Image:
+      return image.height * image.width;
+    case MediaType::Video:
+      return video.height * video.width;
+    }
+    // Should not reach here
+    return 0;
+  }
+};
+```
+
+All of the Rust programs use this definition of `MediaFile`.
+
+```rust
+enum MediaFile {
+    Text {
+        language: String,
+        length: usize,
+    },
+    Image {
+        height: usize,
+        width: usize,
+    },
+    Video {
+        height: usize,
+        width: usize,
+        duration: std::time::Duration,
+    },
+}
+```
+"""
+prompt.distractors = [
+# Thinking fallthrough works like in C++.
+# Really this is testing knowledge of match, which goes hand-in-hand with enums.
+"""
+```rust
+impl MediaFile {
+    fn size(&self) -> usize {
+        match self {
+            MediaFile::Text { length, .. } => *length,
+            MediaFile::Image { height, width, .. } => // fallthrough
+            MediaFile::Video { height, width, .. } => height * width,
+        }
+    }
+}
+```
+""",
+# Thinking that fields can be accessed directly without checking.
+"""
+```rust
+impl MediaFile {
+    fn size(&self) -> usize {
+        match self {
+            MediaFile::Text { length, .. } => *length,
+            _ => self.height * self.width,
+        }
+    }
+}
+```
+"""
+]
+answer.answer = """
+```rust
+impl MediaFile {
+    fn size(&self) -> usize {
+        match self {
+            MediaFile::Text { length, .. } => *length,
+            MediaFile::Image { height, width, .. }
+            | MediaFile::Video { height, width, .. } => height * width,
+        }
+    }
+}
+```
+"""
+id = "8019115c-c84b-4b79-a18d-d2e83ff984da"

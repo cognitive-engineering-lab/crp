@@ -1,0 +1,43 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Consider a situation where you are working with a type `Circle` and a trait
+`Shape`. The type and trait are each defined in one of:
+
+- the current crate,
+- a dependency crate `crate_a` of the current crate, or
+- a depedency `crate_b` of the current crate.
+
+For which situations is the adapter pattern necessary in Rust?
+"""
+prompt.distractors = [
+"""
+`Circle` and `Shape` are both defined in the current crate.
+""",
+"""
+`Circle` is defined in the current crate, and and `Shape` is defined in `crate_a`.
+""",
+"""
+`Shape` is defined in the current crate, and and `Circle` is defined in `crate_a`.
+"""
+]
+answer.answer = [
+"""
+`Circle` and `Shape` are both defined in `crate_a`.
+""",
+"""
+`Circle` is defined in `crate_a`, and `Shape` is defined in `crate_b`.
+"""
+]
+context = """
+The apdapter pattern is needed when the orphan rule prevents implementing a
+trait for a type.
+
+The [orphan
+rule](https://doc.rust-lang.org/reference/items/implementations.html#orphan-rules)
+says that a at least one of the trait or a type in the trait implementation
+needs to be defined in the current crate. When at least one of `Shape` or
+`Circle` is defined in the current crate, the orphan rule does not prevent the
+implementation.
+"""
+id = "b6394504-9fdb-49c8-88c0-046c42f74287"

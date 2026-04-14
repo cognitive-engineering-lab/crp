@@ -1,0 +1,149 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Does the following Rust program compile? If not, why not?
+
+```rust
+fn main() {
+    let v = vec!["a".to_string(), "b".to_string()];
+
+    let mut last = None;
+    for x in v {
+        println!("{}", x);
+        last = Some(x);
+    }
+
+    println!("{}", v.len());
+    println!("last: {:?}", last);
+}
+```
+"""
+prompt.distractors = [
+"""
+The program compiles.
+""",
+"""
+The program does not compile because `v` is a `Vec`, not an `Iterator`.
+""",
+"""
+The program does not compile because `last` is mutable and borrows `x` while `v`
+is borrowed by `len()`.
+"""
+]
+answer.answer = """
+The program does not compile because the for loop moves `v`, and so it can't be
+borrowed afterwards.
+"""
+context = """
+For loops implicitly call `into_iter` on the iterated value. The method
+`into_iter` takes ownership of the value. To make this compile, the loop should
+be on a reference to `v`, so that it is the reference that has ownership taken
+of it.
+
+Even though `last` is mutable, the `&String` reference it would contain if `v`
+were borrowed isn't. Thus, that does not conflict with the later use of `v`.
+"""
+id = "34e60ac8-ba03-4076-9ee4-a8a50e9c446d"
+
+# This question should have the additional benefit of forcing people to actually
+# look at the standard library docs.
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which of the following programs are ways in Rust to update each element of a
+vector based on all of the other elements in the vector?
+
+The documentation for the following methods might be useful in answering this
+question:
+
+- <a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.enumerate" target="_blank">`enumerate`</a>
+- <a href="https://doc.rust-lang.org/std/primitive.slice.html#method.split_at_mut" target="_blank">`split_at_mut`</a>
+- <a href="https://doc.rust-lang.org/std/primitive.slice.html#method.split_first_mut" target="_blank">`split_first_mut`</a>
+- <a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.chain" target="_blank">`chain`</a>
+"""
+prompt.distractors = [
+"""
+```rust
+fn main() {
+    let mut v: Vec<i32> = (0..10).collect();
+
+    for (i, x) in (&mut v).into_iter().enumerate() {
+        for (j, y) in (&v).into_iter().enumerate() {
+            if i != j {
+                *x += *y;
+            }
+        }
+    }
+}
+```
+""",
+"""
+```rust
+fn main() {
+    let mut v: Vec<i32> = (0..10).collect();
+
+    for i in 0..v.len() {
+        let mut x = &mut v[i];
+        for j in 0..v.len() {
+            if i != j {
+                let y = &mut v[j];
+                *x += *y;
+            }
+        }
+    }
+}
+```
+"""
+]
+answer.answer = [
+"""
+```
+fn main() {
+    let mut v: Vec<i32> = (0..10).collect();
+
+    for i in 0..v.len() {
+        for j in 0..v.len() {
+            if i != j {
+                v[i] += v[j];
+            }
+        }
+    }
+}
+```
+""",
+"""
+```rust
+fn main() {
+    let mut v: Vec<i32> = (0..10).collect();
+
+    for i in 0..v.len() {
+        let (before, rest) = v.split_at_mut(i);
+        let (x, after) = rest.split_first_mut().unwrap();
+        for y in before.into_iter().chain(after) {
+            *x += *y;
+        }
+    }
+}
+```
+"""
+]
+context = """
+The solution that uses `enumerate` fails to compile because `v` is borrowed for
+the entirety of each for loop. The borrow checker cannot tell that the condition
+prevents `x` and `y` from being used at the same time when they point to the
+same index.
+
+The solution that uses indices but takes the references immediately fails to
+compile for the same reason.
+
+The solution that uses indices throughout works because the lifetimes of the
+borrows of `v` to compute the new value and to update the value at index `i` do
+not overlap.
+
+The solution splitting the vector into parts makes use of fact that the standard
+library provides a safe API for partitioning a vector. There are never two
+mutable references to the same index in the vector. The standard library
+contains many other similarly useful methods for operating on vectors, arrays,
+and slices.
+"""
+id = "5c1a704a-bc85-470a-9443-07fca80d7d1f"

@@ -1,0 +1,71 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Why is the check for self-assignment in `clone_from` not idiomatic Rust?
+
+```rust
+struct LargeStruct {
+    field1: String,
+    // ...
+    field100: String,
+}
+
+impl Clone for LargeStruct {
+    fn clone(&self) -> Self {
+        Self {
+            field1: self.field1.clone(),
+            // ...
+            field100: self.field100.clone(),
+        }
+    }
+
+    fn clone_from(&mut self, source: &Self) {
+        if std::ptr::eq(self, source) {
+            return;
+        }
+
+        self.field1.clone_from(&source.field1);
+        // ...
+        self.field100.clone_from(&source.field100);
+    }
+}
+```
+"""
+prompt.distractors = [
+"""
+Because `std::ptr::mem` is unsafe Rust.
+""",
+"""
+Because the compiler will add the check when optimizing anyway.
+"""
+]
+answer.answer = """
+Because because `self` is a mutable reference, the borrow checker ensures that
+`source` can't be a reference to the same memory location.
+"""
+id = "9f8a464a-6fbb-4352-815a-7a42d162f9fd"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which are reasons why in Rust synthetic identifiers are usually used instead of
+memory location for object identity?
+"""
+prompt.distractors = [
+"""
+There is no way to access memory locations in Rust.
+""",
+"""
+Comparing memory locations requires unsafe Rust.
+"""
+]
+answer.answer = [
+"""
+Synthetic identifiers are easier to use for forming self-referential structures.
+""",
+"""
+Synthetic identifiers avoid the complexity of using `Pin` to prevent values from
+being moved.
+"""
+]
+id = "d60a321a-3b38-4425-8a9a-6b95fe0e3837"

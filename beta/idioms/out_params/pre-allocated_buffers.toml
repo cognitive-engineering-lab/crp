@@ -1,0 +1,49 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt="""
+Which of the following is the most idiomatic way in Rust to use the following
+function?
+
+```rust
+/// Fetches data into the given buffer. Returns the number of bytes populated,
+/// or `None` when the end of the data is reached. The contents of `buf` will
+/// not be read.
+fn fetch(buf: &mut [u8]) -> Option<usize>
+```
+"""
+prompt.distractors = [
+# Thinking that initialization can be skipped because the bytes will not be read
+# (as it would be in C++).
+"""
+```rust
+let mut buf;
+
+while let Some(count) = fetch(&mut buf) {
+    // use data in buf
+}
+```
+""",
+# Thinking that the optimizer can make it so that initialization happens only
+# once because the comment promises that the bytes will not be read.
+"""
+```rust
+loop {
+    let mut buf = [0u8; 1024];
+    let Some(count) = fetch(&mut buf) else {
+        break;
+    };
+    // use data in buf
+}
+```
+"""
+]
+answer.answer = """
+```rust
+let mut buf = [0u8; 1024];
+
+while let Some(count) = fetch(&mut buf) {
+    // use data in buf
+}
+```
+"""
+id = "5b23f54f-b4a2-46f5-87b4-5551a2c93be8"

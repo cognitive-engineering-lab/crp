@@ -1,0 +1,42 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Can unafe Rust code rely on the `assert! macro to check invariants that, if
+violated, would lead to undefined behavior?
+"""
+prompt.distractors = [
+"""
+It cannot because the assertions might be disabled at runtime.
+"""
+]
+answer.answer = """
+It can, because the assertions are guaranteed to be checked.
+"""
+context = """
+Unlike `assert` in C++, the `assert!` macro in Rust cannot be disabled. For
+expensive-to-check invariants that should be disabled in release builds, use
+`debug_assert!` instead.
+"""
+id = "42c3ea1a-4cf3-4e6c-869b-ae71dd0db493"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+True or false: a failed `assert!` will always halt the program.
+"""
+prompt.distractors = [
+"""
+True
+"""
+]
+answer.answer = """
+False
+"""
+context = """
+Unlike `assert` in C++ which calls `std::abort()` when the assertion is false,
+in Rust, when the condition for an `assert!` is false, `panic!` is called. How
+the program handles a panic depends on the panic strategy, the panic handler,
+whether the panic was on the main thread, and whether `catch_unwind` was used.
+In any case, the program will not resume from where the panic occurred.
+"""
+id = "91c357c8-786c-4f09-b164-3ffa7a68f180"

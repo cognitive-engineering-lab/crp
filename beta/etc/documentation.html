@@ -1,0 +1,393 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Documentation (e.g., Doxygen) - C++ to Rust Phrasebook</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="documentation-eg-doxygen"><a class="header" href="#documentation-eg-doxygen">Documentation (e.g., Doxygen)</a></h1>
+<p>While C++ has several documentation tools, such as Doxygen and Sphinx, Rust has
+a single documentation tool,
+<a href="https://doc.rust-lang.org/rustdoc/index.html">Rustdoc</a>. Rustdoc is supported by
+<a href="https://docs.rs/"><code>docs.rs</code></a>, cargo,
+<a href="https://rust-analyzer.github.io/">rust-analyzer</a>, and is the tool used for
+documenting <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#blanket-implementations">the standard
+library</a>.
+Rustdoc is installed by default with the Rust toolchain for most distributions.</p>
+<p>The features and options available for Rustdoc are documented in the <a href="https://doc.rust-lang.org/rustdoc/">Rustdoc
+Book</a>. The book also documents <a href="https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html">best
+practices for documenting Rust
+code</a>, which
+differ slightly from the recommended practices for documenting C++ code using
+Doxygen.</p>
+<p>The Cargo integration is documented at in the Cargo book under the <a href="https://doc.rust-lang.org/cargo/commands/cargo-doc.html"><code>cargo doc</code></a> and <a href="https://doc.rust-lang.org/cargo/commands/cargo-rustdoc.html"><code>cargo rustdoc</code></a> commands,
+as well as in the <a href="https://doc.rust-lang.org/cargo/commands/cargo-test.html#documentation-tests">doctests
+section</a>
+of the <code>cargo test</code> command.</p>
+<p>This chapter compares some aspects of Rustdoc with Doxygen in order to help with
+understanding what to expect when using Rustdoc when coming from Doxygen or
+similar C++ documentation tools.</p>
+<h2 id="output-formats"><a class="header" href="#output-formats">Output formats</a></h2>
+<p>Unlike Doxygen which can also produce PDF and man page output, Rustdoc only
+produces HTML output. The produced documentation does include client-side
+searching, which includes the ability to search by type signature.</p>
+<p>The <a href="https://rust-analyzer.github.io/">rust-analyzer</a> language server supports
+Rustdoc comments, and makes them available to editors with language server
+protocol support on hover, even for Rustdoc comments in the current project.</p>
+<h2 id="rustdoc-comment-syntax"><a class="header" href="#rustdoc-comment-syntax">Rustdoc comment syntax</a></h2>
+<p>Unlike Doxygen, which has several supported comment syntaxes for C++, Rustup
+supports a single comment syntax. Comments beginning with <code>//!</code> document the
+top-level module or crate. Comments beginning with <code>///</code> document the following
+item.</p>
+<div class="comparison">
+<pre><code class="language-cpp">/**
+ * @file myheader.h
+ * @brief A description of this file.
+ *
+ * A longer description, with examples, etc.
+ */
+
+/**
+ * @brief A description of this class.
+ *
+ * A longr description, with examples, etc.
+ */
+struct MyClass {
+  // ...
+};
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>//! A description of this module or crate.
+//!
+//! A longer description, with examples, etc.
+
+/// A description of this type.
+///
+/// A longer description, with examples, etc.
+struct MyClass {
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<h3 id="special-forms"><a class="header" href="#special-forms">Special forms</a></h3>
+<p>The content of the comment up until the first blank line is treated similarly to
+the <code>@brief</code> form in Doxygen.</p>
+<p>Aside from that, Rustdoc does not have special forms for documenting various
+parts of an item, such as the parameters of a function. Instead, <a href="https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html#markdown">Markdown
+syntax can be
+used</a>
+to format the documentation, which is otherwise given in prose.</p>
+<p>There are several common conventions used for structuring documentation
+comments. The most common convention is to include sections (defined using
+Markdown header syntax) for whichever of the following are necessary for the
+item being documented:</p>
+<ul>
+<li>panics (for functions that panic, e.g., on
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#panics-32"><code>Vec::split_at</code></a>),</li>
+<li>safety (for unsafe functions, e.g., on
+<a href="https://doc.rust-lang.org/std/primitive.slice.html#safety-10"><code>Vec::split_at_unchecked</code></a>),
+and</li>
+<li>examples (e.g., on <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#examples-105"><code>Vec::split_at</code></a>).</li>
+</ul>
+<p>The following comment compares documentation for a C++ function using Doxygen to
+documentation for a Rust function using Rustdoc.</p>
+<div class="comparison">
+<a id="special-forms-comparison"></a>
+<pre><code class="language-cpp">/**
+ * @brief Computes the factorial.
+ *
+ * Computes the factorial in a stack-safe way.
+ * The factorial is defined as...
+ *
+ * @code
+ * #include &lt;cassert&gt;
+ * #include "factorial.h"
+ *
+ * int main() {
+ *    int res = factorial(3);
+ *    assert(6 == res);
+ * }
+ * @endcode
+ *
+ * @param n The number of which to take the factorial
+ *
+ * @return The factorial
+ *
+ * @exception domain_error If n &lt; 0
+ */
+int factorial(int n);
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>/// Computes the factorial.
+///
+/// Computes the factorial in a stack-safe way.
+/// The factorial is defined as...
+///
+/// # Examples
+///
+/// ```
+/// let res = factorial(3);
+/// assert_eq!(6, res);
+/// ```
+///
+/// # Panics
+///
+/// Requires that `n &gt;= 0`, otherwise panics.
+/// For the non-panicking version see
+/// [`factorial_checked`].
+fn factorial(n: i32) -&gt; i32 {
+    // ...
+<span class="boring">   todo!()
+</span>}
+<span class="boring">}</span></code></pre></pre>
+<div>
+<h3 id="automatic-documentation"><a class="header" href="#automatic-documentation">Automatic documentation</a></h3>
+<p>Many of the things that can be derived from the code are automatically included
+by Rustdoc. A major one is that trait implementations (e.g., on
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#trait-implementations"><code>Vec</code></a>),
+including blanket implementations (e.g., on
+<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#blanket-implementations"><code>Vec</code></a>),
+for a type do not have to be documented manually because implementations that
+are visible in the crate are automatically discovered and included by Rustdoc.</p>
+<h1 id="additional-features"><a class="header" href="#additional-features">Additional features</a></h1>
+<p>Some valuable Rustdoc features may not be expected by someone coming from using
+Doxygen. Because those features provide significant benefit, they are pointed
+out here.</p>
+<h2 id="doctest-support-via-rustdoc-and-cargo-test"><a class="header" href="#doctest-support-via-rustdoc-and-cargo-test">Doctest support via Rustdoc and <code>cargo test</code></a></h2>
+<p>One specific benefit of including examples when documenting Rust programs using
+Rustdoc is that <a href="https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html">the examples can be included in the test suite when running
+<code>cargo test</code></a>.</p>
+<p>The handling of examples as tests in Rustdoc includes logic for handling partial
+programs, so that even <a href="#special-forms-comparison">the code example in the earlier
+comparison</a> can serve as a test.</p>
+<h2 id="local-documentation-for-project-and-installed-libraries"><a class="header" href="#local-documentation-for-project-and-installed-libraries">Local documentation for project and installed libraries</a></h2>
+<p>Local documentation for both the working project and dependent libraries can be
+viewed in-browser using <code>cargo doc --open</code>. Private items for the project can be
+included in the documentation by using <code>cargo doc --open --document-private-items</code>. Because Rustdoc comments are also used by the
+<a href="https://rust-analyzer.github.io/">rust-analyzer</a> language server to provide
+documentation on hover in compatible editors, it is often worth it to document
+private items using Rustdoc comments.</p>
+
+
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Documentation (e.g., Doxygen)">Click here to leave us feedback about this page.</a>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../etc/tests.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../etc/build_systems.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../etc/tests.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../etc/build_systems.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../telemetry/dist/telemetry.iife.js"></script>
+
+
+    </div>
+    </body>
+</html>

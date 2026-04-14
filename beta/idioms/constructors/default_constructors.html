@@ -1,0 +1,560 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Default constructors - C++ to Rust Phrasebook</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <meta property="og:description" content="A book to help translate C++ idioms into Rust.">
+        <meta property="twitter:description" content="A book to help translate C++ idioms into Rust.">
+        <meta name="twitter:card" content="summary">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">C++ to Rust Phrasebook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/cognitive-engineering-lab/crp" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="default-constructors"><a class="header" href="#default-constructors">Default constructors</a></h1>
+<p>C++ has a special concept of default constructors to support several scenarios
+in which they are implicitly called.
+Rust does not have the same notion of a default constructor. The most similar mechanism is the <a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code>
+trait</a>.</p>
+<div class="comparison">
+<pre><code class="language-cpp">class Person {
+    int age;
+
+public:
+    // Default constructor
+    Person() : age(0) {}
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Person {
+   age: i32,
+}
+
+impl Person {
+    pub const fn new() -&gt; Self {
+        Self { age: 0 }
+    }
+}
+
+impl Default for Person {
+    fn default() -&gt; Self {
+        Self::new()
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>If a structure has a useful default value (such as would be constructed by a
+default constructor in C++), then the type should provide
+<a href="https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits">both</a>
+a <code>new</code> method that takes no arguments and an implementation of <code>Default</code>.</p>
+<p>Because <code>Default</code> is a normal trait, the default constructor defined in the
+example can be invoked using the usual syntax for invoking a static trait
+method, e.g., <code>Default::default()</code>.</p>
+<h2 id="implicit-initialization-of-class-members"><a class="header" href="#implicit-initialization-of-class-members">Implicit initialization of class members</a></h2>
+<p>In C++, if a member is not explicitly initialized by a constructor, then it is
+default-initialized. When the type of the member is a class, the
+default-initialization invokes the default constructor.</p>
+<p>In Rust, if all of the fields of a struct implement the <code>Default</code> trait, then an
+implementation for the structure can be provided by the compiler.</p>
+<div class="comparison">
+<pre><code class="language-cpp">class Person {
+  int age;
+
+public:
+  Person() : age(0) {}
+}
+
+class Student {
+  Person person;
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+#[derive(Default)]
+struct Student {
+    person: Person,
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>The <code>#[derive(Default)]</code> macros in Rust are equivalent to writing the following.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Person {
+    age: i32,
+}
+
+impl Default for Person {
+    fn default() -&gt; Self {
+        Self {
+            age: Default::default()
+        }
+    }
+}
+
+struct Student {
+    person: Person,
+}
+
+impl Default for Student {
+    fn default() -&gt; Self {
+        Self {
+            person: Default::default()
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Unlike C++ where the default initialization value for integers is indeterminate,
+in Rust the default value for the primitive integer and floating point types <a href="https://doc.rust-lang.org/std/primitive.i32.html#impl-Default-for-i32">is
+zero</a>.</p>
+<p><a name="struct-update"></a> Deriving the <code>Default</code> trait has a similar effect
+on code concision as eliding initialization in C++. In situations where all of
+the types implement the <code>Default</code> trait, but only some of the fields should have
+their default values, one can use <a href="https://doc.rust-lang.org/book/ch05-01-defining-structs.html#creating-instances-from-other-instances-with-struct-update-syntax">struct update
+syntax</a>
+to define a constructor method without enumerating the values for all of the
+fields.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+#[derive(Default)]
+struct Student {
+    person: Person,
+    favorite_color: Option&lt;String&gt;,
+}
+
+impl Student {
+    pub fn with_favorite_color(color: String) -&gt; Self {
+        Student {
+            favorite_color: Some(color),
+            ..Default::default()
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The performance of the struct update syntax <a href="https://godbolt.org/#z:OYLghAFBqd5TKALEBjA9gEwKYFFMCWALugE4A0BIEAZgQDbYB2AhgLbYgDkAjF%2BTXRMiAZVQtGIHgBYBQogFUAztgAKAD24AGfgCsp5eiyahSAVyVFyKxqiIEh1ZpgDC6embZMQAJnLOAGQImbAA5TwAjbFIpAE5yAAd0JWIHJjcPL19E5NShIJDwtiiYnnibbDs0kSIWUiIMz28ea2xbeyEauqICsMjog0tuxqyWofreopKpAEprdDNSVE4uAFIfAGZVgFYAIRxSAgA3bAgAEWwaFjN6Ihmds9WtAEEEswiAaktzOw/VaKUQg%2BqwA7Lsns8PlCPixgJwPgQNn4IaDHi8UZsdvtosdThcrjc7g8IW9Pt8zL8amYcMJgWCIdCPgkAY4/iymOQGdCrkcyMRsAB9DD0MggD4AeQSHSYqw2LhqhxMstwnPRILRzwhBDYCXoHypNKIdPBL0ZpI%2BNCYHwA7sQkAKeXyiILhWQIK6YvqiIrgDMPgBaZX6to0Y1cxlQg3MI2gk2QiMJx2HZ1C9yi/XoDjutOkObhhPQgB0hfx11uIBAOAJtwg91NBdR%2BcbarOXDm9G42343i4OnI6G4ACULEbAYtlsDNnxyERtG25gBrEDbLSGbjSfhsZernt9gdcfhKECr2e9tvkOCwFAYHUMaKUag3hJ3mKkHgADhBq7otwB1Aic7kBEwR1AAntw07AawpCgeKES6JUp7TjeHDCOKTD0OBZ7kDgERmMALgSPQR68PwOBsMYwCSNhhCkIhuIkX22DqJUZjOhB/DBM6HbYfQBARKQYFuDggHetqHHkCcpARMk2AXBRJh8SYc5zDQRjAEoABqBDYNakrMBJgjCGIEicDIcjCMoaiaNh%2BgtEYynmJYhj8UekBzOgUppCR/ouB8nlEP6jAnPQspnD4/DoFJhw4G5tatO0aROEwrjuE0Uh%2BIEwR9MUAzvjkKTSiMzR%2BEkhVpJM/QxPlFRVJ0tT1MVGUJfR9XdJVuXVdYDUNGlox%2BOMPTZVMeVzGOSxme2nbdoB%2B4fE5RCoB8PCFp%2BhZaB8ED4MQZCThsPAzPwp46DMcxINgLAHNQi7bmuXAbuQu6Rdwh7HjOKlTVwEXkFu0jbOtWjSGU748NsPggz4IIAGyPbNL3vWecyXgg8AQNeWB4IQJAUFQtB3qwHCGfIJmSOZRmKCoGiAfofgOaYI4tXV3gQM4TUtFlhRVVILRlXk6R9c0BV8x10w8GMbStUwXSNQLgwS0z0tDZznXc91wyy2MPUiwMYtjQsE3cOsWx7AcuLnJcZZEtsGrmuSvz/KQgJWrG%2BawvCiLIi2KLopiJs4ic5vVlbNvvF83oUkaUa0i79ZQsyjusg7TuqvGUJJvyqYip6krSrK8piUqGwqii6re882q6l61LRmGsdMqHlo2naDosLyyYujm2ZZ2KCrBL6AZBiIIa16nEaMEabBsV8wIbGcwb0DQFZVpbtaynGBZfIW6cph6M9zyImanB69wbOvBZKE2pctuePFdrD2H7sOlhfPrE5G99x3zuQ52XQM8VLiuO6D0twbBBIWbY989zwyPCeFSF5EBozQJmZ8jAcaPmQS%2BEAb5PzfgYM6R2/5AJQTAhJYhME4IITsBJFC0Z0KYUArhfChF6DEQkuRSi1E%2By0XoicRi/BmKsXYqRSgwg2iAT4gJISGNRKHC3MIqSMkVDyQ4X3OBalYRaR0npZkPZpzkxJmZWQ5MrJU1stkOmWCGYSLih5LyQgfJ%2BQCkFbAIUwrfSitEGK2AbGM2lMlVKmRBYcxyqLIWRUNZhIqsNLm4tEptRloEuWcSpZa2iSrTW6tEkZImGk0WetxycB8J9O%2BT1%2BzcHmiOJaK01obS2ljXa79DoIxOmdC6V1/63R4g9Up%2B5XqwMRp9b6W5tjSELLEWI2x3xaA/NIEEH4QQ%2BD%2BpA56B5mlfyXDwLQq4eIbBmg/eGn9TqSQBElaQQA%3D%3D%3D">is up to the optimizer</a>.</p>
+<h2 id="implicit-initialization-of-array-values"><a class="header" href="#implicit-initialization-of-array-values">Implicit initialization of array values</a></h2>
+<p>In C++, arrays without explicit initialization are default-initialized using the
+default constructors.</p>
+<p>In Rust, the value with which to initialize the array must be provided.</p>
+<div class="comparison">
+<pre><code class="language-cpp">class Person {
+  int age;
+
+public:
+  Person() : age(0) {}
+};
+
+int main() {
+  Person people[3];
+  // ...
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    // std::array::from_fn provides the index to the callback
+    let people: [Person; 3] =
+        std::array::from_fn(|_| Default::default());
+    // ...
+}</code></pre></pre>
+</div>
+<p>If the type happens to be <a href="./copy_and_move_constructors.html#trivially-copyable-types">trivially
+copyable</a>,
+then a shorthand can be used.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Copy, Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let people: [Person; 3] = [Default::default(); 3];
+    // ...
+}</code></pre></pre>
+<h2 id="container-element-initialization"><a class="header" href="#container-element-initialization">Container element initialization</a></h2>
+<p>In C++, the default constructor could be used to implicitly define collection
+types, such as <code>std::vector</code>. Before C++11, one value would be default
+constructed, and the elements would be copy constructed from that initial
+element. Since C++11, all elements are default constructed.</p>
+<p>As with array initialization, the values must be explicitly specified in Rust.
+The vector can be constructed from an array, enabling the same syntax as with
+arrays.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;vector&gt;
+
+class Person {
+    int age;
+
+public:
+    Person() : age(0) {}
+}
+
+int main() {
+    std::vector&lt;Person&gt; people(3);
+    // ...
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let people_arr: [Person; 3] =
+        std::array::from_fn(|_| Default::default());
+    let people: Vec&lt;Person&gt; = Vec::from(people_arr);
+    // ...
+}</code></pre></pre>
+</div>
+<p>In Rust, the vector can also be constructed <a href="https://doc.rust-lang.org/book/ch13-02-iterators.html#methods-that-produce-other-iterators">from an
+iterator</a>.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let people: Vec&lt;Person&gt; = (0..3).map(|_| Default::default()).collect();
+    // ...
+}</code></pre></pre>
+<p>If the type implements the <code>Clone</code> trait, then the array can be constructed
+using the <code>vec!</code> macro. See the chapter on <a href="./copy_and_move_constructors.html">copy
+constructors</a> for more
+details on <code>Clone</code>.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let people: Vec&lt;Person&gt; = vec![Default::default(); 3];
+    // ...
+}</code></pre></pre>
+<h2 id="implicit-initialization-of-local-variables"><a class="header" href="#implicit-initialization-of-local-variables">Implicit initialization of local variables</a></h2>
+<p>In C++, the default constructor is used to perform default-initialization of
+local variables that are not explicitly initialized.</p>
+<p>In Rust, initialization of local variables is always explicit.</p>
+<div class="comparison">
+<pre><code class="language-cpp">class Person {
+    int age;
+
+public:
+    Person() : age(0) {}
+};
+
+int main() {
+    Person person;
+    // ...
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust">#[derive(Clone, Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let person = Person::default();
+    // ...
+}</code></pre></pre>
+</div>
+<h2 id="implicit-initialization-of-the-base-class-object"><a class="header" href="#implicit-initialization-of-the-base-class-object">Implicit initialization of the base class object</a></h2>
+<p>In C++, the default constructor is used to initialize the base class object if
+no other constructor is specified.</p>
+<pre><code class="language-cpp">class Base {
+  int x;
+
+public:
+  Base() : x(0) {}
+};
+
+class Derived : Base {
+public:
+  // Calls the default constructor for Base
+  Derived() {}
+};
+</code></pre>
+<p>Since Rust does not have inheritance, there is no equivalent to this case.
+See the chapter on <a href="../data_modeling/inheritance_and_reuse.html">implementation
+reuse</a> or the section on <a href="https://doc.rust-lang.org/book/ch10-02-traits.html">traits
+in the Rust book</a> for
+alternatives.</p>
+<h2 id="stdunique_ptr"><a class="header" href="#stdunique_ptr"><code>std::unique_ptr</code></a></h2>
+<p>There are some additional cases where the <code>Default</code> trait is used in Rust, but
+default constructors are not used for initialization in C++.</p>
+<p>Rust's equivalent of smart pointers implement <code>Default</code> by delegating to the
+<code>Default</code> implementation of the contained type.</p>
+<pre><pre class="playground"><code class="language-rust">#[derive(Default)]
+struct Person {
+    age: i32,
+}
+
+fn main() {
+    let b: Box&lt;Person&gt; = Default::default();
+    // ...
+}</code></pre></pre>
+<p>This differs from the treatment of <code>std::unique_ptr</code> in C++ because unlike <code>Box</code>,
+<code>std::unique_ptr</code> is nullable, and so the default constructor for
+<code>std:unique_ptr</code> produces a pointer that owns nothing. The equivalent type in
+Rust is <code>Option&lt;Box&lt;Person&gt;&gt;</code>, for which the <code>Default</code> implementation produces
+<code>None</code>.</p>
+<h2 id="other-uses-of-default"><a class="header" href="#other-uses-of-default">Other uses of <code>Default</code></a></h2>
+<p><a href="https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_default"><code>Option::unwrap_or_default</code></a>
+makes use of <code>Default</code>, which makes getting a default value when the <code>Option</code>
+does not contain a value more convenient.</p>
+<div class="comparison">
+<pre><code class="language-cpp">#include &lt;optional&gt;
+#include &lt;string&gt;
+
+void go(std::optional&lt;std::string&gt; x) {
+  std::string a =
+      x.or_else([]() {
+         return std::make_optional&lt;std::string&gt;();
+       }).value();
+  // if x was nullopt, then a is ""
+
+  // ...
+}
+</code></pre>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn go(x: Option&lt;String&gt;) {
+    let a: String = x.unwrap_or_default();
+    // if x was None, then a is ""
+
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+</div>
+<p>In C++ <code>std::optional::value_or</code> is not equivalent, because it would always
+construct the default, as opposed to only constructing the default when the
+<code>std::optional</code> is <code>std::nullopt</code>. The equivalent requires using
+<code>std::optional::or_else</code>.</p>
+<div class="quiz-placeholder" data-quiz-name="&quot;default_constructors&quot;" data-quiz-questions="{&quot;questions&quot;:[{&quot;context&quot;:&quot;Rust does not have implicit default initialization like C++ does. Variables must\nbe explicitly initialized before use, or the program will fail to compile.\n&quot;,&quot;id&quot;:&quot;5019323d-1534-4c70-a8e7-b015f87be228&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;It does not compile because `w` is not explicitly initialized before it is used.\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;It does compile.\n&quot;,&quot;It does not compile because `Widget` does not implement the `Default` trait.\n&quot;,&quot;It does not compile because `Widget` does not implement a `new` method.\n&quot;,&quot;It does not compile because `Widget` does not implement both the `Default`\ntrait and a `new` method.\n&quot;],&quot;prompt&quot;:&quot;Does this program compile? If not, why not?\n\n```rust\nstruct Widget {\n    color: String,\n}\n\nfn main() {\n    let w: Widget;\n    println!(\&quot;{}\&quot;, w.color);\n}\n```\n&quot;}},{&quot;context&quot;:&quot;When there is a reasonable default value, it is most idiomatic in Rust to\nprovide [both a `new` method and an implementation of the `Default`\ntrait.](https://rust-lang.github.io/api-guidelines/interoperability.html?highlight=default#types-eagerly-implement-common-traits-c-common-traits)\n\nIn this case, an even more idiomatic implementation would be to [derive\n`Default`](https://doc.rust-lang.org/std/default/trait.Default.html#derivable)\nand use the derived method to implement new.\n&quot;,&quot;id&quot;:&quot;a436177e-821d-45d1-8e46-4fafc3d78cd3&quot;,&quot;type&quot;:&quot;MultipleChoice&quot;,&quot;answer&quot;:{&quot;answer&quot;:&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;},&quot;prompt&quot;:{&quot;distractors&quot;:[&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Vec2 {\n     pub fn new() -&gt; Self {\n        Vec2 { x: 0.0, y: 0.0 }\n     }\n}\n```\n&quot;,&quot;```rust\npub struct Vec2 {\n    pub x: f64;\n    pub y: f64;\n}\n\nimpl Default for Vec2 {\n     fn default() -&gt; Self {\n        Self::new()\n     }\n}\n```\n&quot;],&quot;prompt&quot;:&quot;Which is the most idiomatic translation of the following C++ program?\n\n```cpp\nstruct Vec2 {\n    double x;\n    double y;\n\n    Vec2() : x(0.0), y(0.0) {}\n};\n```\n&quot;}}]}" data-quiz-fullscreen="true" data-quiz-initial-text="&quot;Check your understanding&quot;"></div>
+<script type="text/javascript" src="../../quiz/quiz-embed.iife.js"></script><link rel="stylesheet" type="text/css" href="../../quiz/style.css">
+
+                        <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScoygeNlygODY2owQ-HvU8VGx3hi50aic7ZlKCyhJ0VktjiCg/viewform?usp=pp_url&entry.1450251950=Default constructors">Click here to leave us feedback about this page.</a>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../idioms/constructors.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../idioms/constructors/copy_and_move_constructors.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../idioms/constructors.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../idioms/constructors/copy_and_move_constructors.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q3W4ES0FTM"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-Q3W4ES0FTM');
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../telemetry/dist/telemetry.iife.js"></script>
+
+
+    </div>
+    </body>
+</html>

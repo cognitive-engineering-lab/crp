@@ -1,0 +1,119 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which Rust program is the most idiomatic translation of the following C++
+program?
+
+```cpp
+#include <cmath>
+#include <stdexcept>
+
+class NotNaN {
+  double value;
+
+public:
+  NotNaN(double x) : value(x) {
+    if (std::isnan(value)) {
+      throw std::domain_error("NaN");
+    }
+  }
+
+  double getValue() {
+    return value;
+  }
+};
+```
+"""
+prompt.distractors = [
+"""
+```rust
+pub struct NotNaN {
+    value: f64,
+}
+
+impl NotNaN {
+    pub fn value(&self) -> f64 {
+        self.value
+    }
+}
+
+impl From<f64> for NotNaN {
+    fn from(x: f64) -> Self {
+        if x.is_nan() {
+            panic!("Is NaN!");
+        }
+        Self { value: x }
+    }
+}
+```
+""",
+"""
+```rust
+use std::convert::TryInto;
+
+pub struct NotNaN {
+    value: f64,
+}
+
+impl NotNaN {
+    pub fn value(&self) -> f64 {
+        self.value
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct IsNaN;
+
+impl TryInto<NotNaN> for f64 {
+    type Error = IsNaN;
+
+    fn try_into(
+        self,
+    ) -> Result<NotNaN, Self::Error> {
+        if self.is_nan() {
+            Err(IsNaN)
+        } else {
+            Ok(NotNaN { value: self })
+        }
+    }
+}
+```
+"""
+]
+answer.answer = """
+```rust
+use std::convert::TryFrom;
+
+pub struct NotNaN {
+    value: f64,
+}
+
+impl NotNaN {
+    pub fn value(&self) -> f64 {
+        self.value
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct IsNaN;
+
+impl TryFrom<f64> for NotNaN {
+    type Error = IsNaN;
+    fn try_from(
+        x: f64,
+    ) -> Result<Self, Self::Error> {
+        if x.is_nan() {
+            Err(IsNaN)
+        } else {
+            Ok(Self { value: x })
+        }
+    }
+}
+```
+"""
+context = """
+There is a blanket implementation for `TryInto` for every type that implements
+`TryFrom`, so it is better to implement `TryFrom` and rely on the blanket
+implementation for `TryInto`.
+"""
+id = "d6790d33-5130-47ba-ba96-c6718978131f"

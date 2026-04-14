@@ -1,0 +1,140 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which Rust signature the most idiomatic to use for a translation of the
+following C++ function?
+
+```cpp
+#include <stdexcept>
+#include <vector>
+
+/**
+ * @exception bad_domain If the given vector is
+ * empty.
+ */
+void process(std::vector<int> userInput) {
+  if (userInput.empty()) {
+    throw std::domain_error("Non-empty vector required");
+  }
+  if (userInput.size() > 100) {
+    throw std::domain_error("Vector is too big");
+  }
+
+  // process elements of v
+}
+```
+"""
+prompt.distractors = [
+"""
+```rust
+/// # Panics
+///
+/// Panics if the given vector is empty or too big.
+fn process(userInput: Vec<i32>);
+```
+""",
+"""
+```rust
+/// Returns `None` if the given vector is empty or too big.
+fn process(userInput: Vec<i32>) -> Option<int>;
+```
+"""
+]
+answer.answer = """
+```rust
+use thiserror::Error;
+
+#[derive(Clone, Copy, Debug, Error)]
+enum ProcessError {
+    #[error("the vector is empty")]
+    EmptyVec,
+    #[error("the vector is too big")]
+    TooBigVec,
+}
+
+/// Returns `Err(EmptyVec)` if the given vector is empty,
+/// or `Err(TooBigVec)` if the given vector is too big.
+fn process(userInput: Vec<i32>) -> Result<(), ProcessError>;
+```
+"""
+context = """
+Errors that are expected (such as might arise from handling user input) should
+be represented with `Result` or `Option`, rather than panics, so that they can
+be handled.
+
+Since there are multiple kinds of errors that might be produced, `Result` should
+be used instead of `Option` so that the errors can be distinguished, in order
+to, e.g., provide different error messages for the user.
+"""
+id = "5654c1c0-b526-4248-8684-64e55b26e715"
+
+[[questions]]
+type = "MultipleChoice"
+# Focuses on ? operator, since it is so important for readable error handling.
+prompt.prompt = """
+Assume `f` is some function
+
+```rust
+fn f(i32) -> Option<i32> {
+   // ...
+}
+```
+
+Which programs have equivalent behavior to the following program?
+
+```rust
+fn go() -> Option<(i32, i32)> {
+    let x = f(0)?;
+    let y = f(1)?;
+    Some((x, y))
+}
+```
+"""
+# Focuses on ? operator, since it is so important for readable error handling.
+prompt.distractors = [
+"""
+```rust
+fn go() -> Option<(i32, i32)> {
+    match (f(0), f(1)) {
+        (Some(x), Some(y)) => Some((x, y)),
+        _ => None,
+    }
+}
+```
+"""
+]
+answer.answer = [
+"""
+```rust
+fn go() -> Option<(i32, i32)> {
+    if let Some(x) = f(0)
+        && let Some(y) = f(1)
+    {
+        return Some((x, y));
+    }
+    None
+}
+```
+""",
+"""
+```rust
+fn go() -> Option<(i32, i32)> {
+    let Some(x) = f(0) else {
+        return None;
+    };
+    let Some(y) = f(1) else {
+        return None;
+    };
+    Some((x, y))
+}
+```
+"""
+]
+context = """
+The `?` operator returns early, so that the rest of the function is not
+executed.
+
+The program using `match` call `f` on both `0` and `1`, while the others return
+early and so do not call `f` on `1`.
+"""
+id = "08e6862a-31a2-4554-bfbf-bdf13cd4d8c0"

@@ -1,0 +1,98 @@
+[[questions]]
+# This question checks to make sure readers understand that while traits offer
+# some re-use via default methods, they do not have other aspects of
+# inheritance. In particular, the default method is not part of BareLogger at
+# all, so no slicing, etc. can be done to access it.
+type = "Tracing"
+prompt.program = """
+trait Logger {
+    fn log(&self, message: &str);
+
+    fn error(&self, message: &str) {
+        self.log(&format!("ERROR: {}", message));
+    }
+}
+
+struct BareLogger;
+
+impl Logger for BareLogger {
+    fn log(&self, message: &str) {
+        println!("{}", message);
+    }
+
+    fn error(&self, message: &str) {
+        // Omits the ERROR: prefix
+        println!("{}", message)
+    }
+}
+
+fn main() {
+    let logger = BareLogger;
+    logger.log("a message");
+    logger.error("an error");
+    <BareLogger as Logger>::log(&logger, "another message");
+    <BareLogger as Logger>::error(&logger, "another error");
+}
+"""
+answer.doesCompile = true
+answer.stdout = """
+a message
+an error
+another message
+another error
+"""
+context = """
+Unlike with a C++ parent class, the default method is not part of `BareLogger`,
+even when accessed statically via the trait.
+"""
+id = "2bc058d0-99e4-44e0-9abe-5497b713731e"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Does the following program compile? If not, why not?
+
+```rust
+trait Damageable {
+    health: u32;
+
+    fn take_damage(&mut self, damage: u32) {
+        self.health = self.health.saturating_sub(damage);
+    }
+}
+
+struct Enemy;
+
+impl Damageable for Enemy {}
+
+fn main() {
+    let e = Enemy;
+    e.take_damage(10);
+}
+```
+"""
+prompt.distractors = [
+# Thinking traits are like C++ abstract classes
+"""
+It does compile.
+""",
+# Thinking that the problem is with how the trait is implemented
+"""
+It does not compile, because `health` isn't initialized when `Enemy` implements
+`Damageable`.
+""",
+# Thinking that the problem is with the use, rather than the definition
+"""
+It does not compile, because `e.health` isn't initialized before using `e` in
+`main`.
+""",
+]
+answer.answer = """
+It does not compile because in Rust traits cannot have fields.
+"""
+context = """
+A trait only defines an interface, with the ability to define default methods as
+a convenience for when some methods on the trait can be defined in terms of
+others.
+"""
+id = "78c03495-5d3d-4faf-8375-b9f338a377ff"

@@ -1,0 +1,84 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+In the following Rust program, which calls are resolved using dynamic dispatch?
+
+```rust
+trait Shape {
+    fn area(&self) -> f64;
+
+    fn twice_area(&self) -> f64 {
+        2.0 * self.area() // 1
+    }
+}
+
+struct Triangle {
+    base: f64,
+    height: f64,
+}
+
+impl Shape for Triangle {
+    fn area(&self) -> f64 {
+        0.5 * self.base * self.height
+    }
+}
+
+struct Square {
+    side: f64,
+}
+
+impl Shape for Square {
+    fn area(&self) -> f64 {
+        self.side * self.side
+    }
+}
+
+fn sum_areas(shapes: &[&dyn Shape]) -> f64 {
+    let mut total = 0.0;
+    for shape in shapes {
+        total += shape.area(); // 2
+    }
+    total
+}
+
+fn main() {
+    let triangle = Triangle {
+        base: 2.0,
+        height: 1.0,
+    };
+    let square = Square { side: 2.0 };
+    println!("{}", triangle.twice_area()); // 3
+    println!("{}", square.twice_area()); // 4
+
+    println!(
+        "{}",
+        sum_areas(&[&triangle, &square])
+    );
+}
+```
+"""
+prompt.distractors = [
+"""
+`2.0 * self.area() // 1`
+""",
+"""
+`println!("{}", triangle.twice_area()); // 3`
+""",
+"""
+`println!("{}", square.twice_area()); // 4`
+""",
+"""
+`2.0 * self.area() // 1` when invoked via `sum_areas`.
+"""
+]
+answer.answer = [
+"""
+`total += shape.area(); // 2`
+"""
+]
+id = "9dd51ab1-5e7a-441b-bc59-c80a73bde71f"
+context = """
+Dynamic dispatch in Rust only occurs when invoking a method on a trait object.
+Some of the patterns used to ensure static dispatch is used in C++ are not
+needed in Rust.
+"""

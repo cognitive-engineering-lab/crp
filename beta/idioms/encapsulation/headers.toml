@@ -1,0 +1,386 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which Rust program is the idiomatic equivalent to the following C++ program?
+
+```cpp
+// square.h
+struct Square {
+  double width;
+
+  double area() const;
+};
+
+// square.cc
+#include "square.h"
+
+double Square::area() const {
+  return this->width * this.width;
+}
+
+// main.cc
+#include "square.h"
+#include <iostream>
+
+int main() {
+  Square square(3.0);
+
+  std::cout << square.area() << std::endl;
+}
+```
+"""
+prompt.distractors = [
+# Thinking that there should be a separate interface file.
+"""
+```rust
+// square.rsi
+pub struct Square {
+    pub width: f64;
+}
+
+impl Square {
+    pub fn area(&self) -> f64;
+}
+
+// square.rs
+mod square;
+
+impl Square {
+    pub fn area(&self) -> f64 {
+        self.width * self.width
+    }
+}
+
+// main.rs
+mod square;
+
+use square::*;
+
+fn main() {
+    let square = Square { width: 3.0 };
+
+    println!("{}", square.area());
+}
+```
+""",
+# Thinking that mod provides textual inclusion.
+"""
+```rust
+// square.rs
+pub struct Square {
+    pub width: f64,
+}
+
+impl Square {
+    pub fn area(&self) -> f64 {
+        self.width * self.width
+    }
+}
+
+// main.rs
+mod square;
+
+fn main() {
+    let square = Square { width: 3.0 };
+
+    println!("{}", square.area());
+}
+```
+""",
+# Thinking the module for square is defined in square.rs.
+"""
+```rust
+// square.rs
+mod square {
+    pub struct Square {
+        pub width: f64,
+    }
+
+    impl Square {
+        pub fn area(&self) -> f64 {
+            self.width * self.width
+        }
+    }
+}
+
+// main.rs
+mod square;
+
+use square::*;
+
+fn main() {
+    let square = Square { width: 3.0 };
+
+    println!("{}", square.area());
+}
+```
+"""
+]
+answer.answer = """
+```rust
+// square.rs
+pub struct Square {
+    pub width: f64,
+}
+
+impl Square {
+    pub fn area(&self) -> f64 {
+        self.width * self.width
+    }
+}
+
+// main.rs
+mod square;
+
+use square::*;
+
+fn main() {
+    let square = Square { width: 3.0 };
+
+    println!("{}", square.area());
+}
+```
+"""
+context = """
+Even if in C++ you wouldn't use namespaces to structure the program, in Rust
+splitting programs into separate files also means splitting them into separate
+modules.
+"""
+id = "4665b8ad-511f-4e0b-9dff-bf53e2a8f931"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Does this program compile? If not, why not?
+
+```rust
+// greetings.rs
+println!("Hello!");
+```
+
+```rust
+// main.rs
+fn main() {
+    #[path = "greetings.rs"]
+    mod greetings;
+}
+```
+"""
+answer.answer = """
+It does not compile because `mod` defines a module and `greeting.rs` is not a
+valid module body.
+"""
+prompt.distractors = [
+## Thinking that mod works like C++ #include.
+"""
+It does compile and prints `Hello!` to standard out.
+""",
+## Thinking that some combination of mod and using works like C++ #include.
+"""
+It does not compile because the `main.rs` file must include an explicit `use
+greetings;` statement.
+"""
+]
+id = "e3948224-44d7-47d1-bf37-d5667fd8c9bb"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which single-file Rust program is equivalent to this program which is split
+across multiple files?
+
+```rust
+// greetings.rs
+pub fn print_greeting() {
+   print_hello();
+   print_goodbye();
+}
+
+fn print_hello() {
+    println!("Hello!");
+}
+
+fn print_goodbye() {
+    println!("Goodbye!");
+}
+
+// main.rs
+mod greetings;
+
+use greetings::*;
+
+fn main() {
+    print_greeting();
+}
+```
+"""
+prompt.distractors = [
+# Either thinking Rust `mod` does textual inclusion like C++ `#include` or
+# mistaking how modules hide visibility.
+"""
+```rust
+fn print_greeting() {
+   print_hello();
+   print_goodbye();
+}
+
+fn print_hello() {
+    println!("Hello!");
+}
+
+fn print_goodbye() {
+    println!("Goodbye!");
+}
+
+fn main() {
+    print_hello();
+}
+```
+""",
+# Thinking that everything gets "wrapped in a module" instead of the `mod`
+# construct defining a module.
+"""
+```rust
+mod greetings {
+    pub fn print_greeting() {
+        print_hello();
+        print_goodbye();
+    }
+
+    fn print_hello() {
+        println!("Hello!");
+    }
+
+    fn print_goodbye() {
+        println!("Goodbye!");
+    }
+}
+
+mod main {
+    use greetings::*;
+
+    fn main() {
+        print_greeting();
+    }
+}
+```
+""",
+# Thinking that everything gets "wrapped in a module" in addition to the `mod`
+# construct defining a module.
+"""
+```rust
+mod main {
+    mod greetings {
+        pub fn print_greeting() {
+            print_hello();
+            print_goodbye();
+        }
+
+        fn print_hello() {
+            println!("Hello!");
+        }
+
+        fn print_goodbye() {
+            println!("Goodbye!");
+        }
+    }
+
+    use greetings::*;
+
+    fn main() {
+        print_greeting();
+    }
+}
+```
+"""
+]
+answer.answer = """
+```rust
+mod greetings {
+    pub fn print_greeting() {
+        print_hello();
+        print_goodbye();
+    }
+
+    fn print_hello() {
+        println!("Hello!");
+    }
+
+    fn print_goodbye() {
+        println!("Goodbye!");
+    }
+}
+
+use greetings::*;
+
+fn main() {
+    print_greeting();
+}
+```
+"""
+context = """
+In Rust, `mod` defines a module whose body happens to be given in another file.
+The whole program is compiled from the root file (in this case `main.rs`) as a
+tree of modules.
+"""
+id = "68d431c0-8d39-4f4f-804c-bb6e7baa8d2b"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Does this program compile? If not, why not?
+
+```rust
+// even.rs
+use crate::odd::*;
+
+pub fn is_even(n: u64) -> bool {
+    if n == 0 {
+        true
+    } else {
+        is_odd(n - 1)
+    }
+}
+
+// odd.rs
+use crate::even::*;
+
+pub fn is_odd(n: u64) -> bool {
+    if n == 1 {
+        true
+    } else {
+        is_even(n - 1)
+    }
+}
+
+// main.rs
+mod even;
+mod odd;
+
+use even::*;
+
+fn main() {
+    println!("{}", is_even(4));
+}
+```
+"""
+answer.answer = """
+The program does compile and prints `true`.
+"""
+prompt.distractors = [
+# Thinking mod/using work like #include, or thinking like individual modules are
+# translation units.
+"""
+It does not compile because the files have a cyclical dependency.
+""",
+# Not remembering that a program is a single tree of modules.
+"""
+It does not compile because `even.rs` and `odd.rs` don't have `mod`
+declarations for each other.
+"""
+]
+context = """
+Since neither `mod` nor `use` performs textual inclusion, it is possible to have
+recurisve modules within a single crate.
+"""
+id = "b2d00b6a-8efa-40e5-98c7-f9c54f48d09a"

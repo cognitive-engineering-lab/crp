@@ -1,0 +1,125 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which statements are true about the following Rust program?
+
+```rust
+mod people {
+    pub struct Person {
+        pub name: String,
+        pub age: i32,
+        _private: (),
+    }
+
+    pub struct Pet {
+        pub name: String,
+        pub age: i32,
+    }
+
+    fn test_method() {
+      // ...
+    }
+}
+
+use people::*;
+
+fn main() {
+    // ...
+}
+```
+"""
+prompt.distractors = [
+"""
+`Person` can be constructed in `main`.
+""",
+"""
+`_private` can be accessed in `main`.
+""",
+"""
+Values of type `Person` are larger than values of type `Pet`.
+"""
+]
+answer.answer = [
+"""
+`Person` can be constructed in `test_method`.
+""",
+"""
+`_private` can be accessed in `test_method`.
+""",
+"""
+`name` can be accessed in `test_method`.
+""",
+"""
+`name` can be accessed in `main`.
+"""
+]
+id = "62d1037a-740b-4f66-a195-741fa73f59fc"
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which is the most idiomatic translation of the following C++ program?
+
+```cpp
+class Vec2 {
+  double x;
+  double y;
+
+public:
+  Vec2() : x(0.0), y(0.0) {}
+};
+```
+"""
+prompt.distractors = [
+# Not remembering that the encapsulation boundary is a module.
+"""
+```rust
+pub struct Vec2 {
+    x: f64,
+    y: f64,
+}
+
+impl Vec2 {
+    pub fn new() -> Vec2 {
+        Vec2 { x: 0.0 , y: 0.0 }
+    }
+}
+```
+""",
+# Thinking that the extra private field is always necessary to make the
+# constructor private.
+"""
+```rust
+mod vec {
+    pub struct Vec2 {
+        x: f64,
+        y: f64,
+        _private: (),
+    }
+
+    impl Vec2 {
+        fn new() -> Vec2 {
+            Vec2 { x: 0.0, y: 0.0 }
+        }
+    }
+}
+```
+"""
+]
+answer.answer = """
+```rust
+mod vec {
+    pub struct Vec2 {
+        x: f64,
+        y: f64,
+    }
+
+    impl Vec2 {
+        pub fn new() -> Vec2 {
+            Vec2 { x: 0.0, y: 0.0 }
+        }
+    }
+}
+```
+"""
+id = "df42cbcd-d5c0-486d-9509-371d05bc2145"

@@ -1,0 +1,125 @@
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+Which of the following are reasons why this program does not compile?
+
+```rust
+mod shapes {
+    pub trait Shape {
+        fn area(&self) -> f64;
+    }
+
+    mod triangle {
+        use super::*;
+
+        pub struct Triangle {
+            pub base: f64,
+            pub height: f64,
+        }
+
+        impl Shape for Triangle {
+            fn area(&self) -> f64 {
+                0.5 * self.base * self.height
+            }
+        }
+    }
+}
+
+use shapes::*;
+
+fn main() {
+    let t = triangle::Triangle {
+        base: 1.0,
+        height: 2.0,
+    };
+    println!("{}", t.area());
+}
+```
+"""
+prompt.distractors = [
+"""
+It does not compile because the shapes module is not visible from the location
+of `use`.
+""",
+"""
+It does not compile because the `area` method of the `Shapes` trait is not
+visible from `main`.
+""",
+"""
+It does not compile because the `area` method of the `Shape` trait is not
+visible from the implementation of the `Shape` trait for `Triangle`.
+"""
+]
+answer.answer = [
+"""
+It does not compile because the triangle module is not visible from `main`.
+""",
+"""
+It does not compile because the `area` method of the `Shape` implementation for
+Triangle isn't visible from `main`.
+"""
+]
+context = """
+Methods for trait implementations are visible wherever both the type and the
+trait are visible.
+"""
+id = "0cf46fc5-2456-44b1-bb4e-f5adac2ffaf3"
+
+
+[[questions]]
+type = "MultipleChoice"
+prompt.prompt = """
+What changes are required to make this program compile?
+
+```rust
+mod shapes {
+    pub trait Shape {
+        fn area(&self) -> f64;
+    }
+
+    mod triangle {
+        use super::*;
+
+        pub struct Triangle {
+            pub base: f64,
+            pub height: f64,
+        }
+
+        impl Shape for Triangle {
+            fn area(&self) -> f64 {
+                0.5 * self.base * self.height
+            }
+        }
+    }
+}
+
+use shapes::*;
+
+fn main() {
+    let t = triangle::Triangle {
+        base: 1.0,
+        height: 2.0,
+    };
+    println!("{}", t.area());
+}
+```
+"""
+prompt.distractors = [
+"""
+Change `impl Shape for Triangle` to `pub impl Shape for Triangle`.
+""",
+"""
+Change `fn area(&self) -> f64` to `pub fn area(&self) -> f64` in the
+implementation of `Shape` for `Triangle`.
+""",
+"""
+Change `fn area(&self) -> f64` to `pub fn area(&self) -> f64` in the
+definition of the `Shape` trait.
+"""
+]
+answer.answer = [
+"""
+Change `mod triangle` to `pub mod triangle`.
+"""
+]
+id = "86a2afdc-85f8-4662-aa1b-b219cb99c457"
