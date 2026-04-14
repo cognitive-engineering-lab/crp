@@ -15,7 +15,7 @@ runs:
       uses: baptiste0928/cargo-install@v3
       with:
         crate: mdbook-quiz
-        version: '^0.3.10'
+        version: '^0.4.0'
 
     - name: Install mdbook-linkcheck
       uses: baptiste0928/cargo-install@v3
