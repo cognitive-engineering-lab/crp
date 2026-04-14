@@ -16,7 +16,7 @@ code](https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html), which
 differ slightly from the recommended practices for documenting C++ code using
 Doxygen.
 
-The Cargo integration is documented at in the Cargo book under the [`cargo
+The Cargo integration is documented in the Cargo book under the [`cargo
 doc`](https://doc.rust-lang.org/cargo/commands/cargo-doc.html) and [`cargo
 rustdoc`](https://doc.rust-lang.org/cargo/commands/cargo-rustdoc.html) commands,
 as well as in the [doctests
