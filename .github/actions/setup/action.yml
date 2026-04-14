@@ -23,6 +23,12 @@ runs:
         crate: mdbook-linkcheck
         version: '^0.7.7'
 
+    - name: Install mdbook-linkcheck
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: mdbook-sitemap-generator
+        version: '^0.1.0'
+
     - name: Build telemetry
       run: depot build --release
       shell: bash
