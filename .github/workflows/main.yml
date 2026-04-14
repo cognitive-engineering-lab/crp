@@ -22,7 +22,7 @@ jobs:
           MDBOOK_OUTPUT__HTML__SITE_URL: /crp/
 
       - name: Build sitemap
-        run: mdbook-sitemap-generator -d cel.cs.brown.edu/crp -o book/sitemap.xml
+        run: mdbook-sitemap-generator -d cel.cs.brown.edu/crp -o book/html/sitemap.xml
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
